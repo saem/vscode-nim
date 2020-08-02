@@ -1,15 +1,15 @@
 {
     "name": "nim",
     "displayName": "Nim",
-    "description": "Nim language support for Visual Studio Code",
+    "description": "Nim language support for Visual Studio Code -- experimenting with Nim",
     "version": "0.6.6",
-    "publisher": "kosz78",
+    "publisher": "saem",
     "author": {
-        "name": "Xored Software Inc."
+        "name": "saem"
     },
     "license": "MIT",
     "icon": "images/nim_icon.png",
-    "homepage": "https://github.com/pragmagic/vscode-nim/blob/master/README.md",
+    "homepage": "https://github.com/saem/vscode-nim/blob/master/README.md",
     "categories": [
         "Programming Languages",
         "Linters"
@@ -20,10 +20,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/pragmagic/vscode-nim.git"
+        "url": "https://github.com/saem/vscode-nim.git"
     },
     "bugs": {
-        "url": "https://github.com/pragmagic/vscode-nim/issues"
+        "url": "https://github.com/saem/vscode-nim/issues"
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
