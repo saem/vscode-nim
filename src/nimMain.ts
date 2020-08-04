@@ -9,6 +9,7 @@ import vscode = require('vscode');
 import fs = require('fs');
 import path = require('path');
 
+import { registerHello } from './hello';
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
@@ -36,6 +37,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('nim.run.file', runFile);
     vscode.commands.registerCommand('nim.check', runCheck);
     vscode.commands.registerCommand('nim.execSelectionInTerminal', execSelectionInTerminal);
+
+    ctx.subscriptions.push(registerHello());
 
     if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
         initNimSuggest();
