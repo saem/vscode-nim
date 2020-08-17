@@ -58,6 +58,11 @@ type
         documentationMD* {.importcpp: "documentation".}:VscodeMarkdownString
 
 type
+    VscodeReferenceContext* = ref VscodeReferenceContextObj
+    VscodeReferenceContextObj {.importc.} = object of JsObject
+        includeDeclaration*:bool
+
+type
     VscodeDefinition* = ref VscodeDefinitionObj
     VscodeDefinitionObj {.importc.} = object of JsObject
 

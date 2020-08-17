@@ -4,6 +4,7 @@ import jsconsole
 import nimRename
 import nimSuggest
 import nimDeclaration
+import nimReferences
 
 var module {.importc.}: JsObject
 
@@ -17,3 +18,4 @@ module.exports.registerHello = registerHello
 module.exports.nimRenameProvider = nimRenameProvider
 module.exports.nimCompletionItemProvider = nimCompletionItemProvider
 module.exports.nimDefinitionProvider = nimDefinitionProvider
+module.exports.nimReferenceProvider = nimReferenceProvider
