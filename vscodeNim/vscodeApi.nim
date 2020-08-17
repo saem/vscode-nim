@@ -58,6 +58,20 @@ type
         documentationMD* {.importcpp: "documentation".}:VscodeMarkdownString
 
 type
+    VscodeDefinition* = ref VscodeDefinitionObj
+    VscodeDefinitionObj {.importc.} = object of JsObject
+
+type
+    VscodeDefinitionLink* = ref VscodeDefinitionLinkObj
+    VscodeDefinitionLinkObj {.importc.} = object of JsObject
+
+type VscodeProviderResult* = VscodeDefinition or openArray[VscodeDefinitionLink]
+
+type
+    VscodeLocation* = ref VscodeLocationObj
+    VscodeLocationObj {.importc.} = object of JsObject
+
+type
     VscodeWorkspaceEdit* = ref VscodeWorkspaceEditObj
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
