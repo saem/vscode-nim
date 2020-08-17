@@ -4,6 +4,7 @@ version     = "0.0.1"
 author      = "saem"
 description = "Experiment converting nim vscode extension from typescript to nim"
 license     = "MIT"
+backend     = "js"
 
 # Deps
 

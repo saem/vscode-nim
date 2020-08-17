@@ -1,52 +1,23 @@
 import jsffi
 export jsffi
+import jsPromise
+export jsPromise
+import jsre
 
-# Promise Wrapping -- TODO separate out
-# Lifted from: https://gist.github.com/stisa/afc8e34cda656ee88c12428f9047bd03
-type Promise*[T] = ref object of JsObject
+type
+    VscodeMarkdownString* = ref VscodeMarkdownStringObj
+    VscodeMarkdownStringObj {.importc.} = object of JsObject
+        value*:cstring
 
-proc newPromise*[T,R](executor:proc(resolve:proc(val:T), reject:proc(reason:R))): Promise[T] {.importcpp: "new Promise(#)".}
-proc resolve*[T](val:T):Promise[T] {.importcpp: "Promise.resolve(#)",discardable.}
-proc reject*[T](reason:T):Promise[T] {.importcpp: "Promise.reject(#)",discardable.}
-proc race*[T](iterable:openarray[T]):Promise[T] {.importcpp: "Promise.race(#)",discardable.}
-proc all*[T](iterable:openarray[Promise[T]]):Promise[seq[T]] {.importcpp: "Promise.all(#)",discardable.}
+type
+    VscodeUri* = ref VscodeUriObj
+    VscodeUriObj {.importc.} = object of JsObject
+        fsPath*:cstring
 
-{.push importcpp, discardable.}
-proc then*[T](p:Promise[T], onFulfilled: proc(val:T)):Promise[T]
-proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R):Promise[R]
-proc then*[T](p:Promise[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Promise[T]
-proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R, onRejected: proc(reason:auto)):Promise[R]
-proc catch*[T](p:Promise[T], onRejected: proc(reason:auto)):Promise[T]
-proc catch*[T,R](p:Promise[T], onRejected: proc(reason:auto):R):Promise[R]
-{.pop.}
-
-#[]
-var p1 = newPromise(proc(resolve:proc(val:string), reject:proc(reason:string)) =
-  resolve("Success!")
-  )
-var p2 = newPromise(proc(resolve:proc(val:Promise[string]), reject:proc(reason:string)) =
-  resolve(val)
-  )
-p1.then( proc(val:Promise[string]) =
-  console.log(val)
-  )
-]#
-#[
-var p = resolve([1,2,3]);
-p.then(proc(v:p.T) =
-  console.log(v[0])
-)]#
-
-#[var p1 = resolve(3)
-var p2 = resolve(1337)
-all([p1, p2]).then( proc (values:seq[int]) =
-  console.log(values) 
-)]#
-#[
-proc tre(v:array[3,int]) = 
-  console.log(v[0])
-var p = resolve([1,2,3]);
-p.then(tre)]#
+type
+    VscodeTextLine* = ref VscodeTextLineObj
+    VscodeTextLineObj {.importc.} = object of JsObject
+        text*:cstring
 
 type
     VscodeTextDocument* = ref VscodeTextDocumentObj
@@ -74,6 +45,19 @@ type
     VscodeWorkspaceObj {.importc.} = object of JsObject
 
 type
+    VscodeWorkspaceFolder* = ref VscodeWorkspaceFolderObj
+    VscodeWorkspaceFolderObj {.importc.} = object of JsObject
+        uri*:VscodeUri
+
+type
+    VscodeCompletionItem* = ref VscodeCompletionItemObj
+    VscodeCompletionItemObj {.importc.} = object of JsObject
+        detail*:cstring
+        sortText*:cstring
+        documentation*:cstring
+        documentationMD* {.importcpp: "documentation".}:VscodeMarkdownString
+
+type
     VscodeWorkspaceEdit* = ref VscodeWorkspaceEditObj
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
@@ -90,6 +74,33 @@ type
     VscodeCommandsObj {.importc.} = object of JsObject
         registerCommand*: proc(name:cstring, cmd:proc()):Disposable {.closure.}
 
+type VscodeCompletionKind* {.nodecl.} = enum
+    text = 0
+    `method` = 1
+    function = 2
+    constructor = 3
+    field = 4
+    variable = 5
+    class = 6
+    `interface` = 7
+    module = 8
+    property = 9
+    unit = 10
+    value = 11
+    `enum` = 12
+    keyword = 13
+    snippet = 14
+    color = 15
+    file = 16
+    reference = 17
+    folder = 18
+    enumMember = 19
+    constant = 20
+    struct = 21
+    event = 22
+    operator = 23
+    typeParameter = 24
+
 type
     Vscode* = ref VscodeObj
     VscodeObj {.importc.} = object of JsObject
@@ -99,7 +110,8 @@ type
 proc newWorkspaceEdit*(vscode:Vscode):VscodeWorkspaceEdit {.importcpp: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.importcpp: "(new #.Position(@))".}
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
-
+proc newCompletionItem*(vscode:Vscode, name:cstring, kind:VscodeCompletionKind):VscodeCompletionItem {.importcpp: "(new #.CompletionItem(@))".}
+proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.importcpp: "(new #.MarkdownString(@))".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
@@ -107,6 +119,20 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
 
 # Workspace
 proc saveAll*(workspace:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
+
+# Document
+proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
+proc getText*(doc:VscodeTextDocument):cstring {.importcpp.}
+proc getText*(doc:VscodeTextDocument, `range`:VscodeRange):cstring {.importcpp.}
+proc getWordRangeAtPosition*(doc:VscodeTextDocument, position:VscodePosition):VscodeRange {.importcpp.}
+proc getWordRangeAtPosition*(doc:VscodeTextDocument, position:VscodePosition, regex:RegExp):VscodeRange {.importcpp.}
+
+# Range
+proc with*(
+    `range`:VscodeRange,
+    start:VscodePosition = nil,
+    `end`:VscodePosition = nil
+):VscodeRange {.importcpp: "#.with({start:#, end:#})".}
 
 var vscode*:Vscode = require("vscode").to(Vscode)
 
