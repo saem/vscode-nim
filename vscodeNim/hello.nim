@@ -1,6 +1,7 @@
 import vscodeApi
 import jsconsole
 import nimRename
+import nimSuggest
 
 var module {.importc.}: JsObject
 
@@ -12,3 +13,4 @@ proc registerHello(): Disposable =
 
 module.exports.registerHello = registerHello
 module.exports.nimRenameProvider = nimRenameProvider
+module.exports.nimCompletionItemProvider = nimCompletionItemProvider
