@@ -9,9 +9,13 @@ import vscode = require('vscode');
 import fs = require('fs');
 import path = require('path');
 
-import { registerHello, nimRenameProvider, nimCompletionItemProvider } from './hello';
+import { 
+    registerHello,
+    nimRenameProvider,
+    nimCompletionItemProvider,
+    nimDefinitionProvider
+} from './hello';
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
-import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
 import { NimHoverProvider } from './nimHover';
 import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
@@ -28,6 +32,7 @@ import { initImports, removeFileFromImports, addFileToImports } from './nimImpor
 // Ported items:
 // import { NimRenameProvider } from './nimRename';
 // import { NimCompletionItemProvider } from './nimSuggest';
+// import { NimDefinitionProvider } from './nimDeclaration';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -46,7 +51,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
         initNimSuggest();
         // ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
         ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, nimCompletionItemProvider, '.', ' '));
-        ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
+        // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
+        ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, nimDefinitionProvider));
         ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
         // ctx.subscriptions.push(vscode.languages.registerRenameProvider(NIM_MODE, new NimRenameProvider()));
         ctx.subscriptions.push(vscode.languages.registerRenameProvider(NIM_MODE, nimRenameProvider));

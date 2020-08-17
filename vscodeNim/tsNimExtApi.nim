@@ -3,7 +3,14 @@ import vscodeApi
 
 type NimSuggestType* {.nodecl.} = enum
     sug = 0
+    con = 1
+    def = 2
     use = 3
+    dus = 4
+    chk = 5
+    highlight = 6
+    outline = 7
+    known = 8
 
 type
     NimSuggestResult* = ref NimSuggestResultObj
@@ -19,6 +26,7 @@ type
         line*:cint
         column*:cint
         documentation*:cstring
+        location*:VscodeLocation
 
 # Utils
 type
