@@ -41,6 +41,10 @@ type
     VscodeCancellationTokenObj {.importc.} = object of JsObject
 
 type
+    VscodeSymbolInformation* = ref VscodeSymbolInformationObj
+    VscodeSymbolInformationObj {.importc.} = object of JsObject
+
+type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsObject
 

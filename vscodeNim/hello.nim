@@ -5,6 +5,7 @@ import nimRename
 import nimSuggest
 import nimDeclaration
 import nimReferences
+import nimOutline
 
 var module {.importc.}: JsObject
 
@@ -19,3 +20,4 @@ module.exports.nimRenameProvider = nimRenameProvider
 module.exports.nimCompletionItemProvider = nimCompletionItemProvider
 module.exports.nimDefinitionProvider = nimDefinitionProvider
 module.exports.nimReferenceProvider = nimReferenceProvider
+module.exports.nimSymbolProvider = nimSymbolProvider
