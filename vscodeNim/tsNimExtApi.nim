@@ -38,8 +38,8 @@ type
 type
     NimUtils* = ref NimUtilsObj
     NimUtilsObj = object of JsObject
-        getDirtyFile*: proc (doc:VscodeTextDocument):cstring
-        getProjectFileInfo*:proc (filename:cstring):ProjectFileInfo
+        getDirtyFile*:proc(doc:VscodeTextDocument):cstring
+        getProjectFileInfo*:proc(filename:cstring):ProjectFileInfo
 
 let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 
@@ -47,13 +47,13 @@ let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 type
     NimSuggestExec* = ref NimSuggestExecObj
     NimSuggestExecObj {.importc.} = object of JsObject
-        execNimSuggest*: proc(
-                suggestType:NimSuggestType,
-                filename:cstring,
-                line:cint,
-                column:cint,
-                dirtyFile: cstring
-            ):Promise[openArray[NimSuggestResult]]
+        execNimSuggest*:proc(
+            suggestType:NimSuggestType,
+            filename:cstring,
+            line:cint,
+            column:cint,
+            dirtyFile: cstring
+        ):Promise[openArray[NimSuggestResult]]
 
 let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestExec)
 
@@ -61,11 +61,23 @@ let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestEx
 type
     NimImports* = ref NimImportsObj
     NimImportsObj {.importc.} = object of JsObject
-
-proc getImports*(
-    nimImports:NimImports,
-    prefix:cstring = nil,
-    projectDir:cstring
-):openArray[VscodeCompletionItem] {.importcpp.}
+        getImports*:proc(
+            prefix:cstring = nil,
+            projectDir:cstring
+        ):seq[VscodeCompletionItem]
 
 let nimImports*:NimImports = require("./nimImports").to(NimImports)
+
+# Indexer
+type
+    NimIndexer* = ref NimIndexerObj
+    NimIndexerObj {.importc.} = object of JsObject
+        findWorkspaceSymbols*:proc(
+            query:cstring
+        ):Promise[seq[VscodeSymbolInformation]]
+        getFileSymbols*:proc(
+            filename:cstring,
+            dirtyFile:cstring = nil
+        ):Promise[seq[VscodeSymbolInformation]]
+
+let nimIndexer*:NimIndexer = require("./nimIndexer").to(NimIndexer)
