@@ -6,6 +6,7 @@ import nimSuggest
 import nimDeclaration
 import nimReferences
 import nimOutline
+import nimSignature
 
 var module {.importc.}: JsObject
 
@@ -21,3 +22,4 @@ module.exports.nimCompletionItemProvider = nimCompletionItemProvider
 module.exports.nimDefinitionProvider = nimDefinitionProvider
 module.exports.nimReferenceProvider = nimReferenceProvider
 module.exports.nimSymbolProvider = nimSymbolProvider
+module.exports.nimSignatureProvider = nimSignatureProvider

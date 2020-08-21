@@ -45,6 +45,22 @@ type
     VscodeSymbolInformationObj {.importc.} = object of JsObject
 
 type
+    VscodeParameterInformation* = ref VscodeParameterInformationObj
+    VscodeParameterInformationObj {.importc.} = object of JsObject
+
+type
+    VscodeSignatureInformation* = ref VscodeSignatureInformationObj
+    VscodeSignatureInformationObj {.importc.} = object of JsObject
+        parameters*:seq[VscodeParameterInformation]
+
+type
+    VscodeSignatureHelp* = ref VscodeSignatureHelpObj
+    VscodeSignatureHelpObj {.importc.} = object of JsObject
+        signatures*:seq[VscodeSignatureInformation]
+        activeSignature*:cint
+        activeParameter*:cint
+
+type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsObject
 
@@ -135,6 +151,9 @@ proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.import
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
 proc newCompletionItem*(vscode:Vscode, name:cstring, kind:VscodeCompletionKind):VscodeCompletionItem {.importcpp: "(new #.CompletionItem(@))".}
 proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.importcpp: "(new #.MarkdownString(@))".}
+proc newSignatureHelp*(vscode:Vscode):VscodeSignatureHelp {.importcpp: "(new #.SignatureHelp(@))".}
+proc newSignatureInformation*(vscode:Vscode, kind:cstring, docString:cstring):VscodeSignatureInformation {.importcpp: "(new #.SignatureInformation(@))".}
+proc newParameterInformation*(vscode:Vscode, name:cstring):VscodeParameterInformation {.importcpp: "(new #.ParameterInformation(@))".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}

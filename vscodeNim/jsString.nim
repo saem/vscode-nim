@@ -2,6 +2,8 @@
 ## JS Strings makes cstring have simmilar methods to normal nim string when in js mode.
 ## If you are doing with a ton of JS string data, JS strings might be faster
 
+import jsre
+
 when not defined(js) and not defined(Nimdoc):
   {.error: "This module only works on the JavaScript platform".}
 
@@ -42,6 +44,8 @@ proc find*(s: cstring, a: cstring): cint {.importcpp: "#.indexOf(#)".}
   ## element).
   ##
   ## Searching is case-sensitive. If `sub` is not in `s`, -1 is returned.
+
+proc find*(s: cstring, a: RegExp): cint {.importcpp: "#.search(#)".}
 
 proc contains*(s, sub: cstring): bool {.noSideEffect.} =
   ## Same as ``find(s, sub) >= 0``.
