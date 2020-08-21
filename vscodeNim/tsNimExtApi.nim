@@ -17,7 +17,7 @@ type
     NimSuggestResultObj {.importc.} = object of JsObject
         `range`*:VscodeRange
         symbolName*:cstring
-        names*:cstring
+        names*:seq[cstring]
         fullName*:cstring
         answerType*:cstring
         suggest*:cstring
@@ -81,3 +81,15 @@ type
         ):Promise[seq[VscodeSymbolInformation]]
 
 let nimIndexer*:NimIndexer = require("./nimIndexer").to(NimIndexer)
+
+# Signature
+type
+    NimSignature* = ref NimSignatureObj
+    NimSignatureObj {.importc.} = object of JsObject
+        provideSignatureHelp*:proc(
+            doc:VscodeTextDocument,
+            position:VscodePosition,
+            token:VscodeCancellationToken
+        ):Promise[VscodeSignatureHelp]
+
+let nimSignature*:NimSignature = require("./nimSignature").to(NimSignature)

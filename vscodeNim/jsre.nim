@@ -21,13 +21,16 @@ type RegExp* {.importjs.} = object    ## Regular Expressions for JavaScript targ
   leftContext* {.importjs.}: cstring  ## Ditto.
   rightContext* {.importjs.}: cstring ## Ditto.
 
+func newRegExp*(pattern: cstring): RegExp {.importjs: "(new RegExp(@))".}
+  ## Creates a new RegExp object.
+
 func newRegExp*(pattern: cstring; flags: cstring): RegExp {.importjs: "(new RegExp(@))".}
   ## Creates a new RegExp object.
 
 func compile*(self: RegExp; pattern: cstring; flags: cstring) {.importjs: "#.compile(@)".}
   ## Recompiles a regular expression during execution of a script.
 
-func exec*(self: RegExp; pattern: cstring): seq[cstring] {.importjs: "#.exec(#)".}
+func exec*(self: RegExp; str: cstring): seq[cstring] {.importjs: "#.exec(#)".}
   ## Executes a search for a match in its string parameter.
 
 func test*(self: RegExp; str: cstring): bool {.importjs: "#.test(#)".}
