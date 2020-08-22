@@ -11,5 +11,8 @@
     "editor.insertSpaces": true,
     "editor.renderWhitespace": "none",
     "editor.tabSize": 4,
-    "tslint.enable": true
+    "tslint.enable": true,
+
+    "nim.buildCommand": "js",
+    "nim.runOutputDirectory": "out"
 }

@@ -40,7 +40,7 @@ func toString*(self: RegExp): cstring {.importjs: "#.toString()".}
   ## Returns a string representing the RegExp object.
 
 
-runnableExamples:
+when isMainModule:
   let jsregex: RegExp = newRegExp(r"\s+", r"i")
   jsregex.compile(r"\w+", r"i")
   doAssert jsregex.test(r"nim javascript")
