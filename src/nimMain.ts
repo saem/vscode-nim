@@ -16,10 +16,10 @@ import {
     nimDefinitionProvider,
     nimReferenceProvider,
     nimSymbolProvider,
-    nimSignatureProvider
+    nimSignatureProvider,
+    nimHoverProvider,
 } from './hello';
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
-import { NimHoverProvider } from './nimHover';
 import * as indexer from './nimIndexer';
 import { NimFormattingProvider } from './nimFormatting';
 import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
@@ -36,6 +36,7 @@ import { initImports, removeFileFromImports, addFileToImports } from './nimImpor
 // import { NimReferenceProvider } from './nimReferences';
 // import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
 // import { NimSignatureHelpProvider } from './nimSignature';
+// import { NimHoverProvider } from './nimHover';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -58,6 +59,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         // ctx.subscriptions.push(vscode.languages.registerRenameProvider(NIM_MODE, new NimRenameProvider()));
         // ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
         // ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
+        // ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
 
         ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, nimCompletionItemProvider, '.', ' '));
         ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, nimDefinitionProvider));
@@ -65,8 +67,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
         ctx.subscriptions.push(vscode.languages.registerRenameProvider(NIM_MODE, nimRenameProvider));
         ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, nimSymbolProvider));
         ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, nimSignatureProvider, '(', ','));
+        ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, nimHoverProvider));
 
-        ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
         ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
     }
 

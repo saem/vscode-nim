@@ -93,3 +93,10 @@ type
         ):Promise[VscodeSignatureHelp]
 
 let nimSignature*:NimSignature = require("./nimSignature").to(NimSignature)
+
+type
+    NimMode* = ref NimModeObj
+    NimModeObj {.importc.} = object of JsObject
+        mode* {.importcpp: "NIM_MODE".}:VscodeDocumentFilter
+
+let nimMode*:NimMode = require("./nimMode").to(NimMode)

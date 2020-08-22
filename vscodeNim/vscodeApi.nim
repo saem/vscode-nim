@@ -5,6 +5,12 @@ export jsPromise
 import jsre
 
 type
+    VscodeDocumentFilter* = ref VscodeDocumentFilterObj
+    VscodeDocumentFilterObj {.importc.} = object of JsObject
+        language*:cstring
+        scheme*:cstring
+
+type
     VscodeMarkdownString* = ref VscodeMarkdownStringObj
     VscodeMarkdownStringObj {.importc.} = object of JsObject
         value*:cstring
@@ -39,6 +45,27 @@ type
 type
     VscodeCancellationToken* = ref VscodeCancellationTokenObj
     VscodeCancellationTokenObj {.importc.} = object of JsObject
+
+type VscodeHoverLabel* = ref object
+    # Not explictly named in vscode API, see type literal under MarkedString
+    language*:cstring
+    value*:cstring
+
+type
+    VscodeMarkedString* = ref VscodeMarkedStringObj
+    VscodeMarkedStringObj {.importc.} = object of JsObject
+proc cstringToMarkedString(s:cstring):VscodeMarkedString {.importcpp:"#".}
+converter toVscodeMarkedString*(s:cstring):VscodeMarkedString = s.cstringToMarkedString()
+proc hoverLabelToMarkedString(s:VscodeHoverLabel):VscodeMarkedString {.importcpp:"#".}
+converter toVscodeMarkedString*(s:VscodeHoverLabel):VscodeMarkedString = s.hoverLabelToMarkedString()
+proc markdownStringToMarkedString(s:VscodeMarkdownString):VscodeMarkedString {.importcpp:"#".}
+converter toVscodeMarkedString*(s:VscodeMarkdownString):VscodeMarkedString = s.markdownStringToMarkedString()
+
+type
+    VscodeHover* = ref VscodeHoverObj
+    VscodeHoverObj {.importc.} = object of JsObject
+        contents*:seq[VscodeMarkedString]
+        `range`*:VscodeRange
 
 type
     VscodeSymbolInformation* = ref VscodeSymbolInformationObj
@@ -154,6 +181,10 @@ proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.impo
 proc newSignatureHelp*(vscode:Vscode):VscodeSignatureHelp {.importcpp: "(new #.SignatureHelp(@))".}
 proc newSignatureInformation*(vscode:Vscode, kind:cstring, docString:cstring):VscodeSignatureInformation {.importcpp: "(new #.SignatureInformation(@))".}
 proc newParameterInformation*(vscode:Vscode, name:cstring):VscodeParameterInformation {.importcpp: "(new #.ParameterInformation(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
