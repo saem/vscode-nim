@@ -82,6 +82,7 @@ proc parseFloatJS*(s: cstring): float {.importcpp:"parseFloat(#)".} =
 
 when isMainModule:
   import math
+  import jsffi
 
   let
     a = cstring "hello "
