@@ -8,3 +8,4 @@ export const nimReferenceProvider:vscode.ReferenceProvider
 export const nimSymbolProvider:vscode.WorkspaceSymbolProvider & vscode.DocumentSymbolProvider
 export const nimSignatureProvider:vscode.SignatureHelpProvider
 export const nimHoverProvider:vscode.HoverProvider
+export const nimFormattingProvider:vscode.DocumentFormattingEditProvider
