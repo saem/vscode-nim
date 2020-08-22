@@ -40,6 +40,7 @@ type
     NimUtilsObj = object of JsObject
         getDirtyFile*:proc(doc:VscodeTextDocument):cstring
         getProjectFileInfo*:proc(filename:cstring):ProjectFileInfo
+        getNimPrettyExecPath*:proc():cstring
 
 let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 

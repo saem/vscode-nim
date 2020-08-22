@@ -8,6 +8,7 @@ import nimReferences
 import nimOutline
 import nimSignature
 import nimHover
+import nimFormatting
 
 var module {.importc.}: JsObject
 
@@ -25,3 +26,4 @@ module.exports.nimReferenceProvider = nimReferenceProvider
 module.exports.nimSymbolProvider = nimSymbolProvider
 module.exports.nimSignatureProvider = nimSignatureProvider
 module.exports.nimHoverProvider = nimHoverProvider
+module.exports.nimFormattingProvider = nimFormattingProvider

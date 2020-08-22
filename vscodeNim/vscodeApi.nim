@@ -4,6 +4,8 @@ import jsPromise
 export jsPromise
 import jsre
 
+## TODO: Move from JsObject to JsRoot for more explict errors
+
 type
     VscodeDocumentFilter* = ref VscodeDocumentFilterObj
     VscodeDocumentFilterObj {.importc.} = object of JsObject
@@ -72,6 +74,10 @@ type
     VscodeSymbolInformationObj {.importc.} = object of JsObject
 
 type
+    VscodeFormattingOptions* = ref VscodeFormattingOptionsObj
+    VscodeFormattingOptionsObj {.importc.} = object of JsObject
+
+type
     VscodeParameterInformation* = ref VscodeParameterInformationObj
     VscodeParameterInformationObj {.importc.} = object of JsObject
 
@@ -90,6 +96,11 @@ type
 type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsObject
+        rootPath*:cstring
+
+type
+    VscodeWorkspaceConfiguration* = ref VscodeWorkspaceConfigurationObj
+    VscodeWorkspaceConfigurationObj {.importc.} = object of JsObject
 
 type
     VscodeWorkspaceFolder* = ref VscodeWorkspaceFolderObj
@@ -103,6 +114,10 @@ type
         sortText*:cstring
         documentation*:cstring
         documentationMD* {.importcpp: "documentation".}:VscodeMarkdownString
+
+type
+    VscodeTextEdit* = ref VscodeTextEditObj
+    VscodeTextEditObj {.importc.} = object of JsObject
 
 type
     VscodeReferenceContext* = ref VscodeReferenceContextObj
@@ -192,6 +207,7 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
 
 # Workspace
 proc saveAll*(workspace:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
+proc getConfiguration*(workspace:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
 
 # Document
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
@@ -199,6 +215,7 @@ proc getText*(doc:VscodeTextDocument):cstring {.importcpp.}
 proc getText*(doc:VscodeTextDocument, `range`:VscodeRange):cstring {.importcpp.}
 proc getWordRangeAtPosition*(doc:VscodeTextDocument, position:VscodePosition):VscodeRange {.importcpp.}
 proc getWordRangeAtPosition*(doc:VscodeTextDocument, position:VscodePosition, regex:RegExp):VscodeRange {.importcpp.}
+proc validateRange*(doc:VscodeTextDocument, `range`:VscodeRange):VscodeRange {.importcpp.}
 
 # Range
 proc with*(
@@ -207,8 +224,14 @@ proc with*(
     `end`:VscodePosition = nil
 ):VscodeRange {.importcpp: "#.with({start:#, end:#})".}
 
+# TextEdit
+
+## static function, but the import in js is "dynamic" in the variable it's assigned to
+proc textEditReplace*(vscode:Vscode, `range`:VscodeRange, content:cstring):VscodeTextEdit {.importcpp: "#.TextEdit.replace(@)".}
+
 var vscode*:Vscode = require("vscode").to(Vscode)
 
 ## References / Helpful Links
 ## 
+## Union types for function input params arguments: https://forum.nim-lang.org/t/1628
 ## Nim ES2015 class macros: https://github.com/kristianmandrup/nim_es2015_classes/blob/master/src/es_class.nim
