@@ -6,3 +6,5 @@ type
         env*:JsAssoc[cstring,cstring]
 
 var process* {.importc, nodecl.}:ProcessModule
+
+var numberMinValue* {.importc:"(Number.MIN_VALUE)", nodecl.}: cdouble

@@ -22,15 +22,22 @@ import {
 
     // nimBuild
     check, execSelectionInTerminal, activateEvalConsole,
+
+    // nimStatus
+    showHideStatus
 } from './hello';
+
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
 import * as indexer from './nimIndexer';
-// import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
 import { NIM_MODE } from './nimMode';
-import { showHideStatus } from './nimStatus';
 import { getDirtyFile, outputLine } from './nimUtils';
-import { ProgressLocation } from 'vscode';
 import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
+
+import { ProgressLocation } from 'vscode';
+
+// Ported
+// import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
+// import { showHideStatus } from './nimStatus';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
