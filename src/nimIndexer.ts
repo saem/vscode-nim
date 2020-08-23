@@ -11,7 +11,12 @@ import path = require('path');
 import fs = require('fs');
 
 import { getNimSuggestPath, execNimSuggest, NimSuggestType } from './nimSuggestExec';
-import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus';
+import {
+    // nimStatus
+    showNimProgress,
+    hideNimProgress,
+    updateNimProgress,
+} from './hello';
 
 let dbVersion: number = 4;
 

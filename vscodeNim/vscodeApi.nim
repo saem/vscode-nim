@@ -94,11 +94,6 @@ type
         activeParameter*:cint
 
 type
-    VscodeWorkspace* = ref VscodeWorkspaceObj
-    VscodeWorkspaceObj {.importc.} = object of JsObject
-        rootPath*:cstring
-
-type
     VscodeConfigurationChangeEvent* = VscodeConfigurationChangeEventObj
     VscodeConfigurationChangeEventObj {.importc.} = object of JsRoot
 
@@ -147,18 +142,35 @@ type
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
 type
+    VscodeSelection* = ref VscodeSelectionObj
+    VscodeSelectionObj {.importc.} = object of VscodeRange
+
+type
     VscodeTerminal* = ref VscodeTerminalObj
     VscodeTerminalObj {.importc.} = object of JsObject
 
 type
-    VscodeSelection* = ref VscodeSelectionObj
-    VscodeSelectionObj {.importc.} = object of VscodeRange
+    VscodeStatusBarItem* = ref VscodeStatusBarItemObj
+    VscodeStatusBarItemObj {.importc.} = object of JsRoot
+        text*:cstring
+        command*:cstring
+        color*:cstring
+        tooltip*:cstring
 
 type
     VscodeTextEditor* = ref VscodeTextEditorObj
     VscodeTextEditorObj {.importc.} = object of JsObject
         document*:VscodeTextDocument
         selection*:VscodeSelection
+
+type
+    VscodeWorkspace* = ref VscodeWorkspaceObj
+    VscodeWorkspaceObj {.importc.} = object of JsObject
+        rootPath*:cstring
+
+type
+    VscodeLanguages* = ref VscodeLanguagesObj
+    VscodeLanguagesObj {.importc.} = object of JsRoot
 
 type
     VscodeWindow* = ref VscodeWindowObj
@@ -173,6 +185,10 @@ type
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
         registerCommand*: proc(name:cstring, cmd:proc()):VscodeDisposable {.closure.}
+
+type VscodeStatusBarAlignment* {.nodecl.} = enum
+    left = 1
+    right = 2
 
 type VscodeCompletionKind* {.nodecl.} = enum
     text = 0
@@ -207,6 +223,7 @@ type
         window*: VscodeWindow
         commands*: VscodeCommands
         workspace*: VscodeWorkspace
+        languages*: VscodeLanguages
 proc newWorkspaceEdit*(vscode:Vscode):VscodeWorkspaceEdit {.importcpp: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.importcpp: "(new #.Position(@))".}
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
@@ -219,6 +236,7 @@ proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString):VscodeHover {.i
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc createStatusBarItem*(vscode:Vscode, align:VscodeStatusBarAlignment, val:cdouble):VscodeStatusBarItem {.importcpp.}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
@@ -229,11 +247,19 @@ proc saveAll*(workspace:VscodeWorkspace, includeUntitledFile:bool):Promise[bool]
 proc getConfiguration*(workspace:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
 proc onDidChangeConfiguration*(workspace:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
 
+# Languages
+proc match*(langs:VscodeLanguages, selector:VscodeDocumentFilter, doc:VscodeTextDocument):cint {.importcpp.}
+
 # Window
 proc createTerminal*(window:VscodeWindow, name:cstring):VscodeTerminal {.importcpp.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
+
+# StatusBarItem
+proc show*(item:VscodeStatusBarItem):void {.importcpp.}
+proc hide*(item:VscodeStatusBarItem):void {.importcpp.}
+proc dispose*(item:VscodeStatusBarItem):void {.importcpp.}
 
 # Document
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
