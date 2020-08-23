@@ -75,10 +75,13 @@ proc replace*(s, sub: cstring, by = cstring""): cstring {.importcpp:"#.replace(#
 proc strip*(s: cstring): cstring {.importcpp:"#.trim()".} 
   ## Strips leading or trailing spaces 
 
-proc parseFloatJS*(s: cstring): float {.importcpp:"parseFloat(#)".} =
+proc parseFloatJS*(s: cstring): float {.importcpp:"parseFloat(#)".}
   ## Parses a decimal floating point value contained in `s`
   ## Using JS's native float parsing function
 
+proc parseCint*(s: cstring): cint {.importcpp:"parseInt(#)".}
+  ## Parses an int value contained in `s`
+  ## Using JS's native float parsing function
 
 when isMainModule:
   import math

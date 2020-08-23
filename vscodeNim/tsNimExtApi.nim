@@ -38,9 +38,21 @@ type
 type
     NimUtils* = ref NimUtilsObj
     NimUtilsObj = object of JsObject
-        getDirtyFile*:proc(doc:VscodeTextDocument):cstring
-        getProjectFileInfo*:proc(filename:cstring):ProjectFileInfo
+        getNimExecPath*:proc():cstring
+        isWorkspaceFile*:proc(filePath:cstring):bool
+        toProjectInfo*:proc(filePath:cstring):ProjectFileInfo
+        toLocalFile*:proc(project:ProjectFileInfo):cstring
         getNimPrettyExecPath*:proc():cstring
+        getNimbleExecPath*:proc():cstring
+        getProjectFileInfo*:proc(filename:cstring):ProjectFileInfo
+        getDirtyFile*:proc(doc:VscodeTextDocument):cstring
+        isProjectMode*:proc():bool
+        getProjects*:proc():seq[ProjectFileInfo]
+        prepareConfig*:proc():void
+        getBinPath*:proc(tool:cstring):cstring
+        correctBinname*:proc(binname:cstring):cstring
+        removeDirSync*:proc(p:cstring):void
+        outputLine*:proc(msg:cstring):void
 
 let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 
@@ -101,3 +113,21 @@ type
         mode* {.importcpp: "NIM_MODE".}:VscodeDocumentFilter
 
 let nimMode*:NimMode = require("./nimMode").to(NimMode)
+
+# SExp
+type SExp* = ref object of JsObject
+    ## doing this to keep the compiler happy for now
+
+# RPC
+type ElRpc* = ref object
+
+type
+    EPCPeer* = ref EPCPeerObj
+    EPCPeerObj {.importc.} = object of JsRoot
+
+proc callMethod*(peer:EPCPeer, methodName:cstring, params:varargs[SExp]):Promise[JsRoot] {.importcpp.}
+proc stop*(peer:EPCPeer):void {.importcpp.}
+
+proc startClient*(elrpc:ElRpc, port:cint):Promise[EPCPeer] {.importcpp.}
+
+let elrpc*:ElRpc = require("./elrpc/elrpc").to(ElRpc)

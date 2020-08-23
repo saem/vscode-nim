@@ -19,10 +19,13 @@ import {
     nimSignatureProvider,
     nimHoverProvider,
     nimFormattingProvider,
+
+    // nimBuild
+    check, execSelectionInTerminal, activateEvalConsole,
 } from './hello';
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
 import * as indexer from './nimIndexer';
-import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
+// import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
 import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
 import { getDirtyFile, outputLine } from './nimUtils';
