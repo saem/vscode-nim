@@ -6,9 +6,9 @@ proc provideReferences*(
     position:VscodePosition,
     options: VscodeReferenceContext,
     token:VscodeCancellationToken
-): Promise[openArray[VscodeLocation]] = 
+): Promise[seq[VscodeLocation]] = 
     return newPromise(proc (
-      resolve:proc(val:openArray[VscodeLocation]),
+      resolve:proc(val:seq[VscodeLocation]),
       reject:proc(reason:JsObject)
     ) = vscode.workspace.saveAll(false).then(proc () =
         let pos:cint = position.line + 1
@@ -19,7 +19,7 @@ proc provideReferences*(
             position.character,
             nimUtils.getDirtyFile(doc)
         ).then(
-            proc(results:openArray[NimSuggestResult]) =
+            proc(results:seq[NimSuggestResult]) =
                 var references: seq[VscodeLocation] = @[]
                 if(not result.isNull() and not result.isUndefined()):
                     for item in results:

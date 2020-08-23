@@ -2,7 +2,7 @@ import jsffi
 
 # Promise Wrapping -- TODO separate out
 # Lifted from: https://gist.github.com/stisa/afc8e34cda656ee88c12428f9047bd03
-type Promise*[T] = ref object of JsObject
+type Promise*[T] = ref object of JsRoot
 
 proc newPromise*[T,R](executor:proc(resolve:proc(val:T), reject:proc(reason:R))): Promise[T] {.importcpp: "new Promise(#)".}
 proc resolve*[T](val:T):Promise[T] {.importcpp: "Promise.resolve(#)",discardable.}
@@ -11,6 +11,7 @@ proc race*[T](iterable:openarray[T]):Promise[T] {.importcpp: "Promise.race(#)",d
 proc all*[T](iterable:openarray[Promise[T]]):Promise[seq[T]] {.importcpp: "Promise.all(#)",discardable.}
 
 {.push importcpp, discardable.}
+proc then*[T](p:Promise[T], onFulfilled: proc()):Promise[T]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T)):Promise[T]
 proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R):Promise[R]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Promise[T]

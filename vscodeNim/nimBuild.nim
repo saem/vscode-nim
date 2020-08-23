@@ -113,10 +113,14 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
     var lastColumn:cstring = ""
     var lastLine:cstring = ""
 
+    console.log("parseErrors", lines)
+
     for l in lines:
         var line:cstring = l.strip()
         if line.startsWith("Hint:"):
             continue
+
+        console.log("parseErrors - non-hint:", line)
 
         var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)").exec(line)
         if not match.isNull():
@@ -165,9 +169,11 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
 
 proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
     var ret:seq[CheckResult] = @[]
+    console.log("parseNimsuggestErrors", jsArguments)
     for item in items:
         if item.path == "???" and item.`type` == "Hint":
             continue
+        console.log("parseNimsuggestErrors - per item", item)
         ret.add(CheckResult{
             file:item.path,
             line:item.line,
@@ -175,6 +181,8 @@ proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
             msg:item.documentation,
             severity:item.`type`
         })
+
+    console.log("parseNimsuggestErrors - return", ret)
     return ret
 
 proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[seq[CheckResult]] =
@@ -215,11 +223,13 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                     parseErrors
                 ))
 
+    console.log("check - before all", runningToolsPromises)
     return all(runningToolsPromises).then(proc(resultSets:seq[seq[CheckResult]]):seq[CheckResult] =
             console.log("check - all", jsArguments)
             var ret:seq[CheckResult] = @[]
             for rs in resultSets:
                 ret.add(rs)
+            console.log("check - result", ret)
             return ret
         )
 

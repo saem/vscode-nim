@@ -20,7 +20,7 @@ proc provideDefinition*(
             position.character,
             nimUtils.getDirtyFile(doc)
         ).then(
-            proc(result:openArray[NimSuggestResult]) =
+            proc(result:seq[NimSuggestResult]) =
                 if(not result.isNull() and not result.isUndefined() and result.len > 0):
                     let def = result[0]
                     if(def.isUndefined() or def.isNull()):

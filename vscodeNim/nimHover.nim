@@ -17,7 +17,7 @@ proc provideHover*(
             pos,
             position.character,
             nimUtils.getDirtyFile(doc)
-        ).then(proc(items:openArray[NimSuggestResult]) =
+        ).then(proc(items:seq[NimSuggestResult]) =
             if(not items.isNull() and not items.isUndefined() and items.len > 0):
                 var definition = items[items.len - 1]
                 var label = definition.fullName

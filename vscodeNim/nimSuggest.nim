@@ -45,9 +45,9 @@ proc provideCompletionItems*(
     position:VscodePosition,
     newName:cstring,
     token:VscodeCancellationToken
-  ): Promise[openArray[VscodeCompletionItem]] = 
+  ): Promise[seq[VscodeCompletionItem]] = 
     return newPromise(proc (
-      resolve:proc(val:openArray[VscodeCompletionItem]),
+      resolve:proc(val:seq[VscodeCompletionItem]),
       reject:proc(reason:JsObject)
     ) = vscode.workspace.saveAll(false).then(proc () =
         let filename = doc.fileName
@@ -75,7 +75,7 @@ proc provideCompletionItems*(
                 startPos,
                 position.character,
                 nimUtils.getDirtyFile(doc)
-            ).then(proc(items:openArray[NimSuggestResult]) =
+            ).then(proc(items:seq[NimSuggestResult]) =
                 var suggestions: seq[VscodeCompletionItem] = @[]
                 if (not items.isNull() and not items.isUndefined()):
                     for item in items:

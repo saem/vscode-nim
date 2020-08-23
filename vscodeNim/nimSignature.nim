@@ -72,7 +72,7 @@ proc provideSignatureHelp(
                 startPos,
                 position.character,
                 nimUtils.getDirtyFile(doc)
-            ).then(proc(items:openArray[NimSuggestResult]) =
+            ).then(proc(items:seq[NimSuggestResult]) =
                 var signatures = vscode.newSignatureHelp()
                 var isModule = 0
                 if not (items.isNull or items.isUndefined):
