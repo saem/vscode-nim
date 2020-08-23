@@ -29,7 +29,7 @@ type
 
 type
     VscodeTextDocument* = ref VscodeTextDocumentObj
-    VscodeTextDocumentObj {.importc.} = object of JsObject
+    VscodeTextDocumentObj {.importc.} = object of JsRoot
         fileName*:cstring
 
 type
@@ -99,6 +99,10 @@ type
         rootPath*:cstring
 
 type
+    VscodeConfigurationChangeEvent* = VscodeConfigurationChangeEventObj
+    VscodeConfigurationChangeEventObj {.importc.} = object of JsRoot
+
+type
     VscodeWorkspaceConfiguration* = ref VscodeWorkspaceConfigurationObj
     VscodeWorkspaceConfigurationObj {.importc.} = object of JsObject
 
@@ -143,17 +147,32 @@ type
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
 type
-    VscodeWindow* = ref VscodeWindowObj
-    VscodeWindowObj {.importc.} = object of JsObject
+    VscodeTerminal* = ref VscodeTerminalObj
+    VscodeTerminalObj {.importc.} = object of JsObject
 
 type
-    Disposable* = ref DisposableObj
-    DisposableObj {.importc.} = object of JsObject
+    VscodeSelection* = ref VscodeSelectionObj
+    VscodeSelectionObj {.importc.} = object of VscodeRange
+
+type
+    VscodeTextEditor* = ref VscodeTextEditorObj
+    VscodeTextEditorObj {.importc.} = object of JsObject
+        document*:VscodeTextDocument
+        selection*:VscodeSelection
+
+type
+    VscodeWindow* = ref VscodeWindowObj
+    VscodeWindowObj {.importc.} = object of JsObject
+        activeTextEditor*:VscodeTextEditor
+
+type
+    VscodeDisposable* = ref VscodeDisposableObj
+    VscodeDisposableObj {.importc.} = object of JsObject
 
 type
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
-        registerCommand*: proc(name:cstring, cmd:proc()):Disposable {.closure.}
+        registerCommand*: proc(name:cstring, cmd:proc()):VscodeDisposable {.closure.}
 
 type VscodeCompletionKind* {.nodecl.} = enum
     text = 0
@@ -208,6 +227,13 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
 # Workspace
 proc saveAll*(workspace:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
 proc getConfiguration*(workspace:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
+proc onDidChangeConfiguration*(workspace:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
+
+# Window
+proc createTerminal*(window:VscodeWindow, name:cstring):VscodeTerminal {.importcpp.}
+
+# Terminal
+proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
 
 # Document
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
@@ -228,6 +254,10 @@ proc with*(
 
 ## static function, but the import in js is "dynamic" in the variable it's assigned to
 proc textEditReplace*(vscode:Vscode, `range`:VscodeRange, content:cstring):VscodeTextEdit {.importcpp: "#.TextEdit.replace(@)".}
+
+# Events
+
+proc affectsConfiguration*(event:VscodeConfigurationChangeEvent, section:cstring):bool {.importcpp.}
 
 var vscode*:Vscode = require("vscode").to(Vscode)
 
