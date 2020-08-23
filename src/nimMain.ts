@@ -29,16 +29,6 @@ import { getDirtyFile, outputLine } from './nimUtils';
 import { ProgressLocation } from 'vscode';
 import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
 
-// Ported items:
-// import { NimRenameProvider } from './nimRename';
-// import { NimCompletionItemProvider } from './nimSuggest';
-// import { NimDefinitionProvider } from './nimDeclaration';
-// import { NimReferenceProvider } from './nimReferences';
-// import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
-// import { NimSignatureHelpProvider } from './nimSignature';
-// import { NimHoverProvider } from './nimHover';
-// import { NimFormattingProvider } from './nimFormatting';
-
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
 var terminal: vscode.Terminal | undefined;
@@ -54,15 +44,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
         initNimSuggest();
-        // ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
-        // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
-        // ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
-        // ctx.subscriptions.push(vscode.languages.registerRenameProvider(NIM_MODE, new NimRenameProvider()));
-        // ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
-        // ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
-        // ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
-        // ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
-
         ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, nimCompletionItemProvider, '.', ' '));
         ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, nimDefinitionProvider));
         ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, nimReferenceProvider));
