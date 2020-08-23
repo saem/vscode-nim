@@ -66,7 +66,7 @@ type
             line:cint,
             column:cint,
             dirtyFile: cstring
-        ):Promise[openArray[NimSuggestResult]]
+        ):Promise[seq[NimSuggestResult]]
 
 let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestExec)
 

@@ -18,7 +18,7 @@ proc provideRenameEdits*(
         pos,
         position.character,
         nimUtils.getDirtyFile(doc)
-      ).then(proc (suggestions:openArray[NimSuggestResult]) =
+      ).then(proc (suggestions:seq[NimSuggestResult]) =
         var references = vscode.newWorkspaceEdit()
         if not suggestions.isNull() and not suggestions.isUndefined():
           for item in suggestions:
