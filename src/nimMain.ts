@@ -24,11 +24,13 @@ import {
     check, execSelectionInTerminal, activateEvalConsole,
 
     // nimStatus
-    showHideStatus
+    showHideStatus,
+
+    // nimIndexer
+    initWorkspace,
 } from './hello';
 
 import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
-import * as indexer from './nimIndexer';
 import { NIM_MODE } from './nimMode';
 import { getDirtyFile, outputLine } from './nimUtils';
 import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
@@ -38,6 +40,7 @@ import { ProgressLocation } from 'vscode';
 // Ported
 // import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
 // import { showHideStatus } from './nimStatus';
+// import * as indexer from './nimIndexer';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -135,7 +138,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     console.log(ctx.extensionPath);
     activateEvalConsole();
-    indexer.initWorkspace(ctx.extensionPath);
+    initWorkspace(ctx.extensionPath);
     fileWatcher = vscode.workspace.createFileSystemWatcher('**/*.nim');
     fileWatcher.onDidCreate((uri) => {
         if (config.has('licenseString')) {

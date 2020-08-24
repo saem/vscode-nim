@@ -6,6 +6,7 @@ type
     Path* = ref PathObj
     PathObj {.importc.} = object of JsRoot
 
-proc resolve*(path:Path, paths:varargs[cstring]):Path {.importcpp.}
+proc resolve*(path:Path, paths:cstring):Path {.importcpp, varargs.}
+proc join*(path:Path, paths:cstring):cstring {.importcpp, varargs.}
 
 var path*:Path = require("path").to(Path)

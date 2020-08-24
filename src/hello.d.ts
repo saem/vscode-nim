@@ -29,3 +29,11 @@ export function hideNimProgress():void
 export function showNimStatus(message: string, command: string, tooltip?: string):void
 export function showNimProgress(message: string):void
 export function updateNimProgress(message: string):void
+
+// nimIndexer
+export function addWorkspaceFile(file: string): void
+export function removeWorkspaceFile(file: string): void
+export function changeWorkspaceFile(file: string): void
+export function initWorkspace(extensionPath: string): Promise<void>
+export function findWorkspaceSymbols(query: string): Promise<vscode.SymbolInformation[]>
+export function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode.SymbolInformation[]>
