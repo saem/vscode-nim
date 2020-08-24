@@ -12,6 +12,7 @@ import nimFormatting
 
 import nimBuild
 import nimStatus
+import nimIndexer
 
 var module {.importc.}: JsObject
 
@@ -43,3 +44,11 @@ module.exports.hideNimStatus = hideNimStatus
 module.exports.showNimProgress = showNimProgress
 module.exports.hideNimProgress = hideNimProgress
 module.exports.updateNimProgress = updateNimProgress
+
+# nimIndexer
+module.exports.addWorkspaceFile = addWorkspaceFile
+module.exports.removeWorkspaceFile = removeWorkspaceFile
+module.exports.changeWorkspaceFile = changeWorkspaceFile
+module.exports.initWorkspace = initWorkspace
+module.exports.findWorkspaceSymbols = findWorkspaceSymbols
+module.exports.getFileSymbols = getFileSymbols

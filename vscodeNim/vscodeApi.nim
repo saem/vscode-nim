@@ -69,9 +69,74 @@ type
         contents*:seq[VscodeMarkedString]
         `range`*:VscodeRange
 
+type VscodeSymbolKind* {.pure, nodecl.} = enum
+    file = 0,
+    module = 1,
+    namespace = 2,
+    package = 3,
+    class = 4,
+    `method` = 5,
+    property = 6,
+    field = 7,
+    constructor = 8,
+    `enum` = 9,
+    `interface` = 10,
+    function = 11,
+    variable = 12,
+    constant = 13,
+    `string` = 14,
+    number = 15,
+    boolean = 16,
+    `array` = 17,
+    `object` = 18,
+    key = 19,
+    null = 20,
+    enumMember = 21,
+    struct = 22,
+    event = 23,
+    operator = 24,
+    typeParameter = 25
+
+type VscodeCompletionKind* {.pure, nodecl.} = enum
+    text = 0,
+    `method` = 1,
+    function = 2,
+    constructor = 3,
+    field = 4,
+    variable = 5,
+    class = 6,
+    `interface` = 7,
+    module = 8,
+    property = 9,
+    unit = 10,
+    value = 11,
+    `enum` = 12,
+    keyword = 13,
+    snippet = 14,
+    color = 15,
+    file = 16,
+    reference = 17,
+    folder = 18,
+    enumMember = 19,
+    constant = 20,
+    struct = 21,
+    event = 22,
+    operator = 23,
+    typeParameter = 24
+
+type
+    VscodeLocation* = ref VscodeLocationObj
+    VscodeLocationObj {.importc.} = object of JsObject
+        uri*:VscodeUri
+        `range`*:VscodeRange
+
 type
     VscodeSymbolInformation* = ref VscodeSymbolInformationObj
-    VscodeSymbolInformationObj {.importc.} = object of JsObject
+    VscodeSymbolInformationObj {.importc.} = object of JsRoot
+        name*:cstring
+        containerName*:cstring
+        kind*:VscodeSymbolKind
+        location*:VscodeLocation
 
 type
     VscodeFormattingOptions* = ref VscodeFormattingOptionsObj
@@ -134,10 +199,6 @@ type
 type VscodeProviderResult* = VscodeDefinition or openArray[VscodeDefinitionLink]
 
 type
-    VscodeLocation* = ref VscodeLocationObj
-    VscodeLocationObj {.importc.} = object of JsObject
-
-type
     VscodeWorkspaceEdit* = ref VscodeWorkspaceEditObj
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
@@ -190,36 +251,9 @@ type VscodeStatusBarAlignment* {.nodecl.} = enum
     left = 1
     right = 2
 
-type VscodeCompletionKind* {.nodecl.} = enum
-    text = 0
-    `method` = 1
-    function = 2
-    constructor = 3
-    field = 4
-    variable = 5
-    class = 6
-    `interface` = 7
-    module = 8
-    property = 9
-    unit = 10
-    value = 11
-    `enum` = 12
-    keyword = 13
-    snippet = 14
-    color = 15
-    file = 16
-    reference = 17
-    folder = 18
-    enumMember = 19
-    constant = 20
-    struct = 21
-    event = 22
-    operator = 23
-    typeParameter = 24
-
 type
     Vscode* = ref VscodeObj
-    VscodeObj {.importc.} = object of JsObject
+    VscodeObj {.importc.} = object of JsRoot
         window*: VscodeWindow
         commands*: VscodeCommands
         workspace*: VscodeWorkspace
@@ -232,26 +266,40 @@ proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.impo
 proc newSignatureHelp*(vscode:Vscode):VscodeSignatureHelp {.importcpp: "(new #.SignatureHelp(@))".}
 proc newSignatureInformation*(vscode:Vscode, kind:cstring, docString:cstring):VscodeSignatureInformation {.importcpp: "(new #.SignatureInformation(@))".}
 proc newParameterInformation*(vscode:Vscode, name:cstring):VscodeParameterInformation {.importcpp: "(new #.ParameterInformation(@))".}
+proc newSymbolInformation*(
+        vscode:Vscode,
+        name:cstring,
+        kind:VscodeSymbolKind,
+        rng:VscodeRange,
+        file:VscodeUri,
+        container:cstring
+    ):VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
-proc createStatusBarItem*(vscode:Vscode, align:VscodeStatusBarAlignment, val:cdouble):VscodeStatusBarItem {.importcpp.}
+
+# Uri
+
+# static function
+proc uriFile*(vscode:Vscode, file:cstring):VscodeUri {.importcpp:"(#.Uri.file(@))".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
     ## shows an informational message
 
 # Workspace
-proc saveAll*(workspace:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
-proc getConfiguration*(workspace:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
-proc onDidChangeConfiguration*(workspace:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
+proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
+proc getConfiguration*(ws:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
+proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
 
 # Languages
 proc match*(langs:VscodeLanguages, selector:VscodeDocumentFilter, doc:VscodeTextDocument):cint {.importcpp.}
 
 # Window
 proc createTerminal*(window:VscodeWindow, name:cstring):VscodeTerminal {.importcpp.}
+proc createStatusBarItem*(vscode:VscodeWindow, align:VscodeStatusBarAlignment, val:cdouble):VscodeStatusBarItem {.importcpp.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}

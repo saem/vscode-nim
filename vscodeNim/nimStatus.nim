@@ -26,7 +26,7 @@ proc hideNimStatus*() = statusBarEntry.dispose()
 proc hideNimProgress*() = progressBarEntry.dispose()
 
 proc showNimStatus*(msg:cstring, cmd:cstring, tooltip:cstring):void =
-    statusBarEntry = vscode.createStatusBarItem(
+    statusBarEntry = vscode.window.createStatusBarItem(
         VscodeStatusBarAlignment.right,
         numberMinValue
     )
@@ -37,7 +37,7 @@ proc showNimStatus*(msg:cstring, cmd:cstring, tooltip:cstring):void =
     statusBarEntry.show()
 
 proc showNimProgress*(msg:cstring):void =
-    progressBarEntry = vscode.createStatusBarItem(
+    progressBarEntry = vscode.window.createStatusBarItem(
         VscodeStatusBarAlignment.right,
         numberMinValue
     )

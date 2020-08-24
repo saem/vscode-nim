@@ -15,10 +15,7 @@ type NimSuggestType* {.nodecl.} = enum
 type
     NimSuggestResult* = ref NimSuggestResultObj
     NimSuggestResultObj {.importc.} = object of JsObject
-        `range`*:VscodeRange
-        symbolName*:cstring
         names*:seq[cstring]
-        fullName*:cstring
         answerType*:cstring
         suggest*:cstring
         `type`*:cstring
@@ -26,7 +23,14 @@ type
         line*:cint
         column*:cint
         documentation*:cstring
+        `range`*:VscodeRange
+        position*:VscodePosition
+        uri*:VscodeUri
         location*:VscodeLocation
+        fullName*:cstring
+        symbolName*:cstring
+        moduleName*:cstring
+        containerName*:cstring
 
 # Utils
 type
@@ -67,6 +71,7 @@ type
             column:cint,
             dirtyFile: cstring
         ):Promise[seq[NimSuggestResult]]
+        getNimSuggestPath*:proc():cstring
 
 let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestExec)
 
@@ -80,20 +85,6 @@ type
         ):seq[VscodeCompletionItem]
 
 let nimImports*:NimImports = require("./nimImports").to(NimImports)
-
-# Indexer
-type
-    NimIndexer* = ref NimIndexerObj
-    NimIndexerObj {.importc.} = object of JsObject
-        findWorkspaceSymbols*:proc(
-            query:cstring
-        ):Promise[seq[VscodeSymbolInformation]]
-        getFileSymbols*:proc(
-            filename:cstring,
-            dirtyFile:cstring = nil
-        ):Promise[seq[VscodeSymbolInformation]]
-
-let nimIndexer*:NimIndexer = require("./nimIndexer").to(NimIndexer)
 
 # Signature
 type
