@@ -124,19 +124,6 @@ proc cleanOldDb(basePath:cstring, name:cstring):void =
         if fs.existsSync(dbPath):
             fs.unlinkSync(dbPath)
 
-proc indexFilesWithProgress(urls:seq[VscodeUri], i:cint):Promise[void] =
-    indexFile(urls[i].fsPath).then(proc() =
-        var cnt = urls.len - i
-        if cnt mod 10 == 0:
-            updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
-
-        console.log("indexFilesWithProgress", jsArguments)
-        if i < (urls.len - 1):
-            discard indexFilesWithProgress(urls, i + 1)
-        else:
-            hideNimProgress()
-    )
-
 proc initWorkspace*(extPath: cstring):Promise[void] =
     console.log("initWorkspace", jsArguments)
     # remove old version of indcies
@@ -167,13 +154,23 @@ proc initWorkspace*(extPath: cstring):Promise[void] =
     if nimSuggestPath.isNil() or nimSuggestPath == "":
         return;
 
-    vscode.workspace.findFiles("**/*.nim", "").then(
-        proc(urls:seq[VscodeUri]):void =
-            console.log("initWorkspace - findFiles", jsArguments)
-            showNimProgress("Indexing: " & $(urls.len))
-            
-            discard indexFilesWithProgress(urls, 0)
-    ).toJs().to(Promise[void])
+    var urlsFetch = vscode.workspace.findFiles("**/*.nim", "")
+    var prevPromise = urlsFetch.toJs().to(Promise[void])
+    urlsFetch.then(proc(urls:seq[VscodeUri]) =
+        showNimProgress("Indexing: " & $(urls.len))
+
+        for i, url in urls:
+            prevPromise = prevPromise.then(proc():Promise[void] =
+                var cnt = urls.len - i
+
+                if cnt mod 10 == 0:
+                    updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
+                
+                indexFile(urls[i].fsPath)
+            )
+    )
+
+    prevPromise.then(hideNimProgress)
 
 proc findWorkspaceSymbols*(query:cstring):Promise[seq[VscodeSymbolInformation]] =
     return newPromise(proc(
@@ -181,6 +178,7 @@ proc findWorkspaceSymbols*(query:cstring):Promise[seq[VscodeSymbolInformation]] 
             reject:proc(reason:JsObject):void
         ) =
             try:
+                console.log("findWorkspaceSymbols", jsArguments)
                 var reg = newRegExp(query, r"i")
                 dbTypes.find(vscode.workspace.rootPath, reg)
                     .limit(100)

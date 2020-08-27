@@ -12,6 +12,7 @@ proc all*[T](iterable:openarray[Promise[T]]):Promise[seq[T]] {.importcpp: "Promi
 
 {.push importcpp, discardable.}
 proc then*[T](p:Promise[T], onFulfilled: proc()):Promise[T]
+proc then*[T](p:Promise[T], onFulfilled: proc():Promise[T]):Promise[T]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T)):Promise[T]
 proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R):Promise[R]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Promise[T]
