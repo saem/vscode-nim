@@ -130,9 +130,9 @@ proc initWorkspace*(extPath: cstring):Promise[void] =
     cleanOldDb(extPath, "files")
     cleanOldDb(extPath, "types")
 
-    console.log(extPath, getDbName("type", dbVersion), path.join(extPath, getDbName("type", dbVersion)))
+    console.log(extPath, getDbName("types", dbVersion), path.join(extPath, getDbName("types", dbVersion)))
     dbTypes = nedb.createDatastore(NedbDataStoreOptions{
-            filename:path.join(extPath, getDbName("type", dbVersion)),
+            filename:path.join(extPath, getDbName("types", dbVersion)),
             autoload:true
         })
     dbTypes.persistence.setAutocompactionInterval(600000) # 10 munites

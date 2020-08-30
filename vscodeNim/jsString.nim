@@ -59,6 +59,11 @@ proc split*(s: cstring, a: cstring): seq[cstring] {.importcpp: "#.split(#)".}
   ##
   ## Substrings are separated by the character `sep`.
 
+proc split*(s: cstring, a: RegExp): seq[cstring] {.importcpp: "#.split(#)".}
+  ## Splits the string `s` into substrings using a regex separator.
+  ##
+  ## Substrings are separated by the character `sep`.
+
 proc toLowerAscii*(s: cstring): cstring {.importcpp:"#.toLowerCase()".} 
   ## Converts string `s` into lower case.
   ##

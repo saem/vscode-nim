@@ -60,7 +60,7 @@ type
 
 let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 
-# Suggest
+# SuggestExec
 type
     NimSuggestExec* = ref NimSuggestExecObj
     NimSuggestExecObj {.importc.} = object of JsObject
@@ -75,29 +75,7 @@ type
 
 let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestExec)
 
-# Imports
-type
-    NimImports* = ref NimImportsObj
-    NimImportsObj {.importc.} = object of JsObject
-        getImports*:proc(
-            prefix:cstring = nil,
-            projectDir:cstring
-        ):seq[VscodeCompletionItem]
-
-let nimImports*:NimImports = require("./nimImports").to(NimImports)
-
-# Signature
-type
-    NimSignature* = ref NimSignatureObj
-    NimSignatureObj {.importc.} = object of JsObject
-        provideSignatureHelp*:proc(
-            doc:VscodeTextDocument,
-            position:VscodePosition,
-            token:VscodeCancellationToken
-        ):Promise[VscodeSignatureHelp]
-
-let nimSignature*:NimSignature = require("./nimSignature").to(NimSignature)
-
+# NimMode
 type
     NimMode* = ref NimModeObj
     NimModeObj {.importc.} = object of JsObject

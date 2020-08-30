@@ -20,12 +20,22 @@ type
         stderr*: StreamReadable
 
 type
-    ChildError* = ref ChildErrorObj
-    ChildErrorObj {.importc.} = object of JsObject
+    BaseError* = ref BaseErrorObj
+    BaseErrorObj {.importc.} = object of JsObject
         name*:cstring
         message*:cstring
         stack*:cstring
+
+    ChildError* = ref ChildErrorObj
+    ChildErrorObj {.importc.} = object of BaseError
         code*:cstring
+
+    ExecError* = ref ExecErrorObj
+    ExecErrorObj {.importc.} = object of BaseError
+        cmd*:cstring
+        killed*:bool
+        code*:cint
+        signal*:cstring
 
 type
     SpawnSyncReturn* = ref SpawnSyncReturnObj
@@ -33,19 +43,29 @@ type
         status*:cint
         error*:ChildError
 
-type SpawnOptions* = ref object
-    cwd*:cstring
+type
+    ExecOptions* = ref object
+        cwd*:cstring
 
-type SpawnSyncOptions* = ref object
-    cwd*:cstring
+    SpawnOptions* = ref object
+        cwd*:cstring
+
+    SpawnSyncOptions* = ref object
+        cwd*:cstring
 
 type
     ChildProcessModule* = ref ChildProcessModuleObj
     ChildProcessModuleObj {.importc.} = object of JsObject
 
+type
+    ExecCallback* = proc(error:ChildError, stdout:cstring, stderr:cstring):void
+
 # node module interface
 proc spawn*(cpm:ChildProcessModule, cmd:cstring, args:openArray[cstring], opt:SpawnOptions):ChildProcess {.importcpp.}
 proc spawnSync*(cpm:ChildProcessModule, cmd:cstring, args:openArray[cstring], opt:SpawnSyncOptions):SpawnSyncReturn {.importcpp.}
+proc exec*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):ChildProcess {.importcpp.}
+proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):Buffer {.importcpp.}
+proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions):Buffer {.importcpp.}
 
 # ChildProcess
 proc kill*(cp:ChildProcess):void {.importcpp.}

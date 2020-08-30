@@ -37,3 +37,9 @@ export function changeWorkspaceFile(file: string): void
 export function initWorkspace(extensionPath: string): Promise<void>
 export function findWorkspaceSymbols(query: string): Promise<vscode.SymbolInformation[]>
 export function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode.SymbolInformation[]>
+
+// nimImports
+export function getImports(prefix: string | undefined, projectDir: string): vscode.CompletionItem[]
+export function initImports():Promise<void>
+export function addFileToImports(file: string):Promise<void>
+export function removeFileFromImports(file: string):Promise<void>

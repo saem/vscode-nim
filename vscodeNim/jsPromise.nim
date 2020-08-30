@@ -5,6 +5,7 @@ import jsffi
 type Promise*[T] = ref object of JsRoot
 
 proc newPromise*[T,R](executor:proc(resolve:proc(val:T), reject:proc(reason:R))): Promise[T] {.importcpp: "new Promise(#)".}
+proc newEmptyPromise*(): Promise[void] {.importcpp: "(Promise.resolve())".}
 proc resolve*[T](val:T):Promise[T] {.importcpp: "Promise.resolve(#)",discardable.}
 proc reject*[T](reason:T):Promise[T] {.importcpp: "Promise.reject(#)",discardable.}
 proc race*[T](iterable:openarray[T]):Promise[T] {.importcpp: "Promise.race(#)",discardable.}
