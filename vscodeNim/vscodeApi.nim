@@ -176,6 +176,7 @@ type
     VscodeCompletionItemObj {.importc.} = object of JsObject
         detail*:cstring
         sortText*:cstring
+        insertText*:cstring
         documentation*:cstring
         documentationMD* {.importcpp: "documentation".}:VscodeMarkdownString
 
@@ -228,6 +229,7 @@ type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsObject
         rootPath*:cstring
+        workspaceFolders*:seq[VscodeWorkspaceFolder]
 
 type
     VscodeLanguages* = ref VscodeLanguagesObj

@@ -13,4 +13,7 @@ requires "nim >= 1.2.0"
 # Tasks
 
 task hello, "This compiles the hello vscode command":
-    exec "nim js -d:nodejs --outdir:out --sourceMap vscodeNim/hello.nim"
+    exec "nim js -d:nodejs --outdir:out --checks:on --sourceMap vscodeNim/hello.nim"
+
+task release, "This compiles a release version":
+    exec "nim js -d:nodejs --outdir:out --checks:off --sourceMap vscodeNim/hello.nim"

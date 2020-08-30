@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimImports
 import jsString
 import jsre
 
@@ -52,19 +53,15 @@ proc provideCompletionItems*(
     ) = vscode.workspace.saveAll(false).then(proc () =
         let filename = doc.fileName
         let `range` = doc.getWordRangeAtPosition(position)
-        var txt:cstring
-        if (not `range`.isNil()):
-            txt = doc.getText(`range`).toLowerAscii()
-        else:
-            txt = nil
+        var txt:cstring = if `range`.isNil(): nil else: doc.getText(`range`).toLowerAscii()
         let line = doc.lineAt(position).text
         if line.startsWith("import "):
             var txtPart: cstring
-            if (not txt.isNil() or txt.strip().len == 0):
+            if txt.toJs().to(bool) and `range`.toJs().to(bool):
                 txtPart = doc.getText(`range`.with(`end`=position)).toLowerAscii()
             else:
                 txtPart = nil
-            resolve(nimImports.getImports(
+            resolve(getImports(
                     txtPart,
                     nimUtils.getProjectFileInfo(filename).wsFolder.uri.fsPath))
         else:
