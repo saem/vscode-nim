@@ -1,4 +1,5 @@
 import vscodeApi
+import nimSuggestExec
 import tsNimExtApi
 
 proc provideHover*(
@@ -11,7 +12,7 @@ proc provideHover*(
       reject:proc(reason:JsObject)
     ) = 
         var pos:cint = position.line + 1
-        nimSuggestExec.execNimSuggest(
+        execNimSuggest(
             NimSuggestType.def,
             doc.fileName,   
             pos,

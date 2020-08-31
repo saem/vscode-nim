@@ -1,9 +1,9 @@
 import vscodeApi
-import tsNimExtApi
 import jsffi
 import sequtils
 
 import nimStatus
+import nimSuggestExec
 
 import nedbApi
 import jsNodeFs

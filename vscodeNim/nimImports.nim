@@ -29,7 +29,7 @@ proc getNimDirectories(projectDir:cstring, projectFile:cstring):Promise[seq[cstr
     return newPromise(proc(
         resolve:proc(v:seq[cstring]), reject:proc(reasons:JsObject)
     ) =
-        cp.exec(
+        discard cp.exec(
                 nimUtils.getNimExecPath() & " dump " & projectFile,
                 ExecOptions{ cwd: projectDir },
                 proc(err:ExecError, stdout:cstring, stderr:cstring):void =
@@ -87,7 +87,7 @@ proc getNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
     return newPromise(proc(
         resolve:proc(v:seq[cstring]), reject:proc(reasons:JsObject)
     ) =
-        cp.exec(
+        discard cp.exec(
                 nimUtils.getNimbleExecPath() & " list -i",
                 ExecOptions{ cwd: rootDir },
                 proc(err:ExecError, stdout:cstring, stderr:cstring):void =
@@ -110,11 +110,9 @@ proc initNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
                         ExecOptions{ cwd: rootDir }
                     ).toString()
                 var nimbleModule = NimbleModuleInfo{ name: moduleName }
-                console.log("initNimbleModules - output", output)
                 for line in output.split(newRegExp(r"\n")):
                     var pairs = line.strip().split(": \"")
                     if pairs.len == 2:
-                        console.log("initNimbleModules - pair", pairs)
                         var value = pairs[1][0 .. (pairs[1].len - 2)]
                         case $(pairs[0])
                         of "author": nimbleModule.author = value

@@ -31,6 +31,7 @@ type
     VscodeTextDocument* = ref VscodeTextDocumentObj
     VscodeTextDocumentObj {.importc.} = object of JsRoot
         fileName*:cstring
+        uri*:VscodeUri
 
 type
     VscodePosition* = ref VscodePositionObj
@@ -170,6 +171,7 @@ type
     VscodeWorkspaceFolder* = ref VscodeWorkspaceFolderObj
     VscodeWorkspaceFolderObj {.importc.} = object of JsObject
         uri*:VscodeUri
+        name*:cstring
 
 type
     VscodeCompletionItem* = ref VscodeCompletionItemObj
@@ -239,6 +241,7 @@ type
     VscodeWindow* = ref VscodeWindowObj
     VscodeWindowObj {.importc.} = object of JsObject
         activeTextEditor*:VscodeTextEditor
+        visibleTextEditors*:seq[VscodeTextEditor]
 
 type
     VscodeDisposable* = ref VscodeDisposableObj
@@ -263,6 +266,8 @@ type
 proc newWorkspaceEdit*(vscode:Vscode):VscodeWorkspaceEdit {.importcpp: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.importcpp: "(new #.Position(@))".}
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
+proc newRange*(vscode:Vscode, startA, endA, startB, endB:cint):VscodeRange {.importcpp: "(new #.Range(@))".}
+proc newLocation*(vscode:Vscode, uri:VscodeUri, pos:VscodePosition):VscodeLocation {.importcpp: "(new #.Location(@))".}
 proc newCompletionItem*(vscode:Vscode, name:cstring, kind:VscodeCompletionKind):VscodeCompletionItem {.importcpp: "(new #.CompletionItem(@))".}
 proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.importcpp: "(new #.MarkdownString(@))".}
 proc newSignatureHelp*(vscode:Vscode):VscodeSignatureHelp {.importcpp: "(new #.SignatureHelp(@))".}

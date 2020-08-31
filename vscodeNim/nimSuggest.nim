@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimSuggestExec
 import nimImports
 import jsString
 import jsre

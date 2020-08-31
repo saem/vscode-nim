@@ -43,3 +43,7 @@ export function getImports(prefix: string | undefined, projectDir: string): vsco
 export function initImports():Promise<void>
 export function addFileToImports(file: string):Promise<void>
 export function removeFileFromImports(file: string):Promise<void>
+
+// nimSuggestExec
+export function initNimSuggest(): void
+export function closeAllNimSuggestProcesses(): Promise<void>

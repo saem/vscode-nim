@@ -20,7 +20,7 @@ proc provideDocumentFormattingEdits*(
             var config = vscode.workspace.getConfiguration("nim")
             var res = cp.spawnSync(
                 nimUtils.getNimPrettyExecPath(),
-                [
+                @[
                     cstring "--backup:OFF",
                     "--indent:" & config["nimprettyIndent"].to(cstring),
                     "--maxLineLen:" & config["nimprettyMaxLineLen"].to(cstring),

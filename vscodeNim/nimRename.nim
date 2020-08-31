@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimSuggestExec
 
 proc provideRenameEdits*(
     doc:VscodeTextDocument,
@@ -12,7 +13,7 @@ proc provideRenameEdits*(
     ) =
     vscode.workspace.saveAll(false).then(proc () = 
       let pos:cint = position.line + 1
-      nimSuggestExec.execNimSuggest(
+      execNimSuggest(
         NimSuggestType.use,
         doc.fileName,
         pos,

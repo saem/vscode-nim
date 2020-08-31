@@ -14,10 +14,11 @@ type
 
 type
     ChildProcess* = ref ChildProcessObj
-    ChildProcessObj {.importc.} = object of JsObject
-        stdin*: StreamWriteable
-        stdout*: StreamReadable
-        stderr*: StreamReadable
+    ChildProcessObj {.importc.} = object of JsRoot
+        pid*:cint
+        stdin*:StreamWriteable
+        stdout*:StreamReadable
+        stderr*:StreamReadable
 
 type
     BaseError* = ref BaseErrorObj
@@ -42,6 +43,7 @@ type
     SpawnSyncReturnObj {.importc.} = object of JsObject
         status*:cint
         error*:ChildError
+        output*:seq[cstring]
 
 type
     ExecOptions* = ref object
@@ -55,27 +57,31 @@ type
 
 type
     ChildProcessModule* = ref ChildProcessModuleObj
-    ChildProcessModuleObj {.importc.} = object of JsObject
+    ChildProcessModuleObj {.importc.} = object of JsRoot
 
 type
-    ExecCallback* = proc(error:ChildError, stdout:cstring, stderr:cstring):void
+    ExecCallback* = proc(error:ExecError, stdout:cstring, stderr:cstring):void
 
 # node module interface
-proc spawn*(cpm:ChildProcessModule, cmd:cstring, args:openArray[cstring], opt:SpawnOptions):ChildProcess {.importcpp.}
-proc spawnSync*(cpm:ChildProcessModule, cmd:cstring, args:openArray[cstring], opt:SpawnSyncOptions):SpawnSyncReturn {.importcpp.}
+proc spawn*(cpm:ChildProcessModule, cmd:cstring, args:seq[cstring], opt:SpawnOptions):ChildProcess {.importcpp.}
+proc spawnSync*(cpm:ChildProcessModule, cmd:cstring, args:seq[cstring], opt:SpawnSyncOptions):SpawnSyncReturn {.importcpp.}
 proc exec*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):ChildProcess {.importcpp.}
 proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):Buffer {.importcpp.}
 proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions):Buffer {.importcpp.}
 
 # ChildProcess
 proc kill*(cp:ChildProcess):void {.importcpp.}
+proc kill*(cp:ChildProcess, signal:cstring):void {.importcpp.}
 proc onError*(cp:ChildProcess, listener:proc(err:ChildError):void):ChildProcess {.importcpp: "#.on(\"error\",@)", discardable.}
 proc onExit*(cp:ChildProcess, listener:(proc(code:cint, signal:cstring):void)):ChildProcess {.importcpp: "#.on(\"exit\",@)", discardable.}
+proc onClose*(cp:ChildProcess, listener:(proc(code:cint, signal:cstring):void)):ChildProcess {.importcpp: "#.on(\"close\",@)", discardable.}
 
 # Buffer
 proc toString*(b:Buffer):cstring {.importcpp.}
 
 # StreamReadable
 proc onData*(ws:StreamReadable, listener:(proc(data:Buffer):void)):ChildProcess {.importcpp: "#.on(\"data\",@)", discardable.}
+proc onceData*(ws:StreamReadable, listener:(proc(data:Buffer):void)):ChildProcess
+    {.importcpp: "#.once(\"data\",@)", discardable.}
 
 var cp*:ChildProcessModule = require("child_process").to(ChildProcessModule)

@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimSuggestExec
 import jsNode
 import jsNodeCp
 import jsffi
@@ -193,7 +194,7 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
         runningToolsPromises.add(newPromise(proc(
                 resolve:proc(values:seq[CheckResult]),
                 reject:proc(reason:JsObject)
-            ) = nimSuggestExec.execNimSuggest(NimSuggestType.chk, filename, 0, 0, "").then(
+            ) = execNimSuggest(NimSuggestType.chk, filename, 0, 0, "").then(
                     proc(items:seq[NimSuggestResult]) =
                         console.log("check - execNimSuggest", jsArguments)
                         if not items.isNull() and items.len > 0:

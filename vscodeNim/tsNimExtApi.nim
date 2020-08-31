@@ -1,37 +1,6 @@
 import jsPromise
 import vscodeApi
 
-type NimSuggestType* {.nodecl.} = enum
-    sug = 0
-    con = 1
-    def = 2
-    use = 3
-    dus = 4
-    chk = 5
-    highlight = 6
-    outline = 7
-    known = 8
-
-type
-    NimSuggestResult* = ref NimSuggestResultObj
-    NimSuggestResultObj {.importc.} = object of JsObject
-        names*:seq[cstring]
-        answerType*:cstring
-        suggest*:cstring
-        `type`*:cstring
-        path*:cstring
-        line*:cint
-        column*:cint
-        documentation*:cstring
-        `range`*:VscodeRange
-        position*:VscodePosition
-        uri*:VscodeUri
-        location*:VscodeLocation
-        fullName*:cstring
-        symbolName*:cstring
-        moduleName*:cstring
-        containerName*:cstring
-
 # Utils
 type
     ProjectFileInfo* = ref ProjectFileInfoObj
@@ -60,21 +29,6 @@ type
 
 let nimUtils*:NimUtils = require("./nimUtils").to(NimUtils)
 
-# SuggestExec
-type
-    NimSuggestExec* = ref NimSuggestExecObj
-    NimSuggestExecObj {.importc.} = object of JsObject
-        execNimSuggest*:proc(
-            suggestType:NimSuggestType,
-            filename:cstring,
-            line:cint,
-            column:cint,
-            dirtyFile: cstring
-        ):Promise[seq[NimSuggestResult]]
-        getNimSuggestPath*:proc():cstring
-
-let nimSuggestExec*:NimSuggestExec = require("./nimSuggestExec").to(NimSuggestExec)
-
 # NimMode
 type
     NimMode* = ref NimModeObj
@@ -84,8 +38,30 @@ type
 let nimMode*:NimMode = require("./nimMode").to(NimMode)
 
 # SExp
-type SExp* = ref object of JsObject
-    ## doing this to keep the compiler happy for now
+type
+    SExpKind* {.nodecl, pure.} = enum
+        cons
+        list
+        number
+        ident
+        str = ("string")
+        null = ("null")
+
+    SExp* = ref object
+        case kind*:SExpKind
+        of SExpKind.cons:
+            car*, cdr*:SExp
+        of SExpKind.list:
+            elements*:seq[SExp]
+        of SExpKind.number:
+            n*:cint
+        of SExpKind.ident:
+            ident*:cstring
+        of SExpKind.str:
+            str*:cstring
+        of SExpKind.null:
+            discard
+
 
 # RPC
 type ElRpc* = ref object
@@ -94,7 +70,7 @@ type
     EPCPeer* = ref EPCPeerObj
     EPCPeerObj {.importc.} = object of JsRoot
 
-proc callMethod*(peer:EPCPeer, methodName:cstring, params:varargs[SExp]):Promise[JsRoot] {.importcpp.}
+proc callMethod*(peer:EPCPeer, methodName:cstring, params:varargs[SExp]):Promise[JsObject] {.importcpp.}
 proc stop*(peer:EPCPeer):void {.importcpp.}
 
 proc startClient*(elrpc:ElRpc, port:cint):Promise[EPCPeer] {.importcpp.}

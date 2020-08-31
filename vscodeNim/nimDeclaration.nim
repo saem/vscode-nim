@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimSuggestExec
 
 proc provideDefinition*(
     doc:VscodeTextDocument,
@@ -13,7 +14,7 @@ proc provideDefinition*(
       reject:proc(reason:JsObject)
     ) =
         let pos:cint = position.line + 1
-        nimSuggestExec.execNimSuggest(
+        execNimSuggest(
             NimSuggestType.def,
             doc.fileName,
             pos,
