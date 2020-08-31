@@ -1,4 +1,5 @@
 import vscodeApi
+import nimSuggestExec
 import tsNimExtApi
 
 proc provideReferences*(
@@ -12,7 +13,7 @@ proc provideReferences*(
       reject:proc(reason:JsObject)
     ) = vscode.workspace.saveAll(false).then(proc () =
         let pos:cint = position.line + 1
-        nimSuggestExec.execNimSuggest(
+        execNimSuggest(
             NimSuggestType.use,
             doc.fileName,
             pos,

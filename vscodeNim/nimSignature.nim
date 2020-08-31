@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import nimSuggestExec
 import jsString
 import jsre
 
@@ -66,7 +67,7 @@ proc provideSignatureHelp(
             identBeforeDot = line[start .. `end`]
 
         var startPos:cint = position.line + 1
-        nimSuggestExec.execNimSuggest(
+        execNimSuggest(
                 NimSuggestType.con,
                 filename,
                 startPos,

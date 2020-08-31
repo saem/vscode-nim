@@ -77,6 +77,9 @@ proc toUpperAscii*(s: cstring): cstring {.importcpp:"#.toUpperCase()".}
 proc replace*(s, sub: cstring, by = cstring""): cstring {.importcpp:"#.replace(#, #)".} 
   ## Replaces `sub` in `s` by the string `by`.
 
+proc replace*(s:cstring, sub: RegExp, by = cstring""): cstring {.importcpp:"#.replace(#, #)".} 
+  ## Replaces `sub` in `s` by the string `by`.
+
 proc strip*(s: cstring): cstring {.importcpp:"#.trim()".} 
   ## Strips leading or trailing spaces 
 
@@ -87,6 +90,9 @@ proc parseFloatJS*(s: cstring): float {.importcpp:"parseFloat(#)".}
 proc parseCint*(s: cstring): cint {.importcpp:"parseInt(#)".}
   ## Parses an int value contained in `s`
   ## Using JS's native float parsing function
+
+proc join*(s: seq[cstring], sep:cstring): cstring {.importcpp:"#.join(@)".}
+  ## Join an array of strings into a single string
 
 when isMainModule:
   import math

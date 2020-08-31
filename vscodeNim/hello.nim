@@ -14,6 +14,7 @@ import nimBuild
 import nimStatus
 import nimIndexer
 import nimImports
+import nimSuggestExec
 
 var module {.importc.}: JsObject
 
@@ -59,3 +60,7 @@ module.exports.getImports = getImports
 module.exports.initImports = initImports
 module.exports.addFileToImports = addFileToImports
 module.exports.removeFileFromImports = removeFileFromImports
+
+# nimSuggestExec
+module.exports.initNimSuggest = initNimSuggest
+module.exports.closeAllNimSuggestProcesses = closeAllNimSuggestProcesses

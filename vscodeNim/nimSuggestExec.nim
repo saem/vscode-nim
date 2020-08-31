@@ -6,15 +6,57 @@ import jsNodeFs
 import jsffi
 import jsPromise
 import jsre
+import jsString
 import parseutils
+import sequtils
+import jsconsole
 
-type NimSuggestProcessDescription = ref object
-    process: ChildProcess
-    rpc: EPCPeer
+type NimSuggestProcessDescription* = ref object
+    process*:ChildProcess
+    rpc*:EPCPeer
 
 var nimSuggestPath:cstring
 var nimSuggestVersion:cstring
-var nimSuggestProcessCache:JsAssoc[cstring, Promise[NimSuggestProcessDescription]] = newJsAssoc()
+var nimSuggestProcessCache = newJsAssoc[cstring, Promise[NimSuggestProcessDescription]]()
+
+type NimSuggestType* {.nodecl.} = enum
+    sug = 0
+    con = 1
+    def = 2
+    use = 3
+    dus = 4
+    chk = 5
+    highlight = 6
+    outline = 7
+    known = 8
+
+type
+    NimSuggestResult* = ref object
+        names*:seq[cstring]
+        answerType*:cstring
+        suggest*:cstring
+        `type`*:cstring
+        path*:cstring
+        line*:cint
+        column*:cint
+        documentation*:cstring
+
+proc `range`*(r:NimSuggestResult):VscodeRange =
+    vscode.newRange(cint(r.line - 1), r.column, cint(r.line - 1), r.column)
+proc position*(r:NimSuggestResult):VscodePosition =
+    vscode.newPosition(cint(r.line - 1), r.column)
+proc uri*(r:NimSuggestResult):VscodeUri =
+    vscode.uriFile(r.path)
+proc location*(r:NimSuggestResult):VscodeLocation =
+    vscode.newLocation(r.uri, r.position)
+proc fullName*(r:NimSuggestResult):cstring =
+    if r.names.toJs().to(bool): r.names.join(".") else: ""
+proc symbolName*(r:NimSuggestResult):cstring =
+    if r.names.toJs().to(bool): r.names[-1] else: ""
+proc moduleName*(r:NimSuggestResult):cstring =
+    if r.names.toJs().to(bool): r.names[0] else: ""
+proc containerName*(r:NimSuggestResult):cstring =
+    if r.names.toJs().to(bool): r.names[0 .. -2].join(".") else: ""
 
 proc getNimSuggestPath*():cstring =
     nimSuggestPath
@@ -23,32 +65,30 @@ proc getNimSuggestVersion*():cstring =
     nimSuggestVersion
 
 proc initNimSuggest*() =
-    prepareConfig()
+    nimUtils.prepareConfig()
 
     # check nimsuggest related executable
     var nimSuggestNewPath = path.resolve(
             path.dirname(nimUtils.getNimExecPath()),
-            correctBinname("nimsuggest")
+            nimUtils.correctBinname("nimsuggest")
         )
     
     if fs.existsSync(nimSuggestNewPath):
         nimSuggestPath = nimSuggestNewPath
         var versionOutput = cp.spawnSync(
                 getNimSuggestPath(),
-                ["--version"],
+                @["--version".cstring],
                 SpawnSyncOptions{ cwd: vscode.workspace.rootPath }
-            ).output.toString()
+            ).output.join(",".cstring)
         var versionArgs = newRegExp(r".+Version\s([\d|\.]+)\s\(.+", r"g").exec(versionOutput)
 
         if not versionArgs.isNull() and not versionArgs.isUndefined() and versionArgs.len == 2:
             nimSuggestVersion = versionArgs[1]
         
         console.log(versionOutput)
-        console.log("Nimsuggest version: " & nimSuggestionVersion)
+        console.log("Nimsuggest version: " & nimSuggestVersion)
     
-    vscode.workspace.onDidChangeConfiguration(prepareConfig)
-
-proc execNimSuggest
+    vscode.workspace.onDidChangeConfiguration(nimUtils.prepareConfig)
 
 proc isNimSuggestVersion*(version:cstring):bool =
     ## Returns true if nimsuggest version is greater or equal to version
@@ -58,10 +98,9 @@ proc isNimSuggestVersion*(version:cstring):bool =
 
     var nimVersionParts = nimSuggestVersion.split(".")
     var versionParts = version.split(".")
-    for i in [0 .. min(nimVersionParts.len, versionParts.len)]:
-        var nimVer, ver:cint
-        parseInt(nimVersionParts[i], nimVer)
-        parseInt(versionParts[i], ver)
+    for i in 0 .. min(nimVersionParts.len, versionParts.len):
+        var nimVer = parseCint(nimVersionParts[i])
+        var ver = parseCint(versionParts[i])
         var diff = nimVer - ver
 
         if diff == 0:
@@ -69,19 +108,17 @@ proc isNimSuggestVersion*(version:cstring):bool =
         return diff > 0
     return true
 
-proc trace(pid:cint, projectFile:ProjectFileInfo, msg: JsObject):void =
+proc trace(pid:cint, projectFile:cstring, msg: JsObject):void =
     var log = vscode.workspace.getConfiguration("nim").get("logNimsuggest")
     if(not log.isNull() and not log.isUndefined()):
-        if jsTypeOf(projectFile) == "string":
-            console.log("[" & pid & ":" & projectFile & "]")
-        else:
-            console.log("[" &
-                pid & ":" &
-                projectFile.wsFolder.name & ":" &
-                projectFile.wsFolder.uri.fsPath & ":" &
-                projectFile.filePath &
-            "]")
+        console.log("[" & $(pid) & ":" & projectFile & "]")
         console.log(msg)
+
+proc trace(pid:cint, projectFile:ProjectFileInfo, msg: JsObject):void =
+    var str = projectFile.wsFolder.name & ":" &
+        projectFile.wsFolder.uri.fsPath & ":" &
+        projectFile.filePath
+    trace(pid, str, msg)
 
 proc closeCachedProcess(desc:NimSuggestProcessDescription):void =
     if not desc.isNull() or not desc.isUndefined():
@@ -90,13 +127,13 @@ proc closeCachedProcess(desc:NimSuggestProcessDescription):void =
         if not desc.process.isNull() or not desc.process.isUndefined():
             desc.process.kill()
 
-proc closeAllNimSuggestProcesses*():Promise<void> =
+proc closeAllNimSuggestProcesses*():Promise[void] =
     console.log("Close all nimsuggest processes")
     for project in nimSuggestProcessCache.keys():
         nimSuggestProcessCache[project].then(proc(desc:NimSuggestProcessDescription):void =
             closeCachedProcess(desc)
         )
-    nimSuggestProcessCache = newJsAssoc()
+    nimSuggestProcessCache = newJsAssoc[cstring, Promise[NimSuggestProcessDescription]]()
 
 proc closeNimSuggestProcess*(project:ProjectFileInfo):Promise[void] =
     var file = nimUtils.toLocalFile(project)
@@ -106,9 +143,59 @@ proc closeNimSuggestProcess*(project:ProjectFileInfo):Promise[void] =
             try:
                 closeCachedProcess(desc)
             finally:
-                nimSuggestProcessCache[file] = jsUndefined.to(NimSuggestProcessDescription)
-                jsDelete nimSuggestProcessCache[file]
+                nimSuggestProcessCache[file] = jsUndefined.to(Promise[NimSuggestProcessDescription])
+                discard jsDelete nimSuggestProcessCache[file]
         )
+
+proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessDescription] =
+    var projectPath = nimUtils.toLocalFile(nimProject)
+    if nimSuggestProcessCache[projectPath].isNil():
+        nimSuggestProcessCache[projectPath] = newPromise(proc(
+                resolve:proc(s:NimSuggestProcessDescription), reject:proc(reason:JsObject)
+            ) =
+                var nimConfig = vscode.workspace.getConfiguration("nim")
+                var args = @["--epc".cstring, "--v2".cstring]
+                if nimConfig["logNimsuggest"].toJs().to(bool):
+                    args.add("--log".cstring)
+                if nimConfig["useNimsuggestCheck"].toJs().to(bool):
+                    args.add("--refresh:on".cstring)
+                
+                args.add(nimProject.filePath)
+                console.log("getNimSuggestProcess - args", args)
+                var process = cp.spawn(
+                        getNimsuggestPath(),
+                        args,
+                        SpawnOptions{
+                            cwd: nimProject.wsFolder.uri.fsPath
+                        }
+                    )
+                process.stdout.onceData(proc(data:Buffer) =
+                    var dataStr = data.toString()
+                    var portNumber = parseCint(dataStr)
+                    console.log("getNimSuggestProcess - PortNumber", portNumber)
+                    if portNumber.toJs().to(float64) == NaN:
+                        reject(("Nimsuggest return unknown port number: " & dataStr).toJs())
+                    else:
+                        elrpc.startClient(portNumber).then(proc(peer:EPCPeer) =
+                            resolve(NimSuggestProcessDescription{process:process, rpc:peer})
+                        )
+                )
+                process.stdout.onceData(proc(data:Buffer) = console.log("getNimSuggestProcess - stdout", data.toString()))
+                process.stderr.onceData(proc(data:Buffer) = console.log("getNimSuggestProcess - stderr", data.toString()))
+                process.onClose(proc(code:cint, signal:cstring):void =
+                    if code != 0:
+                        console.error("nimsuggest closed with code: " & $(code) & ", signal: " & signal)
+                    if nimSuggestProcessCache[projectPath].toJs().to(bool):
+                        nimSuggestProcessCache[projectPath].then(proc(desc:NimSuggestProcessDescription) =
+                                if desc.toJs().to(bool) and desc.rpc.toJs().to(bool):
+                                    desc.rpc.stop()
+                            )
+                    reject(jsUndefined)
+                )
+        )
+    return nimSuggestProcessCache[projectPath]
+
+proc isJsArray(a:JsObject):bool {.importcpp: "(# instanceof Array)".}
 
 proc execNimSuggest*(
     suggestType:NimSuggestType,
@@ -116,5 +203,97 @@ proc execNimSuggest*(
     line:cint,
     column:cint,
     dirtyFile: cstring
-):Promise[openArray[NimSuggestResult]] =
-    newPromise([])
+):Promise[seq[NimSuggestResult]] =
+    return newPromise(proc(resolve:proc(v:seq[NimSuggestResult]), reject:proc(r:JsObject)) =
+        console.log("execNimSuggest", jsArguments)
+        var nimSuggestExec = getNimSuggestPath()
+
+        # if nimsuggest not found just ignore
+        if not nimSuggestExec.toJs().to(bool):
+            resolve(@[])
+            return
+        
+        # don't run nimsuggest for nims file or cfg
+        # See https://github.com/pragmagic/vscode-nim/issues/84
+        var ext = path.extname(filename).toLowerAscii()
+        if ext == ".nims" or ext == ".cfg":
+            resolve(@[])
+            return
+
+        var projectFile = nimUtils.getProjectFileInfo(filename)
+        
+        var normalizedFilename:cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
+        getNimSuggestProcess(projectFile).then(proc(desc:NimSuggestProcessDescription) =
+            console.log("execNimSuggest - getNimSuggestProcess", jsArguments)
+            var suggestCmd:cstring = $(suggestType)
+            var shouldCloseNimSuggest = false
+            var ret:seq[NimSuggestResult] = @[]
+            var isValidDesc = desc.toJs().to(bool)
+
+            if isValidDesc and desc.process.toJs().to(bool):
+                trace(
+                    desc.process.pid,
+                    projectFile,
+                    (suggestCmd & " " & normalizedFilename & ":" & $(line) & ":" & $(column)).toJs()
+                )
+
+            if isValidDesc and desc.rpc.toJs().to(bool):
+                desc.rpc.callMethod(
+                    suggestCmd,
+                    SExp(kind:SExpKind.str, str:normalizedFilename),
+                    SExp(kind:SExpKind.number, n:line),
+                    SExp(kind:SExpKind.number, n:column),
+                    SExp(kind:SExpKind.str, str:dirtyFile)
+                ).then(proc(r:JsObject):seq[NimSuggestResult] =
+                    if desc.process.toJs().to(bool):
+                        trace(
+                            desc.process.pid,
+                            nimUtils.toLocalFile(projectFile) & "=" & suggestCmd & " " & normalizedFilename,
+                            r.toJs()
+                        )
+
+                    if r.isNil():
+                        #noop
+                        ret = ret
+                    elif r.isJsArray():
+                        for parts in r.to(seq[seq[JsObject]]).filterIt(it.len >= 8):
+                            var doc = parts[7].to(cstring)
+                            if doc != "":
+                                doc = doc.replace(newRegExp(r"\`\`", r"g"), "`")
+                                doc = doc.replace(newRegExp(r"\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)", r"g"), "```$1\n$2\n```\n")
+                                doc = doc.replace(newRegExp(r"\`([^\<\`]+)\<([^\>]+)\>\`\_", r"g"), r"\[$1\]\($2\)")
+                            var item = NimSuggestResult{
+                                answerType: parts[0].to(cstring),
+                                suggest: parts[1].to(cstring),
+                                names: parts[2].to(seq[cstring]),
+                                path: parts[3].to(cstring).replace(newRegExp(r"\\,\\", r"g"), "\\"),
+                                `type`: parts[4].to(cstring),
+                                line: parts[5].to(cint),
+                                column: parts[6].to(cint),
+                                documentation: doc
+                            }
+                            ret.add(item)
+                    elif r.toJs().to(cstring) == "EPC Connection closed":
+                        console.error(r)
+                        shouldCloseNimSuggest = true
+                    else:
+                        ret.add(NimSuggestResult{suggest: "" & r.to(cstring)})
+                    
+                    return ret
+                ).then(proc(r:seq[NimSuggestResult]):Promise[seq[NimSuggestResult]] =
+                    var nonProjectAndFileClosed = not nimUtils.isProjectMode() and
+                        vscode.window.visibleTextEditors.allIt(it.document.uri.fsPath != filename)
+
+                    if shouldCloseNimSuggest or nonProjectAndFileClosed:
+                        return closeNimSuggestProcess(projectFile)
+                            .then(proc():Promise[seq[NimSuggestResult]] = promiseResolve(r))
+                    else:
+                        return promiseResolve(r)
+                ).catch(proc(e:JsError):Promise[seq[NimSuggestResult]] = 
+                    console.error(e)
+                    return closeNimSuggestProcess(projectFile)
+                        .toJs()
+                        .to(Promise[seq[NimSuggestResult]])
+                )
+        )
+    )
