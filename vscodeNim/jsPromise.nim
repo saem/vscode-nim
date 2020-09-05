@@ -19,6 +19,7 @@ proc promiseResolve*[T](val:T):Promise[T] {.importcpp:"Promise.resolve(#)", disc
 proc then*[T](p:Promise[T], onFulfilled: proc()):Promise[T]
 proc then*[T,R](p:Promise[T], onFulfilled: proc():Promise[R]):Promise[R]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T)):Promise[T]
+proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):Promise[R]):Promise[R]
 proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R):Promise[R]
 proc then*[T](p:Promise[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Promise[T]
 proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R, onRejected: proc(reason:auto)):Promise[R]

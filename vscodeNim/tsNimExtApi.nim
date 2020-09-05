@@ -38,29 +38,35 @@ type
 let nimMode*:NimMode = require("./nimMode").to(NimMode)
 
 # SExp
-type
-    SExpKind* {.nodecl, pure.} = enum
-        cons
-        list
-        number
-        ident
-        str = ("string")
-        null = ("null")
 
-    SExp* = ref object
-        case kind*:SExpKind
-        of SExpKind.cons:
-            car*, cdr*:SExp
-        of SExpKind.list:
-            elements*:seq[SExp]
-        of SExpKind.number:
-            n*:cint
-        of SExpKind.ident:
-            ident*:cstring
-        of SExpKind.str:
-            str*:cstring
-        of SExpKind.null:
-            discard
+type TsSexp* = ref object
+
+proc tsSexpStr*(str:cstring):TsSexp {.importcpp: "({ kind: 'string', str: # })".}
+proc tsSexpInt*(n:cint):TsSexp {.importcpp: "({ kind: 'number', n: # })".}
+
+# type
+#     SExpKind* {.nodecl, pure.} = enum
+#         cons
+#         list
+#         number
+#         ident
+#         str = ("string")
+#         null = ("null")
+
+#     SExp* = ref object
+#         case kind*:SExpKind
+#         of SExpKind.cons:
+#             car*, cdr*:SExp
+#         of SExpKind.list:
+#             elements*:seq[SExp]
+#         of SExpKind.number:
+#             n*:cint
+#         of SExpKind.ident:
+#             ident*:cstring
+#         of SExpKind.str:
+#             str*:cstring
+#         of SExpKind.null:
+#             nil
 
 
 # RPC
@@ -70,7 +76,7 @@ type
     EPCPeer* = ref EPCPeerObj
     EPCPeerObj {.importc.} = object of JsRoot
 
-proc callMethod*(peer:EPCPeer, methodName:cstring, params:varargs[SExp]):Promise[JsObject] {.importcpp.}
+proc callMethod*(peer:EPCPeer, methodName:cstring, params:TsSexp):Promise[JsObject] {.importcpp, varargs.}
 proc stop*(peer:EPCPeer):void {.importcpp.}
 
 proc startClient*(elrpc:ElRpc, port:cint):Promise[EPCPeer] {.importcpp.}
