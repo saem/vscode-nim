@@ -1,7 +1,7 @@
 import vscodeApi
-import tsNimExtApi
 import nimSuggestExec
 import nimImports
+import nimUtils
 import jsString
 import jsre
 
@@ -64,7 +64,7 @@ proc provideCompletionItems*(
                 txtPart = nil
             resolve(getImports(
                     txtPart,
-                    nimUtils.getProjectFileInfo(filename).wsFolder.uri.fsPath))
+                    getProjectFileInfo(filename).wsFolder.uri.fsPath))
         else:
             let startPos: cint = position.line + 1
             nimSuggestExec.execNimSuggest(
@@ -72,7 +72,7 @@ proc provideCompletionItems*(
                 filename,
                 startPos,
                 position.character,
-                nimUtils.getDirtyFile(doc)
+                getDirtyFile(doc)
             ).then(proc(items:seq[NimSuggestResult]) =
                 var suggestions: seq[VscodeCompletionItem] = @[]
                 if (not items.isNull() and not items.isUndefined()):

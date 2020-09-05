@@ -68,6 +68,7 @@ proc spawnSync*(cpm:ChildProcessModule, cmd:cstring, args:seq[cstring], opt:Spaw
 proc exec*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):ChildProcess {.importcpp.}
 proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions, cb:ExecCallback):Buffer {.importcpp.}
 proc execSync*(cpm:ChildProcessModule, cmd:cstring, options:ExecOptions):Buffer {.importcpp.}
+proc execFileSync*(cpm:ChildProcessModule, cmd:cstring, args:seq[cstring]):Buffer {.importcpp.}
 
 # ChildProcess
 proc kill*(cp:ChildProcess):void {.importcpp.}

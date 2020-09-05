@@ -1,5 +1,6 @@
 import vscodeApi
 import nimSuggestExec
+import nimUtils
 import tsNimExtApi
 
 proc provideHover*(
@@ -17,7 +18,7 @@ proc provideHover*(
             doc.fileName,   
             pos,
             position.character,
-            nimUtils.getDirtyFile(doc)
+            getDirtyFile(doc)
         ).then(proc(items:seq[NimSuggestResult]) =
             if(not items.isNull() and not items.isUndefined() and items.len > 0):
                 var definition = items[items.len - 1]

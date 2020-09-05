@@ -24,9 +24,14 @@ type
 
 proc existsSync*(fs:Fs, file:cstring):bool {.importcpp.}
 proc unlinkSync*(fs:Fs, file:cstring):void {.importcpp.}
-proc readFileSync*(fs:Fs, file:cstring, encoding:cstring):cstring {.importcpp.}
+proc removedirSync*(fs:Fs, file:cstring):void {.importcpp.}
 proc statSync*(fs:Fs, file:cstring):FsStats {.importcpp.}
+proc lstatSync*(fs:Fs, file:cstring):FsStats {.importcpp.}
+proc readFileSync*(fs:Fs, file:cstring, encoding:cstring):cstring {.importcpp.}
+proc writeFileSync*(fs:Fs, file:cstring, content:cstring):void {.importcpp.}
 proc readdir*(fs:Fs, path:cstring, cb:ReaddirCallback):void {.importcpp.}
+proc readdirSync*(fs:Fs, dir:cstring):seq[cstring] {.importcpp.}
+proc rmdirSync*(fs:Fs, dir:cstring):void {.importcpp.}
 
 # FsStats
 proc isDirectory*(s:FsStats):bool {.importcpp.}

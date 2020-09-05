@@ -1,6 +1,6 @@
 import vscodeApi
-import tsNimExtApi
 import nimSuggestExec
+import nimUtils
 
 proc provideDefinition*(
     doc:VscodeTextDocument,
@@ -19,7 +19,7 @@ proc provideDefinition*(
             doc.fileName,
             pos,
             position.character,
-            nimUtils.getDirtyFile(doc)
+            getDirtyFile(doc)
         ).then(
             proc(result:seq[NimSuggestResult]) =
                 if(not result.isNull() and not result.isUndefined() and result.len > 0):

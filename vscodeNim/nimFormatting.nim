@@ -1,5 +1,5 @@
 import vscodeApi
-import tsNimExtApi
+import nimUtils
 import jsNodeCp
 import jsNodeFs
 
@@ -12,14 +12,14 @@ proc provideDocumentFormattingEdits*(
       resolve:proc(val:seq[VscodeTextEdit]),
       reject:proc(reason:JsObject)
     ) = 
-        if nimUtils.getNimPrettyExecPath() == "":
+        if getNimPrettyExecPath() == "":
             vscode.window.showInformationMessage("No 'nimpretty' binary could be found in PATH environment variable")
             resolve(@[])
         else:
-            var file = nimUtils.getDirtyFile(doc)
+            var file = getDirtyFile(doc)
             var config = vscode.workspace.getConfiguration("nim")
             var res = cp.spawnSync(
-                nimUtils.getNimPrettyExecPath(),
+                getNimPrettyExecPath(),
                 @[
                     cstring "--backup:OFF",
                     "--indent:" & config["nimprettyIndent"].to(cstring),

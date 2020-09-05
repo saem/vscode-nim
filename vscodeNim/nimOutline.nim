@@ -1,6 +1,6 @@
 import vscodeApi
-import tsNimExtApi
 import nimIndexer
+import nimUtils
 
 proc provideWorkspaceSymbols*(
     query:cstring,
@@ -12,7 +12,7 @@ proc provideDocumentSymbols*(
     doc:VscodeTextDocument,
     token:VscodeCancellationToken
 ):Promise[seq[VscodeSymbolInformation]] =
-    return getFileSymbols(doc.filename, nimUtils.getDirtyFile(doc))
+    return getFileSymbols(doc.filename, getDirtyFile(doc))
 
 var nimSymbolProvider* {.exportc.} = newJsObject()
 nimSymbolProvider.provideWorkspaceSymbols = provideWorkspaceSymbols

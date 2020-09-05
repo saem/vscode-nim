@@ -5,4 +5,6 @@ type
     OsModuleObj {.importc.} = object of JsRoot
         eol* {.importcpp:"EOL".}:cstring
 
+proc tmpdir*(os:OsModule):cstring {.importcpp.}
+
 var nodeOs* = require("os").to(OsModule)

@@ -15,6 +15,7 @@ import nimStatus
 import nimIndexer
 import nimImports
 import nimSuggestExec
+import nimUtils
 
 var module {.importc.}: JsObject
 
@@ -64,3 +65,7 @@ module.exports.removeFileFromImports = removeFileFromImports
 # nimSuggestExec
 module.exports.initNimSuggest = initNimSuggest
 module.exports.closeAllNimSuggestProcesses = closeAllNimSuggestProcesses
+
+# nimUtils
+module.exports.getDirtyFile = getDirtyFile
+module.exports.outputLine = outputLine
