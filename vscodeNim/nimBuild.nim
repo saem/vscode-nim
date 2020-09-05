@@ -1,6 +1,6 @@
 import vscodeApi
-import tsNimExtApi
 import nimSuggestExec
+import nimUtils
 import jsNode
 import jsNodeCp
 import jsffi
@@ -34,12 +34,12 @@ proc nimExec(
             resolve:proc(results:seq[CheckResult]),
             reject:proc(reason:JsObject)
         ) =
-            var execPath = nimUtils.getNimExecPath()
+            var execPath = getNimExecPath()
             if execPath.isNull() or execPath.isUndefined():
                 resolve(@[])
                 return
 
-            var projectPath = nimUtils.toLocalFile(project)
+            var projectPath = toLocalFile(project)
             var executorStatus = executors[projectPath]
             if(not executorStatus.isNil() and executorStatus.initialized):
                 var ps = executorStatus.process
@@ -54,7 +54,7 @@ proc nimExec(
                 }
             
             var executor = cp.spawn(
-                    nimUtils.getNimExecPath(),
+                    getNimExecPath(),
                     @[cmd] & args,
                     SpawnOptions{ cwd: project.wsFolder.uri.fsPath }
                 )
@@ -71,7 +71,7 @@ proc nimExec(
             )
 
             executor.stdout.onData(proc(data:Buffer) =
-                nimUtils.outputLine("[info] nim check output:\n" & data.toString())
+                outputLine("[info] nim check output:\n" & data.toString())
             )
 
             var output:cstring = ""
@@ -135,7 +135,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
             var msg = match[7]
 
             if msg == "template/generic instantiation from here":
-                if nimUtils.isWorkspaceFile(file):
+                if isWorkspaceFile(file):
                     lastFile = file
                     lastColumn = charStr
                     lastLine = lineStr
@@ -144,7 +144,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
                     ret[ret.len - 1].msg &= nodeOs.eol & messageText
                 
                 messageText = ""
-                if nimUtils.isWorkspaceFile(file):
+                if isWorkspaceFile(file):
                     ret.add(CheckResult{
                         file: file,
                         line:lineStr.parseCint(),
@@ -205,8 +205,8 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
             )
         )
     else:
-        if not nimUtils.isProjectMode():
-            var project = nimUtils.getProjectFileInfo(filename)
+        if not isProjectMode():
+            var project = getProjectFileInfo(filename)
             runningToolsPromises.add(nimExec(
                 project, 
                 "check",
@@ -215,7 +215,7 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                 parseErrors
             ))
         else:
-            for project in nimUtils.getProjects():
+            for project in getProjects():
                 runningToolsPromises.add(nimExec(
                     project, 
                     "check",
@@ -244,13 +244,13 @@ proc activateEvalConsole*():void =
 
 proc execSelectionInTerminal*(doc:VscodeTextDocument):void =
     if not vscode.window.activeTextEditor.isNil():
-        if nimUtils.getNimExecPath().isNil():
+        if getNimExecPath().isNil():
             return
 
         if evalTerminal.isNil():
             evalTerminal = vscode.window.createTerminal("Nim Console")
             evalTerminal.show(true)
-            evalTerminal.sendText(nimUtils.getNimExecPath() & " secret\n")
+            evalTerminal.sendText(getNimExecPath() & " secret\n")
 
         evalTerminal.sendText(
             vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection))

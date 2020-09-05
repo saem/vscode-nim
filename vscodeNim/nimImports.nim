@@ -1,5 +1,5 @@
 import vscodeApi
-import tsNimExtApi
+import nimUtils
 import jsNodeCp
 import jsNodeFs
 import jsNodePath
@@ -30,7 +30,7 @@ proc getNimDirectories(projectDir:cstring, projectFile:cstring):Promise[seq[cstr
         resolve:proc(v:seq[cstring]), reject:proc(reasons:JsObject)
     ) =
         discard cp.exec(
-                nimUtils.getNimExecPath() & " dump " & projectFile,
+                getNimExecPath() & " dump " & projectFile,
                 ExecOptions{ cwd: projectDir },
                 proc(err:ExecError, stdout:cstring, stderr:cstring):void =
                     var res:seq[cstring] = @[]
@@ -76,7 +76,7 @@ proc initNimDirectories(projectDir:cstring, projectFile:cstring):Promise[void] =
     if nimModules[projectDir].toJs().to(bool):
         nimModules[projectDir] = @[]
         getNimDirectories(projectDir, projectFile).then(proc(dirs:seq[cstring]) =
-            var nimRoot = path.dirname(path.dirname(nimUtils.getNimExecPath()))
+            var nimRoot = path.dirname(path.dirname(getNimExecPath()))
             for dir in dirs:
                 walkDir(projectDir, dir, dir, dir.startsWith(nimRoot))
         ).toJs().to(Promise[void])
@@ -88,7 +88,7 @@ proc getNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
         resolve:proc(v:seq[cstring]), reject:proc(reasons:JsObject)
     ) =
         discard cp.exec(
-                nimUtils.getNimbleExecPath() & " list -i",
+                getNimbleExecPath() & " list -i",
                 ExecOptions{ cwd: rootDir },
                 proc(err:ExecError, stdout:cstring, stderr:cstring):void =
                     var res:seq[cstring] = @[]
@@ -106,7 +106,7 @@ proc initNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
         for moduleName in nimbleModuleNames:
             try:
                 var output:cstring = cp.execSync(
-                        nimUtils.getNimbleExecPath() & " --y dump " & moduleName,
+                        getNimbleExecPath() & " --y dump " & moduleName,
                         ExecOptions{ cwd: rootDir }
                     ).toString()
                 var nimbleModule = NimbleModuleInfo{ name: moduleName }
@@ -166,8 +166,8 @@ proc initImports*():Promise[void] =
     if folders.toJs().to(bool):
         prevPromise = initNimbleModules(folders[0].uri.fsPath).toJs().to(Promise[void])
     
-    if nimUtils.isProjectMode():
-        for project in nimUtils.getProjects():
+    if isProjectMode():
+        for project in getProjects():
             prevPromise = prevPromise.then(proc() =
                 discard initNimDirectories(project.wsFolder.uri.fsPath, project.filePath))
     elif folders.toJs().to(bool):
@@ -176,8 +176,8 @@ proc initImports*():Promise[void] =
     return prevPromise
 
 proc addFileToImports*(file:cstring):Promise[void] =
-    if nimUtils.isProjectMode():
-        for project in nimUtils.getProjects():
+    if isProjectMode():
+        for project in getProjects():
             var projectDir = project.wsFolder.uri.fsPath
             if file.startsWith(projectDir):
                 var mods = nimModules[projectDir]

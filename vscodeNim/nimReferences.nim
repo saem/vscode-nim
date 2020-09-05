@@ -1,6 +1,6 @@
 import vscodeApi
 import nimSuggestExec
-import tsNimExtApi
+import nimUtils
 
 proc provideReferences*(
     doc:VscodeTextDocument,
@@ -18,7 +18,7 @@ proc provideReferences*(
             doc.fileName,
             pos,
             position.character,
-            nimUtils.getDirtyFile(doc)
+            getDirtyFile(doc)
         ).then(
             proc(results:seq[NimSuggestResult]) =
                 var references: seq[VscodeLocation] = @[]

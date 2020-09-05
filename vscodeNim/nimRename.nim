@@ -1,6 +1,6 @@
 import vscodeApi
-import tsNimExtApi
 import nimSuggestExec
+import nimUtils
 
 proc provideRenameEdits*(
     doc:VscodeTextDocument,
@@ -18,7 +18,7 @@ proc provideRenameEdits*(
         doc.fileName,
         pos,
         position.character,
-        nimUtils.getDirtyFile(doc)
+        getDirtyFile(doc)
       ).then(proc (suggestions:seq[NimSuggestResult]) =
         var references = vscode.newWorkspaceEdit()
         if not suggestions.isNull() and not suggestions.isUndefined():

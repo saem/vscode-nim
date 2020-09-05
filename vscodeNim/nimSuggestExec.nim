@@ -1,5 +1,6 @@
 import vscodeApi
 import tsNimExtApi
+import jsNode
 import jsNodeCp
 import jsNodePath
 import jsNodeFs
@@ -7,9 +8,9 @@ import jsffi
 import jsPromise
 import jsre
 import jsString
-import parseutils
 import sequtils
 import jsconsole
+import nimUtils
 
 type NimSuggestProcessDescription* = ref object
     process*:ChildProcess
@@ -65,12 +66,12 @@ proc getNimSuggestVersion*():cstring =
     nimSuggestVersion
 
 proc initNimSuggest*() =
-    nimUtils.prepareConfig()
+    prepareConfig()
 
     # check nimsuggest related executable
     var nimSuggestNewPath = path.resolve(
-            path.dirname(nimUtils.getNimExecPath()),
-            nimUtils.correctBinname("nimsuggest")
+            path.dirname(getNimExecPath()),
+            correctBinname("nimsuggest")
         )
     
     if fs.existsSync(nimSuggestNewPath):
@@ -88,7 +89,7 @@ proc initNimSuggest*() =
         console.log(versionOutput)
         console.log("Nimsuggest version: " & nimSuggestVersion)
     
-    vscode.workspace.onDidChangeConfiguration(nimUtils.prepareConfig)
+    discard vscode.workspace.onDidChangeConfiguration(prepareConfig)
 
 proc isNimSuggestVersion*(version:cstring):bool =
     ## Returns true if nimsuggest version is greater or equal to version
@@ -137,7 +138,7 @@ proc closeAllNimSuggestProcesses*():Promise[void] =
     nimSuggestProcessCache = newJsAssoc[cstring, Promise[NimSuggestProcessDescription]]()
 
 proc closeNimSuggestProcess*(project:ProjectFileInfo):Promise[void] =
-    var file = nimUtils.toLocalFile(project)
+    var file = toLocalFile(project)
     var process = nimSuggestProcessCache[file]
     if process.toJs().to(bool):
         return process.then(proc(desc:NimSuggestProcessDescription):void =
@@ -151,7 +152,7 @@ proc closeNimSuggestProcess*(project:ProjectFileInfo):Promise[void] =
     return newEmptyPromise()
 
 proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessDescription] =
-    var projectPath = nimUtils.toLocalFile(nimProject)
+    var projectPath = toLocalFile(nimProject)
     if nimSuggestProcessCache[projectPath].isNil():
         nimSuggestProcessCache[projectPath] = newPromise(proc(
                 resolve:proc(s:NimSuggestProcessDescription), reject:proc(reason:JsObject)
@@ -196,8 +197,6 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessD
         )
     return nimSuggestProcessCache[projectPath]
 
-proc isJsArray(a:JsObject):bool {.importcpp: "(# instanceof Array)".}
-
 proc execNimSuggest*(
     suggestType:NimSuggestType,
     filename:cstring,
@@ -220,7 +219,7 @@ proc execNimSuggest*(
             resolve(@[])
             return
 
-        var projectFile = nimUtils.getProjectFileInfo(filename)
+        var projectFile = getProjectFileInfo(filename)
         
         var normalizedFilename:cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
         getNimSuggestProcess(projectFile).then(proc(desc:NimSuggestProcessDescription) =
@@ -247,7 +246,7 @@ proc execNimSuggest*(
                     if desc.process.toJs().to(bool):
                         trace(
                             desc.process.pid,
-                            nimUtils.toLocalFile(projectFile) & "=" & suggestCmd & " " & normalizedFilename,
+                            toLocalFile(projectFile) & "=" & suggestCmd & " " & normalizedFilename,
                             r.toJs()
                         )
 
@@ -279,7 +278,7 @@ proc execNimSuggest*(
                     
                     return ret
                 ).then(proc(r:seq[NimSuggestResult]):Promise[seq[NimSuggestResult]] =
-                    var nonProjectAndFileClosed = not nimUtils.isProjectMode() and
+                    var nonProjectAndFileClosed = not isProjectMode() and
                         vscode.window.visibleTextEditors.allIt(it.document.uri.fsPath != filename)
 
                     if epcClosed or nonProjectAndFileClosed:

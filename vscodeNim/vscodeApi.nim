@@ -20,7 +20,16 @@ type
 type
     VscodeUri* = ref VscodeUriObj
     VscodeUriObj {.importc.} = object of JsObject
+        scheme*:cstring
         fsPath*:cstring
+        path*:cstring
+
+    VscodeUriChange* = ref object
+        scheme*:cstring
+        authority*:cstring
+        path*:cstring
+        query*:cstring
+        fragment*:cstring
 
 type
     VscodeTextLine* = ref VscodeTextLineObj
@@ -214,6 +223,10 @@ type
     VscodeTerminalObj {.importc.} = object of JsObject
 
 type
+    VscodeOutputChannel* = ref VscodeOutputChannelObj
+    VscodeOutputChannelObj {.importc.} = object of JsRoot
+
+type
     VscodeStatusBarItem* = ref VscodeStatusBarItemObj
     VscodeStatusBarItemObj {.importc.} = object of JsRoot
         text*:cstring
@@ -229,7 +242,7 @@ type
 
 type
     VscodeWorkspace* = ref VscodeWorkspaceObj
-    VscodeWorkspaceObj {.importc.} = object of JsObject
+    VscodeWorkspaceObj {.importc.} = object of JsRoot
         rootPath*:cstring
         workspaceFolders*:seq[VscodeWorkspaceFolder]
 
@@ -287,9 +300,11 @@ proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeR
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 
 # Uri
+proc with*(uri:VscodeUri, change:VscodeUriChange):VscodeUri {.importcpp.}
 
 # static function
 proc uriFile*(vscode:Vscode, file:cstring):VscodeUri {.importcpp:"(#.Uri.file(@))".}
+proc workspaceFolderLike*(vscode:Vscode, uri:VscodeUri, name:cstring, index:cint):VscodeWorkspaceFolder {.importcpp:"({uri:#, name:#, index:#})".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
@@ -297,9 +312,13 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
 
 # Workspace
 proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
-proc getConfiguration*(ws:VscodeWorkspace):VscodeWorkspaceConfiguration {.importcpp.}
+proc getConfiguration*(ws:VscodeWorkspace, name:cstring):VscodeWorkspaceConfiguration {.importcpp.}
+proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc():void):VscodeDisposable {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
 proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
+proc getWorkspaceFolder*(ws:VscodeWorkspace, folder:VscodeUri):VscodeWorkspaceFolder {.importcpp.}
+proc asRelativePath*(ws:VscodeWorkspace, filename:cstring, includeWorkspaceFolder:bool):cstring {.importcpp.}
 
 # Languages
 proc match*(langs:VscodeLanguages, selector:VscodeDocumentFilter, doc:VscodeTextDocument):cint {.importcpp.}
@@ -307,9 +326,13 @@ proc match*(langs:VscodeLanguages, selector:VscodeDocumentFilter, doc:VscodeText
 # Window
 proc createTerminal*(window:VscodeWindow, name:cstring):VscodeTerminal {.importcpp.}
 proc createStatusBarItem*(vscode:VscodeWindow, align:VscodeStatusBarAlignment, val:cdouble):VscodeStatusBarItem {.importcpp.}
+proc createOutputChannel*(vscode:VscodeWindow, s:cstring):VscodeOutputChannel {.importcpp.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
+
+# OutputChannel
+proc appendLine*(c:VscodeOutputChannel, line:cstring):void {.importcpp.}
 
 # StatusBarItem
 proc show*(item:VscodeStatusBarItem):void {.importcpp.}

@@ -1,6 +1,6 @@
 import vscodeApi
-import tsNimExtApi
 import nimSuggestExec
+import nimUtils
 import jsString
 import jsre
 
@@ -72,7 +72,7 @@ proc provideSignatureHelp(
                 filename,
                 startPos,
                 position.character,
-                nimUtils.getDirtyFile(doc)
+                getDirtyFile(doc)
             ).then(proc(items:seq[NimSuggestResult]) =
                 var signatures = vscode.newSignatureHelp()
                 var isModule = 0
