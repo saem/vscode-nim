@@ -51,3 +51,6 @@ export function closeAllNimSuggestProcesses(): Promise<void>
 // nimUtils
 export function getDirtyFile(document: vscode.TextDocument): string
 export function outputLine(message: string):void
+
+// nimMode
+export const nimMode:vscode.DocumentFilter

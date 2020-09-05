@@ -36,10 +36,11 @@ import {
     initNimSuggest, closeAllNimSuggestProcesses,
 
     // nimUtils
-    getDirtyFile, outputLine
-} from './hello';
+    getDirtyFile, outputLine,
 
-import { NIM_MODE } from './nimMode';
+    // nimMode
+    nimMode as NIM_MODE,
+} from './hello';
 
 import { ProgressLocation } from 'vscode';
 
@@ -50,6 +51,7 @@ import { ProgressLocation } from 'vscode';
 // import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
 // import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
 // import { getDirtyFile, outputLine } from './nimUtils';
+// import { NIM_MODE } from './nimMode';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;

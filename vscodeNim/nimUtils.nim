@@ -10,7 +10,6 @@ import jsre
 import jsString
 import jscore
 import strformat
-import jsconsole
 
 import sequtils
 
