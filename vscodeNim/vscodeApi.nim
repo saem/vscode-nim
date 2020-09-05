@@ -7,8 +7,7 @@ import jsre
 ## TODO: Move from JsObject to JsRoot for more explict errors
 
 type
-    VscodeDocumentFilter* = ref VscodeDocumentFilterObj
-    VscodeDocumentFilterObj {.importc.} = object of JsObject
+    VscodeDocumentFilter* = ref object
         language*:cstring
         scheme*:cstring
 

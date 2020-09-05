@@ -16,6 +16,7 @@ import nimIndexer
 import nimImports
 import nimSuggestExec
 import nimUtils
+import nimMode
 
 var module {.importc.}: JsObject
 
@@ -69,3 +70,6 @@ module.exports.closeAllNimSuggestProcesses = closeAllNimSuggestProcesses
 # nimUtils
 module.exports.getDirtyFile = getDirtyFile
 module.exports.outputLine = outputLine
+
+# nimMode
+module.exports.nimMode = mode

@@ -1,14 +1,6 @@
 import jsPromise
 import vscodeApi
 
-# NimMode
-type
-    NimMode* = ref NimModeObj
-    NimModeObj {.importc.} = object of JsObject
-        mode* {.importcpp: "NIM_MODE".}:VscodeDocumentFilter
-
-let nimMode*:NimMode = require("./nimMode").to(NimMode)
-
 # SExp
 
 type TsSexp* = ref object
