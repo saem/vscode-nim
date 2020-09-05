@@ -52,11 +52,11 @@ proc location*(r:NimSuggestResult):VscodeLocation =
 proc fullName*(r:NimSuggestResult):cstring =
     if r.names.toJs().to(bool): r.names.join(".") else: ""
 proc symbolName*(r:NimSuggestResult):cstring =
-    if r.names.toJs().to(bool): r.names[-1] else: ""
+    if r.names.toJs().to(bool): r.names[r.names.len - 1] else: ""
 proc moduleName*(r:NimSuggestResult):cstring =
     if r.names.toJs().to(bool): r.names[0] else: ""
 proc containerName*(r:NimSuggestResult):cstring =
-    if r.names.toJs().to(bool): r.names[0 .. -2].join(".") else: ""
+    if r.names.toJs().to(bool): r.names[0..^2].join(".") else: ""
 
 proc getNimSuggestPath*():cstring =
     nimSuggestPath
@@ -109,9 +109,10 @@ proc isNimSuggestVersion*(version:cstring):bool =
     return true
 
 proc trace(pid:cint, projectFile:cstring, msg: JsObject):void =
-    var log = vscode.workspace.getConfiguration("nim").get("logNimsuggest")
-    if(not log.isNull() and not log.isUndefined()):
-        console.log("[" & $(pid) & ":" & projectFile & "]")
+    var log = vscode.workspace.getConfiguration("nim").get("logNimsuggest").toJs().to(bool)
+    if log:
+        if projectFile.toJs().jsTypeOf() == "string":
+            console.log("[" & $(pid) & ":" & projectFile & "]")
         console.log(msg)
 
 proc trace(pid:cint, projectFile:ProjectFileInfo, msg: JsObject):void =
@@ -138,14 +139,16 @@ proc closeAllNimSuggestProcesses*():Promise[void] =
 proc closeNimSuggestProcess*(project:ProjectFileInfo):Promise[void] =
     var file = nimUtils.toLocalFile(project)
     var process = nimSuggestProcessCache[file]
-    if not process.isNull() and not process.isUndefined():
-        process.then(proc(desc:NimSuggestProcessDescription):void =
+    if process.toJs().to(bool):
+        return process.then(proc(desc:NimSuggestProcessDescription):void =
             try:
                 closeCachedProcess(desc)
             finally:
                 nimSuggestProcessCache[file] = jsUndefined.to(Promise[NimSuggestProcessDescription])
                 discard jsDelete nimSuggestProcessCache[file]
-        )
+        ).toJs().to(Promise[void])
+
+    return newEmptyPromise()
 
 proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessDescription] =
     var projectPath = nimUtils.toLocalFile(nimProject)
@@ -161,7 +164,6 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessD
                     args.add("--refresh:on".cstring)
                 
                 args.add(nimProject.filePath)
-                console.log("getNimSuggestProcess - args", args)
                 var process = cp.spawn(
                         getNimsuggestPath(),
                         args,
@@ -172,7 +174,6 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessD
                 process.stdout.onceData(proc(data:Buffer) =
                     var dataStr = data.toString()
                     var portNumber = parseCint(dataStr)
-                    console.log("getNimSuggestProcess - PortNumber", portNumber)
                     if portNumber.toJs().to(float64) == NaN:
                         reject(("Nimsuggest return unknown port number: " & dataStr).toJs())
                     else:
@@ -205,7 +206,6 @@ proc execNimSuggest*(
     dirtyFile: cstring
 ):Promise[seq[NimSuggestResult]] =
     return newPromise(proc(resolve:proc(v:seq[NimSuggestResult]), reject:proc(r:JsObject)) =
-        console.log("execNimSuggest", jsArguments)
         var nimSuggestExec = getNimSuggestPath()
 
         # if nimsuggest not found just ignore
@@ -224,9 +224,8 @@ proc execNimSuggest*(
         
         var normalizedFilename:cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
         getNimSuggestProcess(projectFile).then(proc(desc:NimSuggestProcessDescription) =
-            console.log("execNimSuggest - getNimSuggestProcess", jsArguments)
             var suggestCmd:cstring = $(suggestType)
-            var shouldCloseNimSuggest = false
+            var epcClosed = false
             var ret:seq[NimSuggestResult] = @[]
             var isValidDesc = desc.toJs().to(bool)
 
@@ -240,10 +239,10 @@ proc execNimSuggest*(
             if isValidDesc and desc.rpc.toJs().to(bool):
                 desc.rpc.callMethod(
                     suggestCmd,
-                    SExp(kind:SExpKind.str, str:normalizedFilename),
-                    SExp(kind:SExpKind.number, n:line),
-                    SExp(kind:SExpKind.number, n:column),
-                    SExp(kind:SExpKind.str, str:dirtyFile)
+                    tsSexpStr(normalizedFilename),
+                    tsSexpInt(line),
+                    tsSexpInt(column),
+                    tsSexpStr(dirtyFile)
                 ).then(proc(r:JsObject):seq[NimSuggestResult] =
                     if desc.process.toJs().to(bool):
                         trace(
@@ -253,20 +252,19 @@ proc execNimSuggest*(
                         )
 
                     if r.isNil():
-                        #noop
-                        ret = ret
+                        discard
                     elif r.isJsArray():
                         for parts in r.to(seq[seq[JsObject]]).filterIt(it.len >= 8):
                             var doc = parts[7].to(cstring)
                             if doc != "":
-                                doc = doc.replace(newRegExp(r"\`\`", r"g"), "`")
+                                doc = doc.replace(newRegExp(r"``", r"g"), "`")
                                 doc = doc.replace(newRegExp(r"\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)", r"g"), "```$1\n$2\n```\n")
-                                doc = doc.replace(newRegExp(r"\`([^\<\`]+)\<([^\>]+)\>\`\_", r"g"), r"\[$1\]\($2\)")
+                                doc = doc.replace(newRegExp(r"`([^\<`]+)\<([^\>]+)\>`\_", r"g"), r"\[$1\]\($2\)")
                             var item = NimSuggestResult{
                                 answerType: parts[0].to(cstring),
                                 suggest: parts[1].to(cstring),
                                 names: parts[2].to(seq[cstring]),
-                                path: parts[3].to(cstring).replace(newRegExp(r"\\,\\", r"g"), "\\"),
+                                path: parts[3].to(cstring).replace(newRegExp(r"\\,\\", r"g"), r"\"),
                                 `type`: parts[4].to(cstring),
                                 line: parts[5].to(cint),
                                 column: parts[6].to(cint),
@@ -274,8 +272,8 @@ proc execNimSuggest*(
                             }
                             ret.add(item)
                     elif r.toJs().to(cstring) == "EPC Connection closed":
-                        console.error(r)
-                        shouldCloseNimSuggest = true
+                        console.error(ret)
+                        epcClosed = true
                     else:
                         ret.add(NimSuggestResult{suggest: "" & r.to(cstring)})
                     
@@ -284,16 +282,18 @@ proc execNimSuggest*(
                     var nonProjectAndFileClosed = not nimUtils.isProjectMode() and
                         vscode.window.visibleTextEditors.allIt(it.document.uri.fsPath != filename)
 
-                    if shouldCloseNimSuggest or nonProjectAndFileClosed:
+                    if epcClosed or nonProjectAndFileClosed:
                         return closeNimSuggestProcess(projectFile)
                             .then(proc():Promise[seq[NimSuggestResult]] = promiseResolve(r))
                     else:
                         return promiseResolve(r)
+                ).then(proc(r:seq[NimSuggestResult]) =
+                    resolve(r)
                 ).catch(proc(e:JsError):Promise[seq[NimSuggestResult]] = 
                     console.error(e)
                     return closeNimSuggestProcess(projectFile)
-                        .toJs()
-                        .to(Promise[seq[NimSuggestResult]])
+                        .then(proc() = reject(e.toJs()))
+                        .toJs().to(Promise[seq[NimSuggestResult]])
                 )
         )
     )
