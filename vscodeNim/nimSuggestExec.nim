@@ -1,16 +1,20 @@
 import vscodeApi
-import tsNimExtApi
+import elrpc
+import nimUtils
+import nimsuggest/sexp
+
+import sequtils
+
+import jsffi
+import jsconsole
+
 import jsNode
 import jsNodeCp
 import jsNodePath
 import jsNodeFs
-import jsffi
 import jsPromise
 import jsre
 import jsString
-import sequtils
-import jsconsole
-import nimUtils
 
 type NimSuggestProcessDescription* = ref object
     process*:ChildProcess
@@ -83,7 +87,7 @@ proc initNimSuggest*() =
             ).output.join(",".cstring)
         var versionArgs = newRegExp(r".+Version\s([\d|\.]+)\s\(.+", r"g").exec(versionOutput)
 
-        if not versionArgs.isNull() and not versionArgs.isUndefined() and versionArgs.len == 2:
+        if versionArgs.toJs().to(bool) and versionArgs.len == 2:
             nimSuggestVersion = versionArgs[1]
         
         console.log(versionOutput)
@@ -157,6 +161,7 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessD
         nimSuggestProcessCache[projectPath] = newPromise(proc(
                 resolve:proc(s:NimSuggestProcessDescription), reject:proc(reason:JsObject)
             ) =
+                console.log("starting new nimsuggest process", nimProject)
                 var nimConfig = vscode.workspace.getConfiguration("nim")
                 var args = @["--epc".cstring, "--v2".cstring]
                 if nimConfig["logNimsuggest"].toJs().to(bool):
@@ -178,7 +183,7 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Promise[NimSuggestProcessD
                     if portNumber.toJs().to(float64) == NaN:
                         reject(("Nimsuggest return unknown port number: " & dataStr).toJs())
                     else:
-                        elrpc.startClient(portNumber).then(proc(peer:EPCPeer) =
+                        startClient(portNumber).then(proc(peer:EPCPeer) =
                             resolve(NimSuggestProcessDescription{process:process, rpc:peer})
                         )
                 )
@@ -236,13 +241,16 @@ proc execNimSuggest*(
                 )
 
             if isValidDesc and desc.rpc.toJs().to(bool):
+                var sexps = @[
+                        sexp($(normalizedFilename)),
+                        sexp(line),
+                        sexp(column),
+                        sexp($(dirtyFile))
+                    ]
                 desc.rpc.callMethod(
                     suggestCmd,
-                    tsSexpStr(normalizedFilename),
-                    tsSexpInt(line),
-                    tsSexpInt(column),
-                    tsSexpStr(dirtyFile)
-                ).then(proc(r:JsObject):seq[NimSuggestResult] =
+                    sexps
+                ).then(proc(r:seq[SexpNode]):seq[NimSuggestResult] =
                     if desc.process.toJs().to(bool):
                         trace(
                             desc.process.pid,
@@ -250,23 +258,21 @@ proc execNimSuggest*(
                             r.toJs()
                         )
 
-                    if r.isNil():
-                        discard
-                    elif r.isJsArray():
-                        for parts in r.to(seq[seq[JsObject]]).filterIt(it.len >= 8):
-                            var doc = parts[7].to(cstring)
+                    if r.toJs().isJsArray():
+                        for parts in r.mapIt(it.getElems()).filterIt(it.len >= 8):
+                            var doc = cstring(parts[7].getStr())
                             if doc != "":
                                 doc = doc.replace(newRegExp(r"``", r"g"), "`")
                                 doc = doc.replace(newRegExp(r"\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)", r"g"), "```$1\n$2\n```\n")
                                 doc = doc.replace(newRegExp(r"`([^\<`]+)\<([^\>]+)\>`\_", r"g"), r"\[$1\]\($2\)")
                             var item = NimSuggestResult{
-                                answerType: parts[0].to(cstring),
-                                suggest: parts[1].to(cstring),
-                                names: parts[2].to(seq[cstring]),
-                                path: parts[3].to(cstring).replace(newRegExp(r"\\,\\", r"g"), r"\"),
-                                `type`: parts[4].to(cstring),
-                                line: parts[5].to(cint),
-                                column: parts[6].to(cint),
+                                answerType: cstring(parts[0].getStr()),
+                                suggest: cstring(parts[1].getStr()),
+                                names: parts[2].getElems().mapIt(cstring(it.getStr())),
+                                path: cstring(parts[3].getStr()).replace(newRegExp(r"\\,\\", r"g"), r"\"),
+                                `type`: cstring(parts[4].getStr()),
+                                line: cint(parts[5].getNum()),
+                                column: cint(parts[6].getNum()),
                                 documentation: doc
                             }
                             ret.add(item)
@@ -274,7 +280,7 @@ proc execNimSuggest*(
                         console.error(ret)
                         epcClosed = true
                     else:
-                        ret.add(NimSuggestResult{suggest: "" & r.to(cstring)})
+                        ret.add(NimSuggestResult{suggest: "" & r.toJs().to(cstring)})
                     
                     return ret
                 ).then(proc(r:seq[NimSuggestResult]):Promise[seq[NimSuggestResult]] =

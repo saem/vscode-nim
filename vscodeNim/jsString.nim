@@ -19,7 +19,7 @@ proc `[]`*[T, U](s: cstring; x: HSlice[T, U]): cstring =
   else:
     h = x.b + 1
   if h > s.len or l < 0:
-    raise newException(IndexError, "index out of bounds []")
+    raise newException(IndexDefect, "index out of bounds []")
 
   asm """
   return `s`.slice(`l`, `h`);
@@ -90,9 +90,15 @@ proc parseFloatJS*(s: cstring): float {.importcpp:"parseFloat(#)".}
 proc parseCint*(s: cstring): cint {.importcpp:"parseInt(#)".}
   ## Parses an int value contained in `s`
   ## Using JS's native float parsing function
+proc parseCint*(s: cstring, radix:cint): cint {.importcpp:"parseInt(#, #)".}
+  ## Parses an int value contained in `s` with the given radix
+  ## Using JS's native float parsing function
 
 proc join*(s: seq[cstring], sep:cstring): cstring {.importcpp:"#.join(@)".}
   ## Join an array of strings into a single string
+
+proc toString*(i: int, radix:Natural):cstring {.importcpp:"(#.toString(@))".}
+  ## Convert an int to a string given a radix
 
 when isMainModule:
   import math
