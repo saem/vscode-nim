@@ -52,12 +52,13 @@ proc newEPCPeer(socket:NetSocket):EPCPeer =
                     epc.receivedBuffer = epc.receivedBuffer.slice(6 + length)
                 else:
                     return
-        epc.socket.onClose(proc(error:bool) =
-            console.error("Connection close" & (if error: " due to an error" else: ""))
-            for session in epc.sessions.values():
-                session("Connection closed".toJs().to(seq[SexpNode]))
-            epc.socketClosed = true
-        )
+    )
+
+    epc.socket.onClose(proc(error:bool) =
+        console.error("Connection close" & (if error: " due to an error" else: ""))
+        for session in epc.sessions.values():
+            session("Connection closed".toJs().to(seq[SexpNode]))
+        epc.socketClosed = true
     )
 
     return epc
