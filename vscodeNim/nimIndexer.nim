@@ -12,8 +12,6 @@ import jsPromise
 import jsString
 import jsre
 
-import jsconsole
-
 var dbVersion:cint = 4
 
 var dbFiles:NedbDataStore
@@ -113,24 +111,19 @@ proc getDbName(name:cstring, version:cint):cstring =
 
 proc cleanOldDb(basePath:cstring, name:cstring):void =
     var dbPath:cstring = path.join(basePath, (name & ".db"))
-    console.log(dbPath)
     if fs.existsSync(dbPath):
         fs.unlinkSync(dbPath)
 
-    console.log("cleanOldDb", dbVersion - 1)
     for i in 0..(dbVersion - 1):
-        console.log("cleanOldDb", getDbName(name, cint(i)))
         var dbPath = path.join(basepath, getDbName(name, cint(i)))
         if fs.existsSync(dbPath):
             fs.unlinkSync(dbPath)
 
 proc initWorkspace*(extPath: cstring):Promise[void] =
-    console.log("initWorkspace", jsArguments)
     # remove old version of indcies
     cleanOldDb(extPath, "files")
     cleanOldDb(extPath, "types")
 
-    console.log(extPath, getDbName("types", dbVersion), path.join(extPath, getDbName("types", dbVersion)))
     dbTypes = nedb.createDatastore(NedbDataStoreOptions{
             filename:path.join(extPath, getDbName("types", dbVersion)),
             autoload:true
@@ -150,7 +143,6 @@ proc initWorkspace*(extPath: cstring):Promise[void] =
     dbFiles.ensureIndex("timeStamp")
 
     var nimSuggestPath = nimSuggestExec.getNimSuggestPath()
-    console.log("nimSuggestPath", nimSuggestPath)
     if nimSuggestPath.isNil() or nimSuggestPath == "":
         return;
 
@@ -178,7 +170,6 @@ proc findWorkspaceSymbols*(query:cstring):Promise[seq[VscodeSymbolInformation]] 
             reject:proc(reason:JsObject):void
         ) =
             try:
-                console.log("findWorkspaceSymbols", jsArguments)
                 var reg = newRegExp(query, r"i")
                 dbTypes.find(vscode.workspace.rootPath, reg)
                     .limit(100)

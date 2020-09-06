@@ -1,8 +1,6 @@
 import jsffi
-
-type
-    Buffer* = ref BufferObj
-    BufferObj {.importc.} = object of JsRoot
+import jsNode
+export jsNode.Buffer, jsNode.toString
 
 type
     StreamWriteable* = ref StreamWriteableObj
@@ -76,9 +74,6 @@ proc kill*(cp:ChildProcess, signal:cstring):void {.importcpp.}
 proc onError*(cp:ChildProcess, listener:proc(err:ChildError):void):ChildProcess {.importcpp: "#.on(\"error\",@)", discardable.}
 proc onExit*(cp:ChildProcess, listener:(proc(code:cint, signal:cstring):void)):ChildProcess {.importcpp: "#.on(\"exit\",@)", discardable.}
 proc onClose*(cp:ChildProcess, listener:(proc(code:cint, signal:cstring):void)):ChildProcess {.importcpp: "#.on(\"close\",@)", discardable.}
-
-# Buffer
-proc toString*(b:Buffer):cstring {.importcpp.}
 
 # StreamReadable
 proc onData*(ws:StreamReadable, listener:(proc(data:Buffer):void)):ChildProcess {.importcpp: "#.on(\"data\",@)", discardable.}

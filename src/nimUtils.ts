@@ -194,7 +194,7 @@ export function prepareConfig(): void {
     _projectMapping = [];
     if (projectMapping) {
         if (projectMapping instanceof Object) {
-            for (const key in projectMapping) {
+            for (const key in projectMapping.keys()) {
                 if (projectMapping.hasOwnProperty(key)) {
                     const path = <string> projectMapping[key];
                     _projectMapping.push({ fileRegex: new RegExp(key), projectPath: path });

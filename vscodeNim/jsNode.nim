@@ -1,6 +1,21 @@
 import jsffi
 
 type
+    Map*[K,V] = ref MapObj[K,V]
+    MapObj[K,V] {.importc.} = object of JsRoot
+
+    # MapKeyIter*[K,V] = ref MapKeyIterObj[K,V]
+    # MapKeyIterObj[K,V] {.importc.} = object of JsRoot
+
+    # MapKeyIterResult*[K] = ref MapKeyIterResultObj[K]
+    # MapKeyIterResultObj[K] {.importc.} = object of JsRoot
+    #     value*:K
+    #     done*:bool
+
+    Buffer* = ref BufferObj
+    BufferObj {.importc.} = object of JsRoot
+        len* {.importcpp:"length".}:cint
+
     ProcessModule = ref ProcessModuleObj
     ProcessModuleObj {.importc.} = object of JsRoot
         env*:JsAssoc[cstring,cstring]
@@ -8,6 +23,44 @@ type
 
 var process* {.importc, nodecl.}:ProcessModule
 
-var numberMinValue* {.importc:"(Number.MIN_VALUE)", nodecl.}: cdouble
+# static
+proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
+proc newMap*[K,V]():Map[K,V] {.importcpp: "(new Map())".}
+proc newBuffer*(size:cint):Buffer {.importcpp: "(new Buffer(@))".}
 
+# Map
+proc get*[K,V](m:Map[K,V], key:K):V {.importcpp.}
+proc set*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp.}
+proc delete*[K,V](m:Map[K,V], key:K) {.importcpp.}
+
+iterator keys*[K,V](m:Map[K,V]):K =
+    ## Yields the `keys` in a Map.
+    var k:K
+    {.emit: "for (let `k` of `map`.keys()) {".}
+    yield k
+    {.emit: "}".}
+
+iterator values*[K,V](m:Map[K,V]):V =
+    ## Yields the `keys` in a Map.
+    var v:V
+    {.emit: "for (let `v` of `map`.values()) {".}
+    yield v
+    {.emit: "}".}
+
+iterator entries*[K,V](m:Map[K,V]):(K,V) =
+    ## Yields the `keys` in a Map.
+    var k:K
+    var v:V
+    {.emit: "for (let [`k`,`v`] of `map`.entries()) {".}
+    yield (k,v)
+    {.emit: "}".}
+
+# Buffer
+proc toString*(b:Buffer):cstring {.importcpp.}
+proc toStringUtf8*(b:Buffer, start:cint, stop:cint):cstring
+    {.importcpp:"(#.toString('utf8', #, #))".}
+proc slice*(b:Buffer, start:cint):Buffer {.importcpp.}
+
+# Misc
+var numberMinValue* {.importc:"(Number.MIN_VALUE)", nodecl.}: cdouble
 proc isJsArray*(a:JsObject):bool {.importcpp: "(# instanceof Array)".}

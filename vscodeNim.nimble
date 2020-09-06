@@ -8,7 +8,7 @@ backend     = "js"
 
 # Deps
 
-requires "nim >= 1.2.0"
+requires "nim >= 1.3.5"
 
 # Tasks
 

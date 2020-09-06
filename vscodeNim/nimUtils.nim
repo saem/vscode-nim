@@ -180,7 +180,6 @@ proc prepareConfig*():void =
     projectMapping = @[]
     if not cfgMappings.isNil() and cfgMappings.jsTypeOf() == "object":
         for k in keys(cfgMappings):
-            if not cfgMappings.hasOwnProperty(k): continue
             var path:cstring = cfgMappings.get(k).to(cstring)
             projectMapping.add(ProjectMappingInfo{
                 fileRegex: newRegExp(k.toJs().to(cstring)), projectPath: path
