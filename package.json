@@ -99,11 +99,6 @@
         ],
         "commands": [
             {
-                "command": "nim.hello",
-                "title": "Say hello",
-                "category": "Nim"
-            },
-            {
                 "command": "nim.run.file",
                 "title": "Run selected Nim file",
                 "category": "Nim"
