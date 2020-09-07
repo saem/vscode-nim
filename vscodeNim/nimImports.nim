@@ -57,7 +57,6 @@ proc createNimModule(projectDir:cstring, rootDir:cstring, dir:cstring, file:cstr
     return nimModule
 
 proc walkDir(projectDir:cstring, rootDir:cstring, dir:cstring, singlePass:bool):void =
-    console.log("walkDir", jsArguments)
     fs.readdir(dir, proc(err:ErrnoException, files:seq[cstring]) =
         # if files.toJs().to(bool):
         for file in files:
@@ -72,7 +71,6 @@ proc walkDir(projectDir:cstring, rootDir:cstring, dir:cstring, singlePass:bool):
     )
 
 proc initNimDirectories(projectDir:cstring, projectFile:cstring):Promise[void] =
-    console.log("initNimDirectories", jsArguments)
     if nimModules[projectDir].toJs().to(bool):
         nimModules[projectDir] = @[]
         getNimDirectories(projectDir, projectFile).then(proc(dirs:seq[cstring]) =
@@ -123,7 +121,7 @@ proc initNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
                 console.log("Module incorrect " & moduleName, getCurrentExceptionMsg())
     )
 
-proc getImports*(prefix:cstring, projectDir: cstring):seq[VscodeCompletionItem] =
+proc getImports*(prefix:cstring, projectDir:cstring):seq[VscodeCompletionItem] =
     console.log("getImports", jsArguments)
     var suggestions:seq[VscodeCompletionItem] = @[]
     for nimbleModule in nimbleModules:

@@ -33,7 +33,7 @@ proc provideRenameEdits*(
         else:
           resolve(jsNull.to(VscodeWorkspaceEdit))
       ).catch(proc (reason:JsObject) = reject(reason))
-    )
+    ).catch(proc (reason:JsObject) = reject(reason))
   )
 
 var nimRenameProvider* {.exportc.} = newJsObject()

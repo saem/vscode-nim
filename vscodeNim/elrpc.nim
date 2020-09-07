@@ -97,5 +97,11 @@ proc startClient*(port:cint):Promise[EPCPeer] =
                 resolve(newEPCPeer(socket))
             )
         except:
+            console.error(
+                "Failed to start client with message: '",
+                getCurrentExceptionMsg(),
+                "' see exception:",
+                getCurrentException()
+            )
             reject(getCurrentException().toJs())
     )

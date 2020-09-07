@@ -4,6 +4,7 @@ import nimImports
 import nimUtils
 import jsString
 import jsre
+import jsconsole
 
 proc vscodeKindFromNimSym(kind:cstring):VscodeCompletionKind =
     case $kind:
@@ -51,7 +52,7 @@ proc provideCompletionItems*(
     return newPromise(proc (
       resolve:proc(val:seq[VscodeCompletionItem]),
       reject:proc(reason:JsObject)
-    ) = vscode.workspace.saveAll(false).then(proc () =
+    ) = vscode.workspace.saveAll(false).then(proc() =
         let filename = doc.fileName
         let `range` = doc.getWordRangeAtPosition(position)
         var txt:cstring = if `range`.isNil(): nil else: doc.getText(`range`).toLowerAscii()
@@ -91,12 +92,14 @@ proc provideCompletionItems*(
                             # use predefined text to disable suggest sorting
                             suggestion.documentationMD = vscode.newMarkdownString(item.documentation)
                             suggestions.add(suggestion)
-                if suggestions.len > 0:
-                    resolve(suggestions)
-                else:
-                    reject(jsUndefined)
+                resolve(suggestions)
             ).catch(proc(reason:JsObject) = reject(reason))
-        )
+        ).catch(proc(reason:JsObject) = reject(reason))
+    ).catch(proc(reason:JsObject):Promise[seq[VscodeCompletionItem]] =
+        console.error("nimSuggest failed: ", reason)
+        return promiseReject(reason)
+            .toJs()
+            .to(Promise[seq[VscodeCompletionItem]])
     )
 
 var nimCompletionItemProvider* {.exportc.} = newJsObject()

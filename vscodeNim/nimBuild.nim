@@ -24,88 +24,90 @@ type ExecutorStatus = ref object
 var executors = newJsAssoc[cstring, ExecutorStatus]()
 
 proc nimExec(
-        project:ProjectFileInfo,
-        cmd:cstring,
-        args:seq[cstring],
-        useStdErr:bool,
-        cb:(proc(lines:seq[cstring]):seq[CheckResult])
-    ):Promise[seq[CheckResult]] =
-        return newPromise(proc(
-            resolve:proc(results:seq[CheckResult]),
-            reject:proc(reason:JsObject)
-        ) =
-            var execPath = getNimExecPath()
-            if execPath.isNull() or execPath.isUndefined():
+    project:ProjectFileInfo,
+    cmd:cstring,
+    args:seq[cstring],
+    useStdErr:bool,
+    cb:(proc(lines:seq[cstring]):seq[CheckResult])
+):Promise[seq[CheckResult]] =
+    return newPromise(proc(
+        resolve:proc(results:seq[CheckResult]),
+        reject:proc(reason:JsObject)
+    ) =
+        var execPath = getNimExecPath()
+        if execPath.isNull() or execPath.isUndefined():
+            resolve(@[])
+            return
+
+        var projectPath = toLocalFile(project)
+        var executorStatus = executors[projectPath]
+        if(not executorStatus.isNil() and executorStatus.initialized):
+            var ps = executorStatus.process
+            executors[projectPath] = ExecutorStatus{
+                initialized: false, process: jsUndefined.to(ChildProcess)
+            }
+            if not ps.isNil():
+                ps.kill("SIGKILL")
+        else:
+            executors[projectPath] = ExecutorStatus{
+                initialized: false, process: jsUndefined.to(ChildProcess)
+            }
+        
+        var executor = cp.spawn(
+                getNimExecPath(),
+                @[cmd] & args,
+                SpawnOptions{ cwd: project.wsFolder.uri.fsPath }
+            )
+        executors[projectPath].process = executor
+        executors[projectPath].initialized = true
+
+        executor.onError(proc(error:ChildError):void =
+            if not error.isNil() and error.code == "ENOENT":
+                vscode.window.showInformationMessage(
+                    "No nim binary could be found in PATH: '" & process.env["PATH"] & "'"
+                )
                 resolve(@[])
                 return
-
-            var projectPath = toLocalFile(project)
-            var executorStatus = executors[projectPath]
-            if(not executorStatus.isNil() and executorStatus.initialized):
-                var ps = executorStatus.process
-                executors[projectPath] = ExecutorStatus{
-                    initialized: false, process: jsUndefined.to(ChildProcess)
-                }
-                if not ps.isNil():
-                    ps.kill("SIGKILL")
-            else:
-                executors[projectPath] = ExecutorStatus{
-                    initialized: false, process: jsUndefined.to(ChildProcess)
-                }
-            
-            var executor = cp.spawn(
-                    getNimExecPath(),
-                    @[cmd] & args,
-                    SpawnOptions{ cwd: project.wsFolder.uri.fsPath }
-                )
-            executors[projectPath].process = executor
-            executors[projectPath].initialized = true
-
-            executor.onError(proc(error:ChildError):void =
-                if not error.isNil() and error.code == "ENOENT":
-                    vscode.window.showInformationMessage(
-                        "No nim binary could be found in PATH: '" & process.env["PATH"] & "'"
-                    )
-                    resolve(@[])
-                    return
-            )
-
-            executor.stdout.onData(proc(data:Buffer) =
-                outputLine("[info] nim check output:\n" & data.toString())
-            )
-
-            var output:cstring = ""
-            executor.onExit(proc(code:cint, signal:cstring) =
-                if signal == "SIGKILL":
-                    reject([].toJs())
-                else:
-                    executors[projectPath] = ExecutorStatus{
-                        initialized: false,
-                        process: jsUndefined.to(ChildProcess)
-                    }
-
-                    try:
-                        var split:seq[cstring] = output.split(nodeOs.eol)
-                        if split.len == 1:
-                            # TODO - is this a bug by not using os.eol??
-                            var lfSplit = split[0].split("\n")
-                            if  lfSplit.len > split.len:
-                                split = lfSplit
-
-                        resolve(cb(split))
-                    except:
-                        reject(getCurrentException().toJs())
-            )
-
-            if useStdErr:
-                executor.stderr.onData(proc(data:Buffer) =
-                        output &= data.toString()
-                    )
-            else:
-                executor.stdout.onData(proc(data:Buffer) =
-                        output &= data.toString()
-                    )
         )
+
+        executor.stdout.onData(proc(data:Buffer) =
+            outputLine("[info] nim check output:\n" & data.toString())
+        )
+
+        var output:cstring = ""
+        executor.onExit(proc(code:cint, signal:cstring) =
+            if signal == "SIGKILL":
+                reject([].toJs())
+            else:
+                executors[projectPath] = ExecutorStatus{
+                    initialized: false,
+                    process: jsUndefined.to(ChildProcess)
+                }
+
+                try:
+                    var split:seq[cstring] = output.split(nodeOs.eol)
+                    if split.len == 1:
+                        # TODO - is this a bug by not using os.eol??
+                        var lfSplit = split[0].split("\n")
+                        if  lfSplit.len > split.len:
+                            split = lfSplit
+
+                    resolve(cb(split))
+                except:
+                    reject(getCurrentException().toJs())
+        )
+
+        if useStdErr:
+            executor.stderr.onData(proc(data:Buffer) =
+                    output &= data.toString()
+                )
+        else:
+            executor.stdout.onData(proc(data:Buffer) =
+                    output &= data.toString()
+                )
+    ).catch(proc(reason:JsObject):Promise[seq[CheckResult]] =
+        return promiseReject(reason).toJs().to(Promise[seq[CheckResult]])
+    )
 
 proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
     var ret:seq[CheckResult] = @[]
