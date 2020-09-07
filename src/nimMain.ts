@@ -159,7 +159,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
         removeFileFromImports(uri.fsPath);
     });
 
-    // ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(nimSymbolProvider));
 
     startBuildOnSaveWatcher(ctx.subscriptions);

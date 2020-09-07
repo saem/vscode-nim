@@ -7,6 +7,17 @@ import jsre
 ## TODO: Move from JsObject to JsRoot for more explict errors
 
 type
+    VscodeDiagnosticSeverity* {.nodecl, pure.} = enum
+        ## Something not allowed by the rules of a language or other means.
+        error = (0, "Error")
+        ## Something suspicious but allowed.
+        warning = (1, "Warning")
+        ## Something to inform about but not a problem.
+        information = (2, "Information")
+        ## Something to hint to a better way of doing it, like proposing
+        ## a refactoring.
+        hint = (3, "Hint")
+
     VscodeDocumentFilter* = ref object
         language*:cstring
         scheme*:cstring
@@ -40,6 +51,7 @@ type
     VscodeTextDocumentObj {.importc.} = object of JsRoot
         fileName*:cstring
         uri*:VscodeUri
+        isDirty*:bool
 
 type
     VscodePosition* = ref VscodePositionObj
@@ -77,6 +89,24 @@ type
     VscodeHoverObj {.importc.} = object of JsObject
         contents*:seq[VscodeMarkedString]
         `range`*:VscodeRange
+
+type
+    VscodeProgressLocation* {.pure, nodecl.} = enum
+        ## Show progress for the source control viewlet, as overlay for the icon and as progress bar
+        ## inside the viewlet (when visible). Neither supports cancellation nor discrete progress.
+        sourceControl = (1, "SourceControl")
+        ## Show progress in the status bar of the editor. Neither supports cancellation nor discrete progress.
+        window = (10, "Window")
+        ## Show progress as notification with an optional cancel button. Supports to show infinite and discrete progress.
+        notification = (15, "Notification")
+    
+    VscodeProgress*[P] = proc(value:P):void
+
+    VscodeProgressOptions* = ref VscodeProgressOptionsObj
+    VscodeProgressOptionsObj {.importc.} = object of JsRoot
+        location*:VscodeProgressLocation
+        title*:cstring
+        cancellable*:bool
 
 type VscodeSymbolKind* {.pure, nodecl.} = enum
     file = 0,
@@ -218,8 +248,115 @@ type
     VscodeSelectionObj {.importc.} = object of VscodeRange
 
 type
+    VscodeCompletionItemProvider* = ref VscodeCompletionItemProviderObj
+    VscodeCompletionItemProviderObj {.importc.} = object of JsRoot
+
+    VscodeDefinitionProvider* = ref VscodeDefinitionProviderObj
+    VscodeDefinitionProviderObj {.importc.} = object of JsRoot
+
+    VscodeReferenceProvider* = ref VscodeReferenceProviderObj
+    VscodeReferenceProviderObj {.importc.} = object of JsRoot
+
+    VscodeRenameProvider* = ref VscodeRenameProviderObj
+    VscodeRenameProviderObj {.importc.} = object of JsRoot
+
+    VscodeDocumentSymbolProvider* = ref VscodeDocumentSymbolProviderObj
+    VscodeDocumentSymbolProviderObj {.importc.} = object of JsRoot
+
+    VscodeSignatureHelpProvider* = ref VscodeSignatureHelpProviderObj
+    VscodeSignatureHelpProviderObj {.importc.} = object of JsRoot
+
+    VscodeHoverProvider* = ref VscodeHoverProviderObj
+    VscodeHoverProviderObj {.importc.} = object of JsRoot
+
+    VscodeDocumentFormattingEditProvider* = ref VscodeDocumentFormattingEditProviderObj
+    VscodeDocumentFormattingEditProviderObj {.importc.} = object of JsRoot
+
+    VscodeWorkspaceSymbolProvider* = ref VscodeWorkspaceSymbolProviderObj
+    VscodeWorkspaceSymbolProviderObj {.importc.} = object of JsRoot
+    
     VscodeTerminal* = ref VscodeTerminalObj
     VscodeTerminalObj {.importc.} = object of JsObject
+
+    VscodeDisposable* = ref VscodeDisposableObj
+    VscodeDisposableObj {.importc.} = object of JsObject
+
+    VscodeDiagnosticCollection* = ref VscodeDiagnosticCollectionObj
+    VscodeDiagnosticCollectionObj {.importc.} = object of VscodeDisposable
+
+    VscodeFileSystemWatcher* = ref VscodeFileSystemWatcherObj
+    VscodeFileSystemWatcherObj {.importc.} = object of JsRoot
+
+    VscodeExtensionContext* = ref VscodeExtensionContextObj
+    VscodeExtensionContextObj {.importc.} = object of JsRoot
+        subscriptions*:seq[VscodeDisposable]
+        extensionPath*:cstring
+    
+    ## A tuple of two characters, like a pair of opening and closing brackets.
+    VscodeCharacterPair* = array[2, cstring]
+
+    ## Describes how comments for a language work.
+    VscodeCommentRule* = ref object
+        ## The line comment token, like `// this is a comment`
+        lineComment*:cstring
+        ## The block comment character pair, like `/* block comment *&#47;`
+        blockComment*:seq[VscodeCharacterPair]
+
+    VscodeIndentAction* {.nodecl, pure.} = enum
+        none = (0, "None")
+        indent = (1, "Indent")
+        indentOutdent = (2, "IndentOutdent")
+        outdent = (3, "Outdent")
+
+    VscodeIndentationRule* = ref object
+        ## If a line matches this pattern, then all the lines after it should
+        ## be unindented once (until another rule matches).
+        decreaseIndentPattern*:RegExp
+        ## If a line matches this pattern, then all the lines after it should
+        ## be indented once (until another rule matches).
+        increaseIndentPattern*:RegExp
+        ## If a line matches this pattern, then **only the next line** after it
+        ## should be indented once.
+        indentNextLinePattern*:RegExp
+        ## If a line matches this pattern, then its indentation should not be
+        ## changed and it should not be evaluated against the other rules.
+        unIndentedLinePattern*:RegExp
+
+    VscodeEnterAction* = ref object
+        ## Describe what to do with the indentation.
+        indentAction*:VscodeIndentAction
+        ## Describes text to be appended after the new line and after the
+        ## indentation.
+        appendText*:cstring
+        ## Describes the number of characters to remove from the new line's
+        ## indentation.
+        removeText*:cint
+
+    VscodeOnEnterRule* = ref object
+        ## This rule will only execute if the text before the cursor matches
+        ## this regular expression.
+        beforeText*:RegExp
+        ## This rule will only execute if the text after the cursor matches
+        ## this regular expression.
+        afterText*:RegExp
+        ## The action to execute.
+        action*:VscodeEnterAction
+
+    ## The language configuration interfaces defines the contract between
+    ## extensions and various editor features, like automatic bracket
+    ## insertion, automatic indentation etc.
+    VscodeLanguageConfiguration* = ref object
+        comments*:VscodeCommentRule
+        ## This configuration implicitly affects pressing Enter around these brackets
+        brackets*:seq[VscodeCharacterPair]
+        ## The language's word definition.
+        ## If the language supports Unicode identifiers (e.g. JavaScript), it is preferable
+        ## to provide a word definition that uses exclusion of known separators.
+        ## e.g.: A regex that matches anything except known separators (and dot is allowed to occur in a floating point number):
+        ##    /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g
+        wordPattern*:RegExp
+        indentationRules*:VscodeIndentationRule
+        onEnterRules*:seq[VscodeOnEnterRule]
 
 type
     VscodeOutputChannel* = ref VscodeOutputChannelObj
@@ -256,15 +393,10 @@ type
         visibleTextEditors*:seq[VscodeTextEditor]
 
 type
-    VscodeDisposable* = ref VscodeDisposableObj
-    VscodeDisposableObj {.importc.} = object of JsObject
-
-type
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
-        registerCommand*: proc(name:cstring, cmd:proc()):VscodeDisposable {.closure.}
 
-type VscodeStatusBarAlignment* {.nodecl.} = enum
+type VscodeStatusBarAlignment* {.nodecl, pure.} = enum
     left = 1
     right = 2
 
@@ -275,6 +407,8 @@ type
         commands*: VscodeCommands
         workspace*: VscodeWorkspace
         languages*: VscodeLanguages
+
+# static function
 proc newWorkspaceEdit*(vscode:Vscode):VscodeWorkspaceEdit {.importcpp: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.importcpp: "(new #.Position(@))".}
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
@@ -297,13 +431,18 @@ proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString):VscodeHover {.i
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc uriFile*(vscode:Vscode, file:cstring):VscodeUri {.importcpp:"(#.Uri.file(@))".}
+proc workspaceFolderLike*(vscode:Vscode, uri:VscodeUri, name:cstring, index:cint):VscodeWorkspaceFolder {.importcpp:"({uri:#, name:#, index:#})".}
+
+# Command
+proc registerCommand*(
+    cmds:VscodeCommands,
+    name:cstring,
+    fn:proc():void
+):void {.importcpp.}
 
 # Uri
 proc with*(uri:VscodeUri, change:VscodeUriChange):VscodeUri {.importcpp.}
-
-# static function
-proc uriFile*(vscode:Vscode, file:cstring):VscodeUri {.importcpp:"(#.Uri.file(@))".}
-proc workspaceFolderLike*(vscode:Vscode, uri:VscodeUri, name:cstring, index:cint):VscodeWorkspaceFolder {.importcpp:"({uri:#, name:#, index:#})".}
 
 # Output
 proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
@@ -318,14 +457,113 @@ proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Promise[seq[VscodeUri]]
 proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
 proc getWorkspaceFolder*(ws:VscodeWorkspace, folder:VscodeUri):VscodeWorkspaceFolder {.importcpp.}
 proc asRelativePath*(ws:VscodeWorkspace, filename:cstring, includeWorkspaceFolder:bool):cstring {.importcpp.}
+proc createFileSystemWatcher*(
+    ws:VscodeWorkspace,
+    glob:cstring
+):VscodeFileSystemWatcher {.importcpp.}
+
+# FileSystemWatcher
+proc onDidCreate*(w:
+    VscodeFileSystemWatcher,
+    listener:proc(uri:VscodeUri):void
+):VscodeDisposable {.importcpp, discardable.}
+proc onDidDelete*(w:
+    VscodeFileSystemWatcher,
+    listener:proc(uri:VscodeUri):void
+):VscodeDisposable {.importcpp, discardable.}
 
 # Languages
 proc match*(langs:VscodeLanguages, selector:VscodeDocumentFilter, doc:VscodeTextDocument):cint {.importcpp.}
+proc createDiagnosticCollection*(
+    langs:VscodeLanguages,
+    selector:cstring
+):VscodeDiagnosticCollection {.importcpp.}
+proc setLanguageConfiguration*(
+    langs:VscodeLanguages,
+    lang:cstring,
+    config:VscodeLanguageConfiguration
+):VscodeDisposable {.importcpp.}
+proc registerCompletionItemProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeCompletionItemProvider,
+    triggerCharacters:cstring
+):VscodeDisposable {.importcpp, varargs.}
+proc registerDefinitionProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeDefinitionProvider,
+):VscodeDisposable {.importcpp.}
+proc registerReferenceProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeReferenceProvider,
+):VscodeDisposable {.importcpp.}
+proc registerRenameProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeRenameProvider,
+):VscodeDisposable {.importcpp.}
+proc registerDocumentSymbolProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeDocumentSymbolProvider,
+):VscodeDisposable {.importcpp.}
+proc registerSignatureHelpProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeSignatureHelpProvider,
+    triggerCharacters:cstring
+):VscodeDisposable {.importcpp, varargs.}
+proc registerHoverProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeHoverProvider,
+):VscodeDisposable {.importcpp.}
+proc registerDocumentFormattingEditProvider*(
+    langs:VscodeLanguages,
+    selector:VscodeDocumentFilter,
+    provider:VscodeDocumentFormattingEditProvider,
+):VscodeDisposable {.importcpp.}
+proc registerWorkspaceSymbolProvider*(
+    langs:VscodeLanguages,
+    provider:VscodeWorkspaceSymbolProvider,
+):VscodeDisposable {.importcpp.}
 
 # Window
-proc createTerminal*(window:VscodeWindow, name:cstring):VscodeTerminal {.importcpp.}
-proc createStatusBarItem*(vscode:VscodeWindow, align:VscodeStatusBarAlignment, val:cdouble):VscodeStatusBarItem {.importcpp.}
-proc createOutputChannel*(vscode:VscodeWindow, s:cstring):VscodeOutputChannel {.importcpp.}
+proc createTerminal*(
+    window:VscodeWindow,
+    name:cstring
+):VscodeTerminal {.importcpp.}
+proc withProgress*[R](
+    window:VscodeWindow,
+    options:VscodeProgressOptions,
+    task:proc():Promise[R]
+):Promise[R] {.importcpp.}
+proc withProgress*[R,P](
+    window:VscodeWindow,
+    options:VscodeProgressOptions,
+    task:proc(progress:var VscodeProgress[P]):Promise[R]
+):Promise[R] {.importcpp.}
+proc createStatusBarItem*(
+    window:VscodeWindow,
+    align:VscodeStatusBarAlignment,
+    val:cdouble
+):VscodeStatusBarItem {.importcpp.}
+proc createOutputChannel*(
+    window:VscodeWindow,
+    s:cstring
+):VscodeOutputChannel {.importcpp.}
+proc onDidCloseTerminal*(
+    window:VscodeWindow,
+    listener:proc(t:VscodeTerminal):void
+):VscodeDisposable {.importcpp, discardable.}
+proc onDidChangeActiveTextEditor*[T](
+    window:VscodeWindow,
+    listener:proc():void,
+    thisArg:T,
+    disposables:seq[VscodeDisposable]
+):VscodeDisposable {.importcpp.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
@@ -338,7 +576,8 @@ proc show*(item:VscodeStatusBarItem):void {.importcpp.}
 proc hide*(item:VscodeStatusBarItem):void {.importcpp.}
 proc dispose*(item:VscodeStatusBarItem):void {.importcpp.}
 
-# Document
+# TextDocument
+proc save*(doc:VscodeTextDocument):Promise[bool] {.importcpp.}
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
 proc getText*(doc:VscodeTextDocument):cstring {.importcpp.}
 proc getText*(doc:VscodeTextDocument, `range`:VscodeRange):cstring {.importcpp.}

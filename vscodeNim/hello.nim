@@ -1,22 +1,11 @@
 import vscodeApi
 import jsffi
 
-import nimRename
-import nimSuggest
-import nimDeclaration
-import nimReferences
-import nimOutline
-import nimSignature
-import nimHover
-import nimFormatting
+import nimRename, nimSuggest, nimDeclaration, nimReferences, nimOutline, nimSignature, nimHover, nimFormatting
+export nimRename, nimSuggest, nimDeclaration, nimReferences, nimOutline, nimSignature, nimHover, nimFormatting
 
-import nimBuild
-import nimStatus
-import nimIndexer
-import nimImports
-import nimSuggestExec
-import nimUtils
-import nimMode
+import nimBuild, nimStatus, nimIndexer, nimImports, nimSuggestExec, nimUtils, nimMode
+export nimBuild, nimStatus, nimIndexer, nimImports, nimSuggestExec, nimUtils, nimMode
 
 var module {.importc.}: JsObject
 
