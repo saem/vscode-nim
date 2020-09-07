@@ -209,6 +209,8 @@ proc execNimSuggest*(
     column:cint,
     dirtyFile: cstring
 ):Promise[seq[NimSuggestResult]] =
+    var projectFile = getProjectFileInfo(filename)
+
     return newPromise(proc(resolve:proc(v:seq[NimSuggestResult]), reject:proc(r:JsObject)) =
         var nimSuggestExec = getNimSuggestPath()
 
@@ -223,8 +225,6 @@ proc execNimSuggest*(
         if ext == ".nims" or ext == ".cfg":
             resolve(@[])
             return
-
-        var projectFile = getProjectFileInfo(filename)
         
         var normalizedFilename:cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
         getNimSuggestProcess(projectFile).then(proc(desc:NimSuggestProcessDescription) =
@@ -277,7 +277,7 @@ proc execNimSuggest*(
                             }
                             ret.add(item)
                     elif r.toJs().to(cstring) == "EPC Connection closed":
-                        console.error(ret)
+                        console.error("execNimSuggest failed, EPC Connection closed", ret)
                         epcClosed = true
                     else:
                         ret.add(NimSuggestResult{suggest: "" & r.toJs().to(cstring)})
@@ -294,11 +294,14 @@ proc execNimSuggest*(
                         return promiseResolve(r)
                 ).then(proc(r:seq[NimSuggestResult]) =
                     resolve(r)
-                ).catch(proc(e:JsError):Promise[seq[NimSuggestResult]] = 
-                    console.error(e)
-                    return closeNimSuggestProcess(projectFile)
-                        .then(proc() = reject(e.toJs()))
-                        .toJs().to(Promise[seq[NimSuggestResult]])
                 )
+        ).catch(proc(e:JsError):Promise[seq[NimSuggestResult]] = 
+            console.error("Error in execNimSuggest - getNimSuggestProcess", e)
+            return closeNimSuggestProcess(projectFile)
+                .then(proc() = reject(e.toJs()))
+                .toJs().to(Promise[seq[NimSuggestResult]])
         )
+    ).catch(proc(e:JsObject):Promise[seq[NimSuggestResult]] = 
+        console.error("Error in execNimSuggest", e)
+        return promiseReject(e).toJs().to(Promise[seq[NimSuggestResult]])
     )
