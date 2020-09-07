@@ -10,7 +10,6 @@ import fs = require('fs');
 import path = require('path');
 
 import {
-    registerHello,
     nimRenameProvider,
     nimCompletionItemProvider,
     nimDefinitionProvider,
@@ -44,15 +43,6 @@ import {
 
 import { ProgressLocation } from 'vscode';
 
-// Ported
-// import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
-// import { showHideStatus } from './nimStatus';
-// import * as indexer from './nimIndexer';
-// import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
-// import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
-// import { getDirtyFile, outputLine } from './nimUtils';
-// import { NIM_MODE } from './nimMode';
-
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
 var terminal: vscode.Terminal | undefined;
@@ -63,8 +53,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('nim.run.file', runFile);
     vscode.commands.registerCommand('nim.check', runCheck);
     vscode.commands.registerCommand('nim.execSelectionInTerminal', execSelectionInTerminal);
-
-    ctx.subscriptions.push(registerHello());
 
     if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
         initNimSuggest();

@@ -1,5 +1,5 @@
 import vscodeApi
-import jsconsole
+import jsffi
 
 import nimRename
 import nimSuggest
@@ -20,13 +20,6 @@ import nimMode
 
 var module {.importc.}: JsObject
 
-proc registerHello(): VscodeDisposable =
-    jsconsole.console.debug()
-    result = vscode.commands.registerCommand("nim.hello", proc() =
-        vscode.window.showInformationMessage("Hello from Nim")
-    )
-
-module.exports.registerHello = registerHello
 module.exports.nimRenameProvider = nimRenameProvider
 module.exports.nimCompletionItemProvider = nimCompletionItemProvider
 module.exports.nimDefinitionProvider = nimDefinitionProvider
@@ -38,30 +31,19 @@ module.exports.nimFormattingProvider = nimFormattingProvider
 
 # nimBuild
 module.exports.check = check
-module.exports.activateEvalConsole = activateEvalConsole
 module.exports.execSelectionInTerminal = execSelectionInTerminal
+module.exports.activateEvalConsole = activateEvalConsole
 
 # nimStatus
 module.exports.showHideStatus = showHideStatus
-module.exports.showNimStatus = showNimStatus
-module.exports.hideNimStatus = hideNimStatus
-module.exports.showNimProgress = showNimProgress
-module.exports.hideNimProgress = hideNimProgress
-module.exports.updateNimProgress = updateNimProgress
 
 # nimIndexer
-module.exports.addWorkspaceFile = addWorkspaceFile
-module.exports.removeWorkspaceFile = removeWorkspaceFile
-module.exports.changeWorkspaceFile = changeWorkspaceFile
 module.exports.initWorkspace = initWorkspace
-module.exports.findWorkspaceSymbols = findWorkspaceSymbols
-module.exports.getFileSymbols = getFileSymbols
 
 # nimImports
-module.exports.getImports = getImports
 module.exports.initImports = initImports
-module.exports.addFileToImports = addFileToImports
 module.exports.removeFileFromImports = removeFileFromImports
+module.exports.addFileToImports = addFileToImports
 
 # nimSuggestExec
 module.exports.initNimSuggest = initNimSuggest
