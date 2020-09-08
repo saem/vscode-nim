@@ -4,17 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "npm",
-            "script": "watch",
-            "problemMatcher": "$tsc-watch",
-            "isBackground": true,
-            "presentation": {
-                "reveal": "never"
-            },
+            "label": "nimble build",
+            "command": "nimble",
+            "args": ["main"],
+            "options": { "cwd": "${workspaceRoot}" },
+            "type": "shell",
             "group": {
                 "kind": "build",
-                "isDefault": true
-            }
+                "isDefault": true,
+            },
         }
     ]
 }

@@ -1,8 +1,8 @@
-import jsffi
-
 # Promise Wrapping -- TODO separate out
 # Lifted from: https://gist.github.com/stisa/afc8e34cda656ee88c12428f9047bd03
-type Promise*[T] = ref object of JsRoot
+type
+  Promise*[T] = ref PromiseObj
+  PromiseObj {.importc.} = object of JsRoot
 
 # Statics
 proc newPromise*[T](executor:proc(resolve:proc(val:T))):Promise[T] {.importcpp: "new Promise(@)".}

@@ -32,5 +32,7 @@ proc provideReferences*(
         ).catch(proc (reason:JsObject) = reject(reason))
     )
 
-var nimReferenceProvider* {.exportc.} = newJsObject()
-nimReferenceProvider.provideReferences = provideReferences
+var nimReferenceProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideReferences = provideReferences
+    o.to(VscodeReferenceProvider)

@@ -44,5 +44,7 @@ proc provideDocumentFormattingEdits*(
                     resolve(@[vscode.textEditReplace(`range`, content)])
     )
 
-var nimFormattingProvider* {.exportc.} = newJsObject()
-nimFormattingProvider.provideDocumentFormattingEdits = provideDocumentFormattingEdits
+var nimFormattingProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideDocumentFormattingEdits = provideDocumentFormattingEdits
+    o.to(VscodeDocumentFormattingEditProvider)

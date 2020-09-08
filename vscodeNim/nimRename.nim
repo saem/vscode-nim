@@ -36,5 +36,7 @@ proc provideRenameEdits*(
     ).catch(proc (reason:JsObject) = reject(reason))
   )
 
-var nimRenameProvider* {.exportc.} = newJsObject()
-nimRenameProvider.provideRenameEdits = provideRenameEdits
+var nimRenameProvider* {.exportc.} = block:
+  var o = newJsObject()
+  o.provideRenameEdits = provideRenameEdits
+  o.to(VscodeRenameProvider)

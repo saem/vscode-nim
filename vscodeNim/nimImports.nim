@@ -108,7 +108,7 @@ proc initNimbleModules(rootDir:cstring):Promise[seq[cstring]] =
                         ExecOptions{ cwd: rootDir }
                     ).toString()
                 var nimbleModule = NimbleModuleInfo{ name: moduleName }
-                for line in output.split(newRegExp(r"\n")):
+                for line in output.split(newRegExp(r"\n", "")):
                     var pairs = line.strip().split(": \"")
                     if pairs.len == 2:
                         var value = pairs[1][0 .. (pairs[1].len - 2)]

@@ -33,5 +33,7 @@ proc provideDefinition*(
         ).catch(proc(reason:JsObject) = reject(reason))
     )
 
-var nimDefinitionProvider* {.exportc.} = newJsObject()
-nimDefinitionProvider.provideDefinition = provideDefinition
+var nimDefinitionProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideDefinition = provideDefinition
+    o.to(VscodeDefinitionProvider)

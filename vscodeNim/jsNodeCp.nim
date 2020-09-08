@@ -6,11 +6,9 @@ type
     StreamWriteable* = ref StreamWriteableObj
     StreamWriteableObj {.importc.} = object of JsRoot
 
-type
     StreamReadable* = ref StreamReadableObj
     StreamReadableObj {.importc.} = object of JsRoot
 
-type
     ChildProcess* = ref ChildProcessObj
     ChildProcessObj {.importc.} = object of JsRoot
         pid*:cint
@@ -18,7 +16,6 @@ type
         stdout*:StreamReadable
         stderr*:StreamReadable
 
-type
     BaseError* = ref BaseErrorObj
     BaseErrorObj {.importc.} = object of JsObject
         name*:cstring
@@ -36,14 +33,12 @@ type
         code*:cint
         signal*:cstring
 
-type
     SpawnSyncReturn* = ref SpawnSyncReturnObj
     SpawnSyncReturnObj {.importc.} = object of JsObject
         status*:cint
         error*:ChildError
         output*:seq[cstring]
 
-type
     ExecOptions* = ref object
         cwd*:cstring
 
@@ -53,11 +48,9 @@ type
     SpawnSyncOptions* = ref object
         cwd*:cstring
 
-type
     ChildProcessModule* = ref ChildProcessModuleObj
     ChildProcessModuleObj {.importc.} = object of JsRoot
 
-type
     ExecCallback* = proc(error:ExecError, stdout:cstring, stderr:cstring):void
 
 # node module interface

@@ -37,5 +37,7 @@ proc provideHover*(
         ).catch(proc(reason:JsObject) = reject(reason))
     )
 
-var nimHoverProvider* {.exportc.} = newJsObject()
-nimHoverProvider.provideHover = provideHover
+var nimHoverProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideHover = provideHover
+    o.to(VscodeHoverProvider)
