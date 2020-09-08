@@ -9,7 +9,7 @@ import jsNodeCp
 import jsString
 import jsPromise
 
-import strformat
+from strformat import fmt
 import nimsuggest/sexp
 
 type

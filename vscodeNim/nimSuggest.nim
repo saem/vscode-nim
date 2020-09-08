@@ -102,5 +102,7 @@ proc provideCompletionItems*(
             .to(Promise[seq[VscodeCompletionItem]])
     )
 
-var nimCompletionItemProvider* {.exportc.} = newJsObject()
-nimCompletionItemProvider.provideCompletionItems = provideCompletionItems
+var nimCompletionItemProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideCompletionItems = provideCompletionItems
+    o.to(VscodeCompletionItemProvider)

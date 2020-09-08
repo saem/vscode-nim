@@ -1,33 +1,14 @@
-import jsffi
-export jsffi
-import jsPromise
-export jsPromise
-import jsre
+import jsffi, jsPromise, jsre
+
+export jsffi, jsPromise
 
 ## TODO: Move from JsObject to JsRoot for more explict errors
-
-type
-    VscodeDiagnosticSeverity* {.nodecl, pure.} = enum
-        ## Something not allowed by the rules of a language or other means.
-        error = (0, "Error")
-        ## Something suspicious but allowed.
-        warning = (1, "Warning")
-        ## Something to inform about but not a problem.
-        information = (2, "Information")
-        ## Something to hint to a better way of doing it, like proposing
-        ## a refactoring.
-        hint = (3, "Hint")
-
-    VscodeDocumentFilter* = ref object
-        language*:cstring
-        scheme*:cstring
 
 type
     VscodeMarkdownString* = ref VscodeMarkdownStringObj
     VscodeMarkdownStringObj {.importc.} = object of JsObject
         value*:cstring
 
-type
     VscodeUri* = ref VscodeUriObj
     VscodeUriObj {.importc.} = object of JsObject
         scheme*:cstring
@@ -41,6 +22,119 @@ type
         query*:cstring
         fragment*:cstring
 
+    VscodePosition* = ref VscodePositionObj
+    VscodePositionObj {.importc.} = object of JsObject
+        line*: cint
+        character*: cint
+
+    VscodeRange* = ref VscodeRangeObj
+    VscodeRangeObj {.importc.} = object of JsObject
+        start*:VscodePosition
+        `end`*:VscodePosition
+
+    VscodeCancellationToken* = ref VscodeCancellationTokenObj
+    VscodeCancellationTokenObj {.importc.} = object of JsObject
+
+    VscodeLocation* = ref VscodeLocationObj
+    VscodeLocationObj {.importc.} = object of JsObject
+        uri*:VscodeUri
+        `range`*:VscodeRange
+    
+    VscodeSymbolKind* {.pure, nodecl.} = enum
+        file = 0,
+        module = 1,
+        namespace = 2,
+        package = 3,
+        class = 4,
+        `method` = 5,
+        property = 6,
+        field = 7,
+        constructor = 8,
+        `enum` = 9,
+        `interface` = 10,
+        function = 11,
+        variable = 12,
+        constant = 13,
+        `string` = 14,
+        number = 15,
+        boolean = 16,
+        `array` = 17,
+        `object` = 18,
+        key = 19,
+        null = 20,
+        enumMember = 21,
+        struct = 22,
+        event = 23,
+        operator = 24,
+        typeParameter = 25
+
+    VscodeSymbolInformation* = ref VscodeSymbolInformationObj
+    VscodeSymbolInformationObj {.importc.} = object of JsRoot
+        name*:cstring
+        containerName*:cstring
+        kind*:VscodeSymbolKind
+        location*:VscodeLocation
+
+    VscodeDiagnosticSeverity* {.nodecl, pure.} = enum
+        ## Something not allowed by the rules of a language or other means.
+        error = (0, "Error")
+        ## Something suspicious but allowed.
+        warning = (1, "Warning")
+        ## Something to inform about but not a problem.
+        information = (2, "Information")
+        ## Something to hint to a better way of doing it, like proposing
+        ## a refactoring.
+        hint = (3, "Hint")
+
+    ## Additional metadata about the type of a diagnostic.
+    VscodeDiagnosticTag* {.nodecl, pure.} = enum
+        ## Unused or unnecessary code.
+        ##
+        ## Diagnostics with this tag are rendered faded out. The amount of fading
+        ## is controlled by the `"editorUnnecessaryCode.opacity"` theme color. For
+        ## example, `"editorUnnecessaryCode.opacity": "#000000c0"` will render the
+        ## code with 75% opacity. For high contrast themes, use the
+        ## `"editorUnnecessaryCode.border"` theme color to underline unnecessary code
+        ## instead of fading it out.
+        unnecessary = (1, "Unnecessary")
+
+    ## Represents a related message and source code location for a diagnostic. This should be
+    ## used to point to code locations that cause or related to a diagnostics, e.g when duplicating
+    ## a symbol in a scope.
+    VscodeDiagnosticRelatedInformation* = ref VscodeDiagnosticRelatedInformationObj
+    VscodeDiagnosticRelatedInformationObj {.importc.} = object of JsRoot
+        ## The location of this related diagnostic information.
+        location*:VscodeLocation
+        ## The message of this related diagnostic information.
+        message*:cstring
+
+    ## Represents a diagnostic, such as a compiler error or warning. Diagnostic
+    ## objects are only valid in the scope of a file.
+    VscodeDiagnostic* = ref VscodeDiagnosticObj
+    VscodeDiagnosticObj {.importc.} = object of JsRoot
+        ## The range to which this diagnostic applies.
+        `range`*:VscodeRange
+        ## The human-readable message.
+        message*:cstring
+        ## The severity, default is [error](#DiagnosticSeverity.Error).
+        severity*:VscodeDiagnosticSeverity
+        ## A human-readable string describing the source of this
+        ## diagnostic, e.g. 'typescript' or 'super lint'.
+        source*:cstring
+        ## A code or identifier for this diagnostics. Will not be surfaced
+        ## to the user, but should be used for later processing, e.g. when
+        ## providing [code actions](#CodeActionContext).
+        code*:cstring
+        ## An array of related diagnostic information, e.g. when symbol-names within
+        ## a scope collide all definitions can be marked via this property.
+        relatedInformation*:seq[VscodeDiagnosticRelatedInformation]
+        ## Additional metadata about the diagnostic.
+        tags*:seq[VscodeDiagnosticTag]
+
+    VscodeDocumentFilter* = ref object
+        language*:cstring
+        scheme*:cstring
+
 type
     VscodeTextLine* = ref VscodeTextLineObj
     VscodeTextLineObj {.importc.} = object of JsObject
@@ -52,22 +146,8 @@ type
         fileName*:cstring
         uri*:VscodeUri
         isDirty*:bool
-
-type
-    VscodePosition* = ref VscodePositionObj
-    VscodePositionObj {.importc.} = object of JsObject
-        line*: cint
-        character*: cint
-
-type
-    VscodeRange* = ref VscodeRangeObj
-    VscodeRangeObj {.importc.} = object of JsObject
-        start*:VscodePosition
-        `end`*:VscodePosition
-
-type
-    VscodeCancellationToken* = ref VscodeCancellationTokenObj
-    VscodeCancellationTokenObj {.importc.} = object of JsObject
+        languageId*:cstring
+        isUntitled*:bool
 
 type VscodeHoverLabel* = ref object
     # Not explictly named in vscode API, see type literal under MarkedString
@@ -108,34 +188,6 @@ type
         title*:cstring
         cancellable*:bool
 
-type VscodeSymbolKind* {.pure, nodecl.} = enum
-    file = 0,
-    module = 1,
-    namespace = 2,
-    package = 3,
-    class = 4,
-    `method` = 5,
-    property = 6,
-    field = 7,
-    constructor = 8,
-    `enum` = 9,
-    `interface` = 10,
-    function = 11,
-    variable = 12,
-    constant = 13,
-    `string` = 14,
-    number = 15,
-    boolean = 16,
-    `array` = 17,
-    `object` = 18,
-    key = 19,
-    null = 20,
-    enumMember = 21,
-    struct = 22,
-    event = 23,
-    operator = 24,
-    typeParameter = 25
-
 type VscodeCompletionKind* {.pure, nodecl.} = enum
     text = 0,
     `method` = 1,
@@ -164,20 +216,6 @@ type VscodeCompletionKind* {.pure, nodecl.} = enum
     typeParameter = 24
 
 type
-    VscodeLocation* = ref VscodeLocationObj
-    VscodeLocationObj {.importc.} = object of JsObject
-        uri*:VscodeUri
-        `range`*:VscodeRange
-
-type
-    VscodeSymbolInformation* = ref VscodeSymbolInformationObj
-    VscodeSymbolInformationObj {.importc.} = object of JsRoot
-        name*:cstring
-        containerName*:cstring
-        kind*:VscodeSymbolKind
-        location*:VscodeLocation
-
-type
     VscodeFormattingOptions* = ref VscodeFormattingOptionsObj
     VscodeFormattingOptionsObj {.importc.} = object of JsObject
 
@@ -202,8 +240,7 @@ type
     VscodeConfigurationChangeEventObj {.importc.} = object of JsRoot
 
 type
-    VscodeWorkspaceConfiguration* = ref VscodeWorkspaceConfigurationObj
-    VscodeWorkspaceConfigurationObj {.importc.} = object of JsObject
+    VscodeWorkspaceConfiguration* = JsObject
 
 type
     VscodeWorkspaceFolder* = ref VscodeWorkspaceFolderObj
@@ -260,9 +297,6 @@ type
     VscodeRenameProvider* = ref VscodeRenameProviderObj
     VscodeRenameProviderObj {.importc.} = object of JsRoot
 
-    VscodeDocumentSymbolProvider* = ref VscodeDocumentSymbolProviderObj
-    VscodeDocumentSymbolProviderObj {.importc.} = object of JsRoot
-
     VscodeSignatureHelpProvider* = ref VscodeSignatureHelpProviderObj
     VscodeSignatureHelpProviderObj {.importc.} = object of JsRoot
 
@@ -271,6 +305,9 @@ type
 
     VscodeDocumentFormattingEditProvider* = ref VscodeDocumentFormattingEditProviderObj
     VscodeDocumentFormattingEditProviderObj {.importc.} = object of JsRoot
+
+    VscodeDocumentSymbolProvider* = ref VscodeDocumentSymbolProviderObj
+    VscodeDocumentSymbolProviderObj {.importc.} = object of JsRoot
 
     VscodeWorkspaceSymbolProvider* = ref VscodeWorkspaceSymbolProviderObj
     VscodeWorkspaceSymbolProviderObj {.importc.} = object of JsRoot
@@ -372,27 +409,23 @@ type
 
 type
     VscodeTextEditor* = ref VscodeTextEditorObj
-    VscodeTextEditorObj {.importc.} = object of JsObject
+    VscodeTextEditorObj {.importc.} = object of JsRoot
         document*:VscodeTextDocument
         selection*:VscodeSelection
 
-type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsRoot
         rootPath*:cstring
         workspaceFolders*:seq[VscodeWorkspaceFolder]
 
-type
     VscodeLanguages* = ref VscodeLanguagesObj
     VscodeLanguagesObj {.importc.} = object of JsRoot
 
-type
     VscodeWindow* = ref VscodeWindowObj
-    VscodeWindowObj {.importc.} = object of JsObject
+    VscodeWindowObj {.importc.} = object of JsRoot
         activeTextEditor*:VscodeTextEditor
         visibleTextEditors*:seq[VscodeTextEditor]
 
-type
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
 
@@ -403,16 +436,22 @@ type VscodeStatusBarAlignment* {.nodecl, pure.} = enum
 type
     Vscode* = ref VscodeObj
     VscodeObj {.importc.} = object of JsRoot
-        window*: VscodeWindow
-        commands*: VscodeCommands
-        workspace*: VscodeWorkspace
-        languages*: VscodeLanguages
+        window*:VscodeWindow
+        commands*:VscodeCommands
+        workspace*:VscodeWorkspace
+        languages*:VscodeLanguages
 
 # static function
 proc newWorkspaceEdit*(vscode:Vscode):VscodeWorkspaceEdit {.importcpp: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode:Vscode, start:cint, `end`:cint):VscodePosition {.importcpp: "(new #.Position(@))".}
 proc newRange*(vscode:Vscode, start:VscodePosition, `end`:VscodePosition):VscodeRange {.importcpp: "(new #.Range(@))".}
 proc newRange*(vscode:Vscode, startA, endA, startB, endB:cint):VscodeRange {.importcpp: "(new #.Range(@))".}
+proc newDiagnostic*(
+    vscode:Vscode,
+    r:VscodeRange,
+    msg:cstring,
+    sev:VscodeDiagnosticSeverity
+):VscodeDiagnostic {.importcpp:"(new #.Diagnostic(@))".}
 proc newLocation*(vscode:Vscode, uri:VscodeUri, pos:VscodePosition):VscodeLocation {.importcpp: "(new #.Location(@))".}
 proc newCompletionItem*(vscode:Vscode, name:cstring, kind:VscodeCompletionKind):VscodeCompletionItem {.importcpp: "(new #.CompletionItem(@))".}
 proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.importcpp: "(new #.MarkdownString(@))".}
@@ -453,6 +492,12 @@ proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.impo
 proc getConfiguration*(ws:VscodeWorkspace, name:cstring):VscodeWorkspaceConfiguration {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc():void):VscodeDisposable {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
+proc onDidSaveTextDocument*[T](
+    ws:VscodeWorkspace,
+    cb:proc(d:VscodeTextDocument):void,
+    thisArg:T,
+    disposables:seq[VscodeDisposable]
+):VscodeDisposable {.importcpp, discardable.}
 proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
 proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
 proc getWorkspaceFolder*(ws:VscodeWorkspace, folder:VscodeUri):VscodeWorkspaceFolder {.importcpp.}
@@ -461,14 +506,19 @@ proc createFileSystemWatcher*(
     ws:VscodeWorkspace,
     glob:cstring
 ):VscodeFileSystemWatcher {.importcpp.}
+proc applyEdit*(
+    ws:VscodeWorkspace,
+    e:VscodeWorkspaceEdit
+):Promise[bool] {.importcpp, discardable.}
 
 # FileSystemWatcher
-proc onDidCreate*(w:
-    VscodeFileSystemWatcher,
+proc dispose*(w:VscodeFileSystemWatcher):void {.importcpp.}
+proc onDidCreate*(
+    w:VscodeFileSystemWatcher,
     listener:proc(uri:VscodeUri):void
 ):VscodeDisposable {.importcpp, discardable.}
-proc onDidDelete*(w:
-    VscodeFileSystemWatcher,
+proc onDidDelete*(
+    w:VscodeFileSystemWatcher,
     listener:proc(uri:VscodeUri):void
 ):VscodeDisposable {.importcpp, discardable.}
 
@@ -482,7 +532,7 @@ proc setLanguageConfiguration*(
     langs:VscodeLanguages,
     lang:cstring,
     config:VscodeLanguageConfiguration
-):VscodeDisposable {.importcpp.}
+):VscodeDisposable {.importcpp, discardable.}
 proc registerCompletionItemProvider*(
     langs:VscodeLanguages,
     selector:VscodeDocumentFilter,
@@ -563,10 +613,15 @@ proc onDidChangeActiveTextEditor*[T](
     listener:proc():void,
     thisArg:T,
     disposables:seq[VscodeDisposable]
-):VscodeDisposable {.importcpp.}
+):VscodeDisposable {.importcpp, discardable.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
+proc sendText*(
+    term:VscodeTerminal,
+    name:cstring,
+    addNewLine:bool
+):void {.importcpp.}
 
 # OutputChannel
 proc appendLine*(c:VscodeOutputChannel, line:cstring):void {.importcpp.}

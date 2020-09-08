@@ -20,38 +20,47 @@ type
     ProcessModuleObj {.importc.} = object of JsRoot
         env*:JsAssoc[cstring,cstring]
         platform*:cstring
+    
+    GlobalModule = ref GlobalModuleObj
+    GlobalModuleObj {.importc.} = object of JsRoot
 
 var process* {.importc, nodecl.}:ProcessModule
+var global* {.importc, nodecl.}:GlobalModule
 
 # static
 proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
 proc newMap*[K,V]():Map[K,V] {.importcpp: "(new Map())".}
 proc newBuffer*(size:cint):Buffer {.importcpp: "(new Buffer(@))".}
 
+# global
+proc setInterval*(g:GlobalModule, f:proc():void, t:cint):void {.importcpp.}
+
 # Map
 proc get*[K,V](m:Map[K,V], key:K):V {.importcpp.}
 proc set*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp.}
 proc delete*[K,V](m:Map[K,V], key:K) {.importcpp.}
+proc clear*[K,V](m:Map[K,V]) {.importcpp.}
 
 iterator keys*[K,V](m:Map[K,V]):K =
     ## Yields the `keys` in a Map.
     var k:K
-    {.emit: "for (let `k` of `map`.keys()) {".}
+    {.emit: "for (let `k` of `m`.keys()) {".}
     yield k
     {.emit: "}".}
 
 iterator values*[K,V](m:Map[K,V]):V =
     ## Yields the `keys` in a Map.
     var v:V
-    {.emit: "for (let `v` of `map`.values()) {".}
+    {.emit: "for (let `v` of `m`.values()) {".}
     yield v
     {.emit: "}".}
 
 iterator entries*[K,V](m:Map[K,V]):(K,V) =
-    ## Yields the `keys` in a Map.
+    ## Yields the `entries` in a Map.
     var k:K
     var v:V
-    {.emit: "for (let [`k`,`v`] of `map`.entries()) {".}
+    {.emit: "for (let e of `m`.entries()) {".}
+    {.emit: "  `k` = e[0]; `v` = e[1];".}
     yield (k,v)
     {.emit: "}".}
 

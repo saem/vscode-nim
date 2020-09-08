@@ -21,13 +21,14 @@ type
         # The file name without extension (if any) such as 'index'
         name*:cstring
 
-proc resolve*(path:Path, paths:cstring):cstring {.importcpp, varargs.}
-proc join*(path:Path, paths:cstring):cstring {.importcpp, varargs.}
-proc dirname*(path:Path, paths:cstring):cstring {.importcpp.}
-proc basename*(path:Path, paths:cstring):cstring {.importcpp.}
-proc extname*(path:Path, paths:cstring):cstring {.importcpp.}
-proc isAbsolute*(path:Path, paths:cstring):bool {.importcpp.}
-proc parse*(path:Path, str:cstring):ParsedPath {.importcpp.}
-proc normalize*(path:Path, str:cstring):cstring {.importcpp.}
+proc resolve*(p:Path, paths:cstring):cstring {.importcpp, varargs.}
+proc join*(p:Path, paths:cstring):cstring {.importcpp, varargs.}
+proc dirname*(p:Path, path:cstring):cstring {.importcpp.}
+proc basename*(p:Path, path:cstring):cstring {.importcpp.}
+proc basename*(p:Path, path:cstring, ext:cstring):cstring {.importcpp.}
+proc extname*(p:Path, path:cstring):cstring {.importcpp.}
+proc isAbsolute*(p:Path, path:cstring):bool {.importcpp.}
+proc parse*(p:Path, str:cstring):ParsedPath {.importcpp.}
+proc normalize*(p:Path, str:cstring):cstring {.importcpp.}
 
 var path*:Path = require("path").to(Path)

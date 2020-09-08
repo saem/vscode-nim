@@ -10,12 +10,12 @@ import jsString
 import jsre
 import jsconsole
 
-type CheckResult = ref object
-    file:cstring
-    line:cint
-    column:cint
-    msg:cstring
-    severity:cstring
+type CheckResult* = ref object
+    file*:cstring
+    line*:cint
+    column*:cint
+    msg*:cstring
+    severity*:cstring
 
 type ExecutorStatus = ref object
     initialized:bool
@@ -125,7 +125,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
 
         console.log("parseErrors - non-hint:", line)
 
-        var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)").exec(line)
+        var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)", "").exec(line)
         if not match.isNull():
             if messageText.len < 1024:
                 messageText &= nodeOs.eol & line
@@ -234,6 +234,9 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                 ret.add(rs)
             console.log("check - result", ret)
             return ret
+        ).catch(proc(r:JsObject):Promise[seq[CheckResult]] =
+            console.error("check - all - failed", r)
+            promiseReject(r).toJs().to(Promise[seq[CheckResult]])
         )
 
 var evalTerminal:VscodeTerminal
@@ -244,7 +247,7 @@ proc activateEvalConsole*():void =
             evalTerminal = jsUndefined.to(VscodeTerminal)
     )
 
-proc execSelectionInTerminal*(doc:VscodeTextDocument):void =
+proc execSelectionInTerminal*(#[ doc:VscodeTextDocument ]#):void =
     if not vscode.window.activeTextEditor.isNil():
         if getNimExecPath().isNil():
             return
@@ -255,4 +258,5 @@ proc execSelectionInTerminal*(doc:VscodeTextDocument):void =
             evalTerminal.sendText(getNimExecPath() & " secret\n")
 
         evalTerminal.sendText(
-            vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection))
+            vscode.window.activeTextEditor.document.getText(
+                vscode.window.activeTextEditor.selection))

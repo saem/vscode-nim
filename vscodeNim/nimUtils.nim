@@ -182,7 +182,7 @@ proc prepareConfig*():void =
         for k in keys(cfgMappings):
             var path:cstring = cfgMappings.get(k).to(cstring)
             projectMapping.add(ProjectMappingInfo{
-                fileRegex: newRegExp(k.toJs().to(cstring)), projectPath: path
+                fileRegex: newRegExp(k.toJs().to(cstring), ""), projectPath: path
             })
 
 proc getProjects*():seq[ProjectFileInfo] = projects

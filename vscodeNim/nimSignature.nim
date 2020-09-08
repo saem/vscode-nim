@@ -95,13 +95,13 @@ proc provideSignatureHelp(
                             if item.`type`[i] == "]":
                                 dec insideGeneric
 
-                        var signatureCutDown = newRegExp(r"(proc|macro|template|iterator|func) \((.+: .+)*\)").exec(genericsCleanType)
+                        var signatureCutDown = newRegExp(r"(proc|macro|template|iterator|func) \((.+: .+)*\)", "").exec(genericsCleanType)
                         if signatureCutDown.toJs().to(bool):
                             let parameters = signatureCutDown[2].split(", ")
                             for param in parameters:
                                 signature.parameters.add(vscode.newParameterInformation(param))
                         if item.names[0] == identBeforeDot or
-                            item.path.find(newRegExp(identBeforeDot)) != -1 or
+                            item.path.find(newRegExp(identBeforeDot, "")) != -1 or
                             item.path.find(r"\\" & identBeforeDot & r"\\") != -1:
                                 inc isModule
                         signatures.signatures.add(signature)
@@ -122,5 +122,7 @@ proc provideSignatureHelp(
         return promiseReject(reason).toJs().to(Promise[VscodeSignatureHelp])
     )
 
-var nimSignatureProvider* {.exportc.} = newJsObject()
-nimSignatureProvider.provideSignatureHelp = provideSignatureHelp
+var nimSignatureProvider* {.exportc.} = block:
+    var o = newJsObject()
+    o.provideSignatureHelp = provideSignatureHelp
+    o.to(VscodeSignatureHelpProvider)
