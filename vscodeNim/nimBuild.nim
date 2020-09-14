@@ -9,6 +9,7 @@ import jsNodeOs
 import jsString
 import jsre
 import jsconsole
+import sequtils
 
 type CheckResult* = ref object
     file*:cstring
@@ -116,19 +117,15 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
     var lastColumn:cstring = ""
     var lastLine:cstring = ""
 
-    console.log("parseErrors", lines)
-
-    for l in lines:
-        var line:cstring = l.strip()
-        if line.startsWith("Hint:"):
-            continue
-
-        console.log("parseErrors - non-hint:", line)
-
-        var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)", "").exec(line)
-        if not match.isNull():
-            if messageText.len < 1024:
-                messageText &= nodeOs.eol & line
+    # Progress indicator from nim CLI is just dots
+    var dots = newRegExp(r"^\.+$")
+    for line in lines.mapIt(it.strip()).filterIt(
+        not(it.startsWith("Hint:") or it == "" or dots.test(it))
+    ):
+        var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
+            .exec(line)
+        if not match.toJs().to(bool) and messageText.len < 1024:
+            messageText &= nodeOs.eol & line
         else:
             var file = match[1]
             var lineStr = match[2]
@@ -154,7 +151,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
                         msg:msg,
                         severity:severity
                     })
-                elif lastFile.len > 0:
+                elif lastFile != "":
                     ret.add(CheckResult{
                         file:lastFile,
                         line:lastLine.parseCint(),
@@ -172,11 +169,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
 
 proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
     var ret:seq[CheckResult] = @[]
-    console.log("parseNimsuggestErrors", jsArguments)
-    for item in items:
-        if item.path == "???" and item.`type` == "Hint":
-            continue
-        console.log("parseNimsuggestErrors - per item", item)
+    for item in items.filterIt(not (it.path == "???" and it.`type` == "Hint")):
         ret.add(CheckResult{
             file:item.path,
             line:item.line,
@@ -191,14 +184,12 @@ proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
 proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[seq[CheckResult]] =
     var runningToolsPromises:seq[Promise[seq[CheckResult]]] = @[]
 
-    console.log("check", jsArguments)
-    if nimConfig["useNimsuggestCheck"].isNil() or nimConfig["useNimsuggestCheck"].to(bool):
+    if (not not nimConfig["useNimsuggestCheck"]).to(bool):
         runningToolsPromises.add(newPromise(proc(
                 resolve:proc(values:seq[CheckResult]),
                 reject:proc(reason:JsObject)
             ) = execNimSuggest(NimSuggestType.chk, filename, 0, 0, "").then(
                     proc(items:seq[NimSuggestResult]) =
-                        console.log("check - execNimSuggest", jsArguments)
                         if not items.isNull() and items.len > 0:
                             resolve(parseNimsuggestErrors(items))
                         else:
@@ -226,13 +217,10 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                     parseErrors
                 ))
 
-    console.log("check - before all", runningToolsPromises)
     return all(runningToolsPromises).then(proc(resultSets:seq[seq[CheckResult]]):seq[CheckResult] =
-            console.log("check - all", jsArguments)
             var ret:seq[CheckResult] = @[]
             for rs in resultSets:
                 ret.add(rs)
-            console.log("check - result", ret)
             return ret
         ).catch(proc(r:JsObject):Promise[seq[CheckResult]] =
             console.error("check - all - failed", r)

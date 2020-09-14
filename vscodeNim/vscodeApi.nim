@@ -1,4 +1,4 @@
-import jsffi, jsPromise, jsre
+import jsffi, jsPromise, asyncjs, jsre
 
 export jsffi, jsPromise
 
@@ -135,6 +135,20 @@ type
         language*:cstring
         scheme*:cstring
 
+    ## Represents an item that can be selected from a list of items.
+    VscodeQuickPickItem* = ref object
+        ## A human readable string which is rendered prominent.
+        label*:cstring
+        ## A human readable string which is rendered less prominent.
+        description*:cstring
+        ## A human readable string which is rendered less prominent.
+        detail*:cstring
+        ## Optional flag indicating if this item is picked initially.
+        ## (Only honored when the picker allows multiple selections.)
+        ## 
+        ## @see [QuickPickOptions.canPickMany](#QuickPickOptions.canPickMany)
+        picked*:bool
+
 type
     VscodeTextLine* = ref VscodeTextLineObj
     VscodeTextLineObj {.importc.} = object of JsObject
@@ -247,6 +261,7 @@ type
     VscodeWorkspaceFolderObj {.importc.} = object of JsObject
         uri*:VscodeUri
         name*:cstring
+        index*:cint
 
 type
     VscodeCompletionItem* = ref VscodeCompletionItemObj
@@ -324,10 +339,34 @@ type
     VscodeFileSystemWatcher* = ref VscodeFileSystemWatcherObj
     VscodeFileSystemWatcherObj {.importc.} = object of JsRoot
 
+    ## A memento represents a storage utility. It can store and retrieve
+    ## values.
+    VscodeMemento* = ref object
+
     VscodeExtensionContext* = ref VscodeExtensionContextObj
     VscodeExtensionContextObj {.importc.} = object of JsRoot
+        ## An array to which disposables can be added. When this
+        ## extension is deactivated the disposables will be disposed.
         subscriptions*:seq[VscodeDisposable]
+        ## A memento object that stores state in the context
+        ## of the currently opened [workspace](#workspace.workspaceFolders).
+        workspaceState*:VscodeMemento
+        ## A memento object that stores state independent
+        ## of the current opened [workspace](#workspace.workspaceFolders).
+        globalState*:VscodeMemento
+        ## The absolute file path of the directory containing the extension.
         extensionPath*:cstring
+        ## An absolute file path of a workspace specific directory in which the extension
+        ## can store private state. The directory might not exist on disk and creation is
+        ## up to the extension. However, the parent directory is guaranteed to be existent.
+        ##
+        ## Use [`workspaceState`](#ExtensionContext.workspaceState) or
+        ## [`globalState`](#ExtensionContext.globalState) to store key value data.
+        storagePath*:cstring
+        ## An absolute file path of a directory in which the extension can create log files.
+        ## The directory might not exist on disk and creation is up to the extension. However,
+        ## the parent directory is guaranteed to be existent.
+        logPath*:cstring
     
     ## A tuple of two characters, like a pair of opening and closing brackets.
     VscodeCharacterPair* = array[2, cstring]
@@ -429,13 +468,25 @@ type
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
 
-type VscodeStatusBarAlignment* {.nodecl, pure.} = enum
-    left = 1
-    right = 2
+    VscodeStatusBarAlignment* {.nodecl, pure.} = enum
+        left = 1
+        right = 2
 
-type
+    VscodeEnv* = ref object
+        ## The application name of the editor, like 'VS Code'.
+        appName*:cstring
+        ## The application root folder from which the editor is running.
+        appRoot*:cstring
+        ## Represents the preferred user-language, like `de-CH`, `fr`, or `en-US`.
+        language*:cstring
+        ## A unique identifier for the computer.
+        machineId*:cstring
+        ## A unique identifier for the current session.
+        sessionId*:cstring
+
     Vscode* = ref VscodeObj
     VscodeObj {.importc.} = object of JsRoot
+        env*:VscodeEnv
         window*:VscodeWindow
         commands*:VscodeCommands
         workspace*:VscodeWorkspace
@@ -652,9 +703,20 @@ proc with*(
 ## static function, but the import in js is "dynamic" in the variable it's assigned to
 proc textEditReplace*(vscode:Vscode, `range`:VscodeRange, content:cstring):VscodeTextEdit {.importcpp: "#.TextEdit.replace(@)".}
 
+# DiagnosticCollection
+# proc set*(c:VscodeDiagnosticCollection, entries:seq[])
+
 # Events
 
 proc affectsConfiguration*(event:VscodeConfigurationChangeEvent, section:cstring):bool {.importcpp.}
+
+# Memento
+proc get*[T](m:VscodeMemento, k:cstring):T {.importcpp.}
+    ## a value or nil
+proc get*[T](m:VscodeMemento, k:cstring, defaultVal:T):T {.importcpp.}
+    ## stored value or the default value
+proc update*[T](m:VscodeMemento, k:cstring, v:T):Future[void] {.importcpp.}
+    ## value must not contain cyclic references
 
 var vscode*:Vscode = require("vscode").to(Vscode)
 

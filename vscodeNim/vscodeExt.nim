@@ -19,8 +19,8 @@ from nimBuild import check,
 from nimStatus import showHideStatus
 from nimIndexer import initWorkspace
 from nimImports import initImports,  removeFileFromImports, addFileToImports
-from nimSuggestExec import initNimSuggest, closeAllNimSuggestProcesses
-from nimUtils import getDirtyFile, outputLine
+from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
+from nimUtils import extensionContext, getDirtyFile, outputLine
 from nimMode import mode
 
 from strformat import fmt
@@ -30,10 +30,10 @@ var diagnosticCollection {.threadvar.}:VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}:VscodeFileSystemWatcher
 var terminal {.threadvar.}:VscodeTerminal
 
-type
-    FileDiagnostics = tuple
-        uri:VscodeUri
-        diags:seq[VscodeDiagnostic]
+# type
+#     FileDiagnostics = tuple
+#         uri:VscodeUri
+#         diags:seq[VscodeDiagnostic]
 
 proc mapSeverityToVscodeSeverity(sev:cstring):VscodeDiagnosticSeverity =
     return case $(sev)
@@ -90,9 +90,9 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
             diagnostics.add(diagnostic)
             err[error.file & $(error.line) & $(error.column) & error.msg] = true
         
-        var entries:seq[FileDiagnostics] = @[]
+        var entries:seq[array[0..1, JsObject]] = @[]
         for uri, diags in diagnosticMap.entries():
-            entries.add((vscode.uriFile(uri), diags))
+            entries.add([vscode.uriFile(uri).toJs(), diags.toJs()])
         diagnosticCollection.set(entries)
     )
 
@@ -170,6 +170,9 @@ proc runFile():void =
                 )
 
 proc activate*(ctx:VscodeExtensionContext):void =
+    nimUtils.extensionContext = ctx
+    nimSuggestExec.extensionContext = ctx
+    nimFormatting.extensionContext = ctx
     var config = vscode.workspace.getConfiguration("nim")
 
     vscode.commands.registerCommand("nim.run.file", runFile)
@@ -252,7 +255,6 @@ proc activate*(ctx:VscodeExtensionContext):void =
                 r"g"
             )
         }
-    console.log("mode: ", mode, "language: ", mode.language, "config: ", languageConfig)
     try:
         vscode.languages.setLanguageConfiguration(
             mode.language,
@@ -271,9 +273,18 @@ proc activate*(ctx:VscodeExtensionContext):void =
             terminal = nil
     )
 
-    console.log(ctx.extensionPath)
+    console.log(
+        fmt"""
+            ExtensionContext:
+            extensionPath:{ctx.extensionPath}
+            storagePath:{ctx.storagePath}
+            logPath:{ctx.logPath}
+        """.strip()
+    )
     activateEvalConsole()
-    discard initWorkspace(ctx.extensionPath)
+    if not fs.existsSync(ctx.storagePath):
+        fs.mkdirSync(ctx.storagePath)
+    discard initWorkspace(ctx.storagePath)
     fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim")
     fileWatcher.onDidCreate(proc(uri:VscodeUri) =
         if config["licenseString"].to(bool):

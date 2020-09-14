@@ -17,9 +17,8 @@ type
         stderr*:StreamReadable
 
     BaseError* = ref BaseErrorObj
-    BaseErrorObj {.importc.} = object of JsObject
+    BaseErrorObj {.importc.} = object of JsError
         name*:cstring
-        message*:cstring
         stack*:cstring
 
     ChildError* = ref ChildErrorObj

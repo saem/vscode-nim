@@ -31,6 +31,8 @@ var global* {.importc, nodecl.}:GlobalModule
 proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
 proc newMap*[K,V]():Map[K,V] {.importcpp: "(new Map())".}
 proc newBuffer*(size:cint):Buffer {.importcpp: "(new Buffer(@))".}
+    ## TODO - mark as deprecated
+proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
 
 # global
 proc setInterval*(g:GlobalModule, f:proc():void, t:cint):void {.importcpp.}

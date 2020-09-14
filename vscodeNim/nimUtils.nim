@@ -3,7 +3,6 @@ import vscodeApi
 import jsNode
 import jsNodeFs
 import jsNodePath
-import jsNodeOs
 import jsNodeCp
 
 import jsre
@@ -25,6 +24,7 @@ type
 var pathsCache = newJsAssoc[cstring, cstring]()
 var projects:seq[ProjectFileInfo] = @[]
 var projectMapping:seq[ProjectMappingInfo] = @[]
+var extensionContext*:VscodeExtensionContext
 
 proc correctBinname*(binname:cstring):cstring =
     if process.platform == "win32": binname & ".exe" else: binname
@@ -115,13 +115,13 @@ proc toLocalFile*(project:ProjectFileInfo):cstring =
         }).fsPath
 
 proc getOptionalToolPath(tool:cstring):cstring =
-    if pathsCache[tool].toJs().to(bool):
-        var nimPrettyPath = path.resolve(
+    if pathsCache[tool].isUndefined():
+        var execPath = path.resolve(
                 path.dirname(getNimExecPath()), 
                 correctBinname(tool)
             )
-        if fs.existsSync(nimPrettyPath):
-            pathsCache[tool] = nimPrettyPath
+        if fs.existsSync(execPath):
+            pathsCache[tool] = execPath
         else:
             pathsCache[tool] = ""
     return pathsCache[tool]
@@ -156,7 +156,9 @@ proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
 
 proc getDirtyFile*(doc:VscodeTextDocument):cstring =
     ## temporary file path of edited document
-    var dirtyFilePath = path.normalize(path.join(nodeOs.tmpDir(), "vscodenimdirty.nim"))
+    var dirtyFilePath = path.normalize(
+        path.join(extensionContext.storagePath,"vscodenimdirty.nim")
+    )
     fs.writeFileSync(dirtyFilePath, doc.getText())
     return dirtyFilePath
 
