@@ -31,6 +31,8 @@ type
     VscodeRangeObj {.importc.} = object of JsObject
         start*:VscodePosition
         `end`*:VscodePosition
+        ## `true` if `start` and `end` are equal.
+        isEmpty*:bool
 
     VscodeCancellationToken* = ref VscodeCancellationTokenObj
     VscodeCancellationTokenObj {.importc.} = object of JsObject
@@ -295,11 +297,15 @@ type
     VscodeWorkspaceEdit* = ref VscodeWorkspaceEditObj
     VscodeWorkspaceEditObj {.importc.} = object of JsObject
 
-type
     VscodeSelection* = ref VscodeSelectionObj
     VscodeSelectionObj {.importc.} = object of VscodeRange
+        ## The position at which the selection starts.
+        ## This position might be before or after [active](#Selection.active).
+        anchor*:VscodePosition
+        ## The position of the cursor.
+        ## This position might be before or after [anchor](#Selection.anchor).
+        active*:VscodePosition
 
-type
     VscodeCompletionItemProvider* = ref VscodeCompletionItemProviderObj
     VscodeCompletionItemProviderObj {.importc.} = object of JsRoot
 
@@ -329,6 +335,7 @@ type
     
     VscodeTerminal* = ref VscodeTerminalObj
     VscodeTerminalObj {.importc.} = object of JsObject
+        processId*:Future[cint]
 
     VscodeDisposable* = ref VscodeDisposableObj
     VscodeDisposableObj {.importc.} = object of JsObject
@@ -659,12 +666,20 @@ proc onDidCloseTerminal*(
     window:VscodeWindow,
     listener:proc(t:VscodeTerminal):void
 ):VscodeDisposable {.importcpp, discardable.}
+proc onDidOpenTerminal*(
+    window:VscodeWindow,
+    listener:proc(t:VscodeTerminal):void
+):VscodeDisposable {.importcpp, discardable.}
 proc onDidChangeActiveTextEditor*[T](
     window:VscodeWindow,
     listener:proc():void,
     thisArg:T,
     disposables:seq[VscodeDisposable]
 ):VscodeDisposable {.importcpp, discardable.}
+proc showQuickPick*(
+    window:VscodeWindow,
+    items:seq[VscodeQuickPickItem]
+):Future[VscodeQuickPickItem] {.importcpp.}
 
 # Terminal
 proc sendText*(term:VscodeTerminal, name:cstring):void {.importcpp.}
@@ -673,6 +688,7 @@ proc sendText*(
     name:cstring,
     addNewLine:bool
 ):void {.importcpp.}
+proc show*(term:VscodeTerminal, preserveFocus:bool):void {.importcpp.}
 
 # OutputChannel
 proc appendLine*(c:VscodeOutputChannel, line:cstring):void {.importcpp.}
@@ -684,6 +700,7 @@ proc dispose*(item:VscodeStatusBarItem):void {.importcpp.}
 
 # TextDocument
 proc save*(doc:VscodeTextDocument):Promise[bool] {.importcpp.}
+proc lineAt*(doc:VscodeTextDocument, line:cint):VscodeTextLine {.importcpp.}
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
 proc getText*(doc:VscodeTextDocument):cstring {.importcpp.}
 proc getText*(doc:VscodeTextDocument, `range`:VscodeRange):cstring {.importcpp.}

@@ -45,6 +45,9 @@ proc find*(s:cstring, a:cstring):cint {.importcpp:"#.indexOf(@)".}
 
 proc find*(s:cstring, a:RegExp):cint {.importcpp:"#.search(@)".}
 
+proc match*(s:cstring, a:RegExp):seq[cstring] {.importcpp.}
+  ## Retrieves the result of matching a string against a regular expression.
+
 proc findLast*(s:cstring, a:cstring):cint {.importcpp:"#.lastIndexOf(@)".}
   ## Searches for `a` in `s`.
   ##
@@ -84,7 +87,7 @@ proc replace*(s:cstring, sub:RegExp, by = cstring""):cstring {.importcpp:"#.repl
   ## Replaces `sub` in `s` by the string `by`.
 
 proc strip*(s:cstring):cstring {.importcpp:"#.trim()".} 
-  ## Strips leading or trailing spaces 
+  ## Strips leading or trailing spaces
 
 proc parseFloatJS*(s:cstring):float {.importcpp:"parseFloat(@)".}
   ## Parses a decimal floating point value contained in `s`

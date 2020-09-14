@@ -38,9 +38,17 @@ proc getBinPath*(tool:cstring):cstring =
                 ".nimble",
                 "bin")
         var pathParts = process.env["PATH"].split(path.delimiter)
-        pathsCache[tool] = pathParts.mapIt(path.join(it, correctBinname(tool)))
-            .filterIt(fs.existsSync(it))[0]
-        
+        var endings = if process.platform == "win32": @[".exe", ".cmd", ""]
+            else: @[""]
+
+        pathsCache[tool] = pathParts.mapIt(
+            block:
+                var dir = it
+                endings.mapIt(path.join(dir, tool & it))
+            ).foldl(
+                a & b # flatten nested arays
+            ).filterIt(fs.existsSync(it))[0]
+
         if process.platform != "win32":
             try:
                 var nimPath:cstring
@@ -61,10 +69,10 @@ proc getBinPath*(tool:cstring):cstring =
     pathsCache[tool]
 
 
-proc getNimExecPath*():cstring =
-    var path = getBinPath("nim")
-    if path.isNil:
-        vscode.window.showInformationMessage("No 'nim' binary could be found in PATH environment variable")
+proc getNimExecPath*(executable:cstring = "nim"):cstring =
+    var path = getBinPath(executable)
+    if path.isNil():
+        vscode.window.showInformationMessage(fmt"No '{executable}' binary could be found in PATH environment variable")
     return path
 
 proc isWorkspaceFile*(filePath:cstring):bool =
@@ -116,10 +124,7 @@ proc toLocalFile*(project:ProjectFileInfo):cstring =
 
 proc getOptionalToolPath(tool:cstring):cstring =
     if pathsCache[tool].isUndefined():
-        var execPath = path.resolve(
-                path.dirname(getNimExecPath()), 
-                correctBinname(tool)
-            )
+        var execPath = path.resolve(getBinPath(tool))
         if fs.existsSync(execPath):
             pathsCache[tool] = execPath
         else:
