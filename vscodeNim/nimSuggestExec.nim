@@ -77,10 +77,7 @@ proc initNimSuggest*() =
     prepareConfig()
 
     # check nimsuggest related executable
-    var nimSuggestNewPath = path.resolve(
-            path.dirname(getNimExecPath()),
-            correctBinname("nimsuggest")
-        )
+    var nimSuggestNewPath = path.resolve(getBinPath("nimsuggest"))
     
     if fs.existsSync(nimSuggestNewPath):
         nimSuggestPath = nimSuggestNewPath
