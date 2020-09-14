@@ -1,11 +1,11 @@
 {
-    "name": "nim",
+    "name": "nimvscode",
     "displayName": "Nim",
-    "description": "Nim language support for Visual Studio Code -- experimenting with Nim",
-    "version": "0.6.6",
-    "publisher": "kosz78",
+    "description": "Nim language support for Visual Studio Code written in Nim",
+    "version": "0.0.2",
+    "publisher": "nimsaem",
     "author": {
-        "name": "Xored Software Inc."
+        "name": "Saem"
     },
     "license": "MIT",
     "icon": "images/nim_icon.png",
@@ -26,10 +26,7 @@
         "url": "https://github.com/saem/vscode-nim/issues"
     },
     "scripts": {
-        "vscode:prepublish": "./node_modules/.bin/tsc -p ./",
-        "watch": "./node_modules/.bin/tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "lint": "node ./node_modules/tslint/bin/tslint ./src/*.ts ./test/*.ts"
+        "vscode:prepublish": "nimble release"
     },
     "dependencies": {
         "nedb": "1.8.0"
@@ -37,9 +34,10 @@
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
-        "tslint": "^5.20.1",
+        "@types/vscode": "^1.27.0",
         "typescript": "^2.6.1",
-        "vscode": "^1.1.36"
+        "vsce": "^1.79.5",
+        "vscode-test": "^1.4.0"
     },
     "extensionDependencies": [
         "ms-vscode.cpptools"
@@ -56,7 +54,7 @@
         "onCommand:nim.runTest",
         "onCommand:nim.execSelectionInTerminal"
     ],
-    "main": "./out/nimMain",
+    "main": "./out/nimMain.js",
     "contributes": {
         "languages": [
             {
