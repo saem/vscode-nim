@@ -93,7 +93,7 @@ proc parseFloatJS*(s:cstring):float {.importcpp:"parseFloat(@)".}
 proc parseCint*(s:cstring):cint {.importcpp:"parseInt(@)".}
   ## Parses an int value contained in `s`
   ## Using JS's native float parsing function
-proc parseCint*(s:cstring, radix:cint):cint {.importcpp:"parseInt(#, #)".}
+proc parseCint*(s:cstring, radix:cint):cint {.importcpp:"parseInt(@)".}
   ## Parses an int value contained in `s` with the given radix
   ## Using JS's native float parsing function
 

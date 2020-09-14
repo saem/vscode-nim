@@ -9,8 +9,11 @@ import nedbApi
 import jsNodeFs
 import jsNodePath
 import jsPromise
+import asyncjs
 import jsString
 import jsre
+
+import jsconsole
 
 var dbVersion:cint = 4
 
@@ -41,62 +44,70 @@ proc vscodeKindFromNimSym(kind:cstring):VscodeSymbolKind =
     of "skType": VscodeSymbolKind.class
     else: VscodeSymbolKind.property
 
-proc getFileSymbols*(file:cstring, dirtyFile:cstring):Promise[seq[VscodeSymbolInformation]] =
-    return newPromise(proc(
-            resolve:proc(r:seq[VscodeSymbolInformation]):void,
-            reject:proc(reason:JsObject):void
-        ) =
-            nimSuggestExec.execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
-                .then(proc(items:seq[NimSuggestResult]) =
-                    var symbols:seq[VscodeSymbolInformation] = @[]
-                    var exists: seq[cstring] = @[]
+proc getFileSymbols*(file:cstring, dirtyFile:cstring):Future[seq[VscodeSymbolInformation]] {.async.} =
+    console.log("getFileSymbols - execnimsuggest - ", $(NimSuggestType.outline), file, dirtyFile)
+    var items = await nimSuggestExec.execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
+    
+    var symbols:seq[VscodeSymbolInformation] = @[]
+    var exists: seq[cstring] = @[]
 
-                    var res = if items.isNull() or items.isUndefined(): @[] else: items
-                    for item in res:
-                        # skip let and var in proc and methods
-                        if (item.suggest == "skLet" or item.suggest == "skVar") and item.containerName.contains("."):
-                            continue
-
-                        var toAdd = $(item.column) & ":" & $(item.line)
-                        if not any(exists, proc(x:cstring):bool = x == toAdd):
-                            exists.add(toAdd)
-                            var symbolInfo = vscode.newSymbolInformation(
-                                item.symbolname,
-                                vscodeKindFromNimSym(item.suggest),
-                                item.`range`,
-                                item.uri,
-                                item.containerName
-                            )
-                            symbols.add(symbolInfo)
-
-                    resolve(symbols)
+    var res = if items.toJs().to(bool): items else: @[]
+    try:
+        for item in res.filterIt(not (
+            # skip let and var in proc and methods
+            (it.suggest == "skLet" or it.suggest == "skVar") and it.containerName.contains(".")
+        )):
+            var toAdd = $(item.column) & ":" & $(item.line)
+            if not any(exists, proc(x:cstring):bool = x == toAdd):
+                exists.add(toAdd)
+                var symbolInfo = vscode.newSymbolInformation(
+                    item.symbolname,
+                    vscodeKindFromNimSym(item.suggest),
+                    item.`range`,
+                    item.uri,
+                    item.containerName
                 )
-                .catch(proc(reason:JsObject) = reject(reason))
-    )
+                symbols.add(symbolInfo)
+    except:
+        var e = getCurrentException()
+        console.error("getFileSymbols - failed", e)
+        raise e
+    return symbols
 
-proc indexFile(file:cstring):Promise[void] =
-    var timestamp = fs.statSync(file).mtime.getTime()
-    findFile(file, timestamp.cint()).then(proc(doc:FileData):void =
-        getFileSymbols(file, "").then(
-            proc(infos:seq[VscodeSymbolInformation]):void =
-                if not infos.isNull() and infos.len > 0:
-                    dbFiles.remove(file, proc(err:NedbError, n:cint) =
-                        dbFiles.insert(FileData{file:file, timestamp:timestamp})
-                    )
-                    dbTypes.remove(file, proc(err:NedbError, n:cint) =
-                        for i in infos:
-                            dbTypes.insert(SymbolData{
-                                ws: vscode.workspace.rootPath,
-                                file: i.location.uri.fsPath,
-                                range_start: i.location.`range`.start,
-                                range_end: i.location.`range`.`end`,
-                                `type`: i.name,
-                                container: i.containerName,
-                                kind: i.kind
-                            })
-                    )
-        )
-    ).toJs().to(Promise[void])
+proc indexFile(file:cstring) {.async.} =
+    var timestamp = cint(fs.statSync(file).mtime.getTime())
+    var doc = await findFile(file, timestamp)
+    if doc.isNil():
+        var infos = await getFileSymbols(file, "")
+        if not infos.isNull() and infos.len > 0:
+            dbFiles.remove(file, proc(err:NedbError, n:cint) =
+                if not err.isNil():
+                    console.error("indexFile - dbFiles", err)
+                var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
+                if not folder.isNil():
+                    dbFiles.insert(FileData{file:file, timestamp:timestamp})
+                else:
+                    console.log("indexFile - dbFiles - not in workspace")
+            )
+            dbTypes.remove(file, proc(err:NedbError, n:cint) =
+                if not err.isNil():
+                    console.error("indexFile - dbTypes", err)
+                for i in infos:
+                    var folder = vscode.workspace.getWorkspaceFolder(i.location.uri)
+                    if folder.isNil():
+                        console.log("indexFile - dbTypes - not in workspace", i.location.uri.fsPath)
+                        continue
+
+                    dbTypes.insert(SymbolData{
+                        ws: folder.uri.fsPath,
+                        file: i.location.uri.fsPath,
+                        range_start: i.location.`range`.start,
+                        range_end: i.location.`range`.`end`,
+                        `type`: i.name,
+                        container: i.containerName,
+                        kind: i.kind
+                    })
+            )
 
 proc removeFromIndex(file:cstring):void =
     dbFiles.remove(file, proc(err:NedbError, n:cint) =
@@ -119,7 +130,7 @@ proc cleanOldDb(basePath:cstring, name:cstring):void =
         if fs.existsSync(dbPath):
             fs.unlinkSync(dbPath)
 
-proc initWorkspace*(extPath: cstring):Promise[void] =
+proc initWorkspace*(extPath: cstring) {.async.} =
     # remove old version of indcies
     cleanOldDb(extPath, "files")
     cleanOldDb(extPath, "types")
@@ -146,23 +157,18 @@ proc initWorkspace*(extPath: cstring):Promise[void] =
     if nimSuggestPath.isNil() or nimSuggestPath == "":
         return;
 
-    var urlsFetch = vscode.workspace.findFiles("**/*.nim", "")
-    var prevPromise = urlsFetch.toJs().to(Promise[void])
-    urlsFetch.then(proc(urls:seq[VscodeUri]) =
-        showNimProgress("Indexing: " & $(urls.len))
+    var urls = await vscode.workspace.findFiles("**/*.nim")
+    showNimProgress("Indexing, file count: " & $(urls.len))
+    for i, url in urls:
+        var cnt = urls.len - 1
 
-        for i, url in urls:
-            prevPromise = prevPromise.then(proc():Promise[void] =
-                var cnt = urls.len - i
+        if cnt mod 10 == 0:
+            updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
+        
+        console.log("indexing: ", i, url)
+        await indexFile(url.fsPath)
 
-                if cnt mod 10 == 0:
-                    updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
-                
-                indexFile(urls[i].fsPath)
-            )
-    )
-
-    prevPromise.then(hideNimProgress)
+    hideNimProgress()
 
 proc findWorkspaceSymbols*(query:cstring):Promise[seq[VscodeSymbolInformation]] =
     return newPromise(proc(
@@ -171,7 +177,8 @@ proc findWorkspaceSymbols*(query:cstring):Promise[seq[VscodeSymbolInformation]] 
         ) =
             try:
                 var reg = newRegExp(query, r"i")
-                dbTypes.find(vscode.workspace.rootPath, reg)
+                var folders:seq[cstring] = vscode.workspace.workspaceFolders.mapIt(it.uri.fsPath)
+                dbTypes.find(folders, reg)
                     .limit(100)
                     .exec(proc(err:NedbError, docs:seq[SymbolDataRead]) =
                         var symbols:seq[VscodeSymbolInformation] = @[]

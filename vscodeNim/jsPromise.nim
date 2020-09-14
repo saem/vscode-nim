@@ -1,29 +1,32 @@
+import asyncjs except PromiseJs
+export asyncjs
+
 # Promise Wrapping -- TODO separate out
 # Lifted from: https://gist.github.com/stisa/afc8e34cda656ee88c12428f9047bd03
 type
-  Promise*[T] = ref PromiseObj
-  PromiseObj {.importc.} = object of JsRoot
+  Promise*[T] = Future[T]
+  ## temporary bridge until fully migrated to asyncjs
 
 # Statics
-proc newPromise*[T](executor:proc(resolve:proc(val:T))):Promise[T] {.importcpp: "new Promise(@)".}
-proc newPromise*[T,R](executor:proc(resolve:proc(val:T), reject:proc(reason:R))):Promise[T] {.importcpp: "new Promise(@)".}
-proc newEmptyPromise*():Promise[void] {.importcpp: "(Promise.resolve())".}
-proc race*[T](iterable:openarray[T]):Promise[T] {.importcpp: "Promise.race(#)",discardable.}
-proc all*[T](iterable:openarray[Promise[T]]):Promise[seq[T]] {.importcpp: "Promise.all(#)",discardable.}
-proc promiseReject*[T](reason:T):Promise[T] {.importcpp: "Promise.reject(#)",discardable.}
-proc promiseResolve*[T](val:T):Promise[T] {.importcpp:"Promise.resolve(#)", discardable.}
+proc newPromise*[T](handler:proc(resolve:proc(val:T))):Future[T] {.importcpp: "new Promise(@)".}
+proc newPromise*[T,R](handler:proc(resolve:proc(val:T), reject:proc(reason:R))):Future[T] {.importcpp: "new Promise(@)".}
+proc newEmptyPromise*():Future[void] {.importcpp: "(Promise.resolve())".}
+proc race*[T](iterable:openarray[T]):Future[T] {.importcpp: "Promise.race(#)",discardable.}
+proc all*[T](iterable:openarray[Future[T]]):Future[seq[T]] {.importcpp: "Promise.all(#)",discardable.}
+proc promiseReject*[T](reason:T):Future[T] {.importcpp: "Promise.reject(#)",discardable.}
+proc promiseResolve*[T](val:T):Future[T] {.importcpp:"Promise.resolve(#)", discardable.}
 
 {.push importcpp, discardable.}
-proc then*[T](p:Promise[T], onFulfilled: proc()):Promise[T]
-proc then*[T,R](p:Promise[T], onFulfilled: proc():Promise[R]):Promise[R]
-proc then*[T](p:Promise[T], onFulfilled: proc(val:T)):Promise[T]
-proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):Promise[R]):Promise[R]
-proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R):Promise[R]
-proc then*[T](p:Promise[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Promise[T]
-proc then*[T,R](p:Promise[T], onFulfilled: proc(val:T):R, onRejected: proc(reason:auto)):Promise[R]
-proc catch*[T](p:Promise[T], onRejected: proc(reason:auto)):Promise[T]
-proc catch*[T,R](p:Promise[T], onRejected: proc(reason:auto):R):Promise[R]
-proc catch*[T,R](p:Promise[T], onRejected: proc(reason:auto):Promise[R]):Promise[R]
+proc then*[T](p:Future[T], onFulfilled: proc()):Future[T]
+proc then*[T,R](p:Future[T], onFulfilled: proc():Future[R]):Future[R]
+proc then*[T](p:Future[T], onFulfilled: proc(val:T)):Future[T]
+proc then*[T,R](p:Future[T], onFulfilled: proc(val:T):Future[R]):Future[R]
+proc then*[T,R](p:Future[T], onFulfilled: proc(val:T):R):Future[R]
+proc then*[T](p:Future[T], onFulfilled: proc(val:T), onRejected: proc(reason:auto)):Future[T]
+proc then*[T,R](p:Future[T], onFulfilled: proc(val:T):R, onRejected: proc(reason:auto)):Future[R]
+proc catch*[T](p:Future[T], onRejected: proc(reason:auto)):Future[T]
+proc catch*[T,R](p:Future[T], onRejected: proc(reason:auto):R):Future[R]
+proc catch*[T,R](p:Future[T], onRejected: proc(reason:auto):Future[R]):Future[R]
 {.pop.}
 
 #[]
