@@ -2,7 +2,7 @@ when not defined(js):
   {.error: "This module only works on the JavaScript platform".}
 
 import jsffi
-import vscodeExt
+import nimvscode/vscodeExt
 
 var module {.importc.}: JsObject
 module.exports.activate = activate
