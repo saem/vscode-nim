@@ -44,7 +44,10 @@ proc vscodeKindFromNimSym(kind:cstring):VscodeSymbolKind =
     of "skType": VscodeSymbolKind.class
     else: VscodeSymbolKind.property
 
-proc getFileSymbols*(file:cstring, dirtyFile:cstring):Future[seq[VscodeSymbolInformation]] {.async.} =
+proc getFileSymbols*(
+    file:cstring,
+    dirtyFile:cstring
+):Future[seq[VscodeSymbolInformation]] {.async.} =
     console.log("getFileSymbols - execnimsuggest - ", $(NimSuggestType.outline), file, dirtyFile)
     var items = await nimSuggestExec.execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
     

@@ -13,5 +13,5 @@
     "editor.tabSize": 4,
 
     "nim.buildCommand": "js",
-    "nim.runOutputDirectory": "out"
+    "nim.runOutputDirectory": "out",
 }

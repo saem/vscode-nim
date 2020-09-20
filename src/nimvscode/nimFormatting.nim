@@ -23,8 +23,8 @@ proc provideDocumentFormattingEdits*(
         getNimPrettyExecPath(),
         @[
             cstring "--backup:OFF",
-            "--indent:" & config["nimprettyIndent"].to(cstring),
-            "--maxLineLen:" & config["nimprettyMaxLineLen"].to(cstring),
+            "--indent:" & $(config.getInt("nimprettyIndent")),
+            "--maxLineLen:" & $(config.getInt("nimprettyMaxLineLen")),
             file
         ],
         SpawnSyncOptions{ cwd: extensionContext.extensionPath }
@@ -36,7 +36,8 @@ proc provideDocumentFormattingEdits*(
     elif not fs.existsSync(file):
         var msg:cstring = fmt"Formatting failed - file not found: {file}"
         console.error(msg)
-        raise JsError{ message: msg }
+        {.emit: "throw { message: `msg` }".}
+        return ret
 
     var content = fs.readFileSync(file, "utf-8")
     var `range` = doc.validateRange(vscode.newRange(
