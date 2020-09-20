@@ -255,10 +255,9 @@ type
     VscodeConfigurationChangeEvent* = VscodeConfigurationChangeEventObj
     VscodeConfigurationChangeEventObj {.importc.} = object of JsRoot
 
-type
-    VscodeWorkspaceConfiguration* = JsObject
+    VscodeWorkspaceConfiguration* = ref VscodeWorkspaceConfigurationObj
+    VscodeWorkspaceConfigurationObj {.importc.} = object of JsRoot
 
-type
     VscodeWorkspaceFolder* = ref VscodeWorkspaceFolderObj
     VscodeWorkspaceFolderObj {.importc.} = object of JsObject
         uri*:VscodeUri
@@ -547,7 +546,15 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
 
 # Workspace
 proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
-proc getConfiguration*(ws:VscodeWorkspace, name:cstring):VscodeWorkspaceConfiguration {.importcpp.}
+proc getConfiguration*(
+    ws:VscodeWorkspace,
+    name:cstring
+):VscodeWorkspaceConfiguration {.importcpp.}
+proc getConfiguration*(
+    ws:VscodeWorkspace,
+    name:cstring,
+    scope:VscodeUri
+):VscodeWorkspaceConfiguration {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc():void):VscodeDisposable {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
 proc onDidSaveTextDocument*[T](
@@ -568,6 +575,30 @@ proc applyEdit*(
     ws:VscodeWorkspace,
     e:VscodeWorkspaceEdit
 ):Promise[bool] {.importcpp, discardable.}
+
+# WorkspaceConfiguration
+proc has*(c:VscodeWorkspaceConfiguration, section:cstring):bool {.importcpp.}
+proc get*(
+    c:VscodeWorkspaceConfiguration,
+    section:cstring
+):JsObject {.importcpp.}
+proc getBool*(
+    c:VscodeWorkspaceConfiguration,
+    section:cstring
+):bool {.importcpp:"#.get(@)".}
+proc getBool*(
+    c:VscodeWorkspaceConfiguration,
+    section:cstring,
+    default:bool
+):bool {.importcpp:"#.get(@)".}
+proc getInt*(
+    c:VscodeWorkspaceConfiguration,
+    section:cstring
+):cint {.importcpp:"#.get(@)".}
+proc getStr*(
+    c:VscodeWorkspaceConfiguration,
+    section:cstring
+):cstring {.importcpp:"#.get(@)".}
 
 # FileSystemWatcher
 proc dispose*(w:VscodeFileSystemWatcher):void {.importcpp.}

@@ -74,8 +74,6 @@ proc getNimSuggestVersion*():cstring =
     nimSuggestVersion
 
 proc initNimSuggest*() =
-    prepareConfig()
-
     # check nimsuggest related executable
     var nimSuggestNewPath = path.resolve(getBinPath("nimsuggest"))
     
@@ -159,24 +157,28 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Future[NimSuggestProcessDe
     var projectPath = toLocalFile(nimProject)
     if nimSuggestProcessCache[projectPath].isNil():
         nimSuggestProcessCache[projectPath] = newPromise(proc(
-                resolve:proc(s:NimSuggestProcessDescription), reject:proc(reason:JsObject)
+                resolve:proc(s:NimSuggestProcessDescription),
+                reject:proc(reason:JsObject)
             ) =
                 var nimConfig = vscode.workspace.getConfiguration("nim")
                 var args = @["--epc".cstring, "--v2".cstring]
-                if nimConfig["logNimsuggest"].toJs().to(bool):
+                if nimConfig.getBool("logNimsuggest"):
                     args.add("--log".cstring)
-                if not not nimConfig["useNimsuggestCheck"].toJs().to(bool):
+                if nimConfig.getBool("useNimsuggestCheck"):
                     args.add("--refresh:on".cstring)
+                if nimConfig.getBool("buildCommand"):
+                    args.add("--backend:" & nimConfig.getStr("buildCommand"))
 
                 args.add(nimProject.filePath)
+                var cwd = nimProject.wsFolder.uri.fsPath
                 var process = cp.spawn(
                         getNimsuggestPath(),
                         args,
                         SpawnOptions{
-                            cwd: nimProject.wsFolder.uri.fsPath
+                            cwd: cwd
                         }
                     )
-                console.log(fmt"started nimsuggest process ({process.pid})) args: ({args.join("" "")}) nim project:", nimProject)
+                console.log(fmt"started nimsuggest process ({process.pid})) args: ({args.join("" "")}) cwd: {cwd} nim project:", nimProject)
                 process.stdout.onceData(proc(data:Buffer) =
                     var dataStr = data.toString()
                     var portNumber = parseCint(dataStr)
@@ -187,8 +189,12 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Future[NimSuggestProcessDe
                             resolve(NimSuggestProcessDescription{process:process, rpc:peer})
                         )
                 )
-                process.stdout.onceData(proc(data:Buffer) = console.log("getNimSuggestProcess - stdout pid: ", process.pid, "data:", data.toString()))
-                process.stderr.onceData(proc(data:Buffer) = console.log("getNimSuggestProcess - stderr pid: ", process.pid, "data:", data.toString()))
+                process.stdout.onceData(proc(data:Buffer) =
+                    console.log("getNimSuggestProcess - stdout pid: ", process.pid, "data:", data.toString())
+                )
+                process.stderr.onceData(proc(data:Buffer) =
+                    console.log("getNimSuggestProcess - stderr pid: ", process.pid, "data:", data.toString())
+                )
                 process.onClose(proc(code:cint, signal:cstring):void =
                     var codeStr = if code.toJs().isNull(): "unknown" else: $(code)
                     var msg = fmt"nimsuggest {process.pid} (args: {args.join("" "")}) closed with code: {codeStr} and signal: {signal}"
@@ -227,6 +233,7 @@ proc execNimSuggest*(
         return ret
 
     var projectFile = getProjectFileInfo(filename)
+    console.log("execNimSuggest - filename", filename, "projectFile", projectFile)
 
     try:
         var normalizedFilename:cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
@@ -242,14 +249,14 @@ proc execNimSuggest*(
             )
 
         if isValidDesc and desc.rpc.toJs().to(bool):
+            console.log("nimsuggest method call - ", desc.process.pid, suggestCmd, normalizedFilename, dirtyFile)
+
             var sexps = @[
                 sexp($(normalizedFilename)),
                 sexp(line),
                 sexp(column),
                 sexp($(dirtyFile))
             ]
-            console.log("nimsuggest method call - ", desc.process.pid, suggestCmd, normalizedFilename, dirtyFile)
-
             var r = await desc.rpc.callMethod(suggestCmd, sexps)
 
             if desc.process.toJs().to(bool):

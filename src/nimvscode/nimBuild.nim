@@ -36,7 +36,7 @@ proc nimExec(
         reject:proc(reason:JsObject)
     ) =
         var execPath = getNimExecPath()
-        if execPath.isNull() or execPath.isUndefined():
+        if execPath.toJs().to(bool):
             resolve(@[])
             return
 
@@ -107,6 +107,7 @@ proc nimExec(
                     output &= data.toString()
                 )
     ).catch(proc(reason:JsObject):Promise[seq[CheckResult]] =
+        console.error("nim check failed", reason)
         return promiseReject(reason).toJs().to(Promise[seq[CheckResult]])
     )
 
@@ -184,13 +185,13 @@ proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
 proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[seq[CheckResult]] =
     var runningToolsPromises:seq[Promise[seq[CheckResult]]] = @[]
 
-    if (not not nimConfig["useNimsuggestCheck"]).to(bool):
+    if nimConfig.getBool("useNimsuggestCheck", true):
         runningToolsPromises.add(newPromise(proc(
                 resolve:proc(values:seq[CheckResult]),
                 reject:proc(reason:JsObject)
             ) = execNimSuggest(NimSuggestType.chk, filename, 0, 0, "").then(
                     proc(items:seq[NimSuggestResult]) =
-                        if not items.isNull() and items.len > 0:
+                        if items.toJs().to(bool) and items.len > 0:
                             resolve(parseNimsuggestErrors(items))
                         else:
                             resolve(@[])
@@ -198,12 +199,16 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
             )
         )
     else:
+        var backend:cstring = if nimConfig.has("buildCommand"):
+                "--backend:" & nimConfig.getStr("buildCommand")
+            else:
+                ""
         if not isProjectMode():
             var project = getProjectFileInfo(filename)
             runningToolsPromises.add(nimExec(
                 project, 
                 "check",
-                @["--listFullPaths".cstring, project.filePath],
+                @["--listFullPaths".cstring, project.filePath, backend],
                 true,
                 parseErrors
             ))
@@ -212,7 +217,7 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                 runningToolsPromises.add(nimExec(
                     project, 
                     "check",
-                    @["--listFullPaths".cstring, project.filePath],
+                    @["--listFullPaths".cstring, project.filePath, backend],
                     true,
                     parseErrors
                 ))

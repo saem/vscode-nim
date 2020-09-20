@@ -10,6 +10,8 @@ import jsString
 import jscore
 import strformat
 
+import jsconsole
+
 import sequtils
 
 type
@@ -89,22 +91,30 @@ proc isWorkspaceFile*(filePath:cstring):bool =
         return false
 
 proc toProjectInfo*(filePath:cstring):ProjectFileInfo =
+    var workspace = vscode.workspace
     if path.isAbsolute(filePath):
-        var workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(filePath))
+        var workspaceFolder = workspace.getWorkspaceFolder(vscode.uriFile(filePath))
         if workspaceFolder.toJs().to(bool):
             return ProjectFileInfo{
                     wsFolder: workspaceFolder,
-                    filePath: vscode.workspace.asRelativePath(filePath, false)
+                    filePath: workspace.asRelativePath(filePath, false)
                 }
-    else:
-        var parsedPath:seq[cstring] = filePath.split("/")
-        if parsedPath.len > 1:
-            for folder in vscode.workspace.workspaceFolders:
-                if parsedPath[0] == folder.name:
-                    return ProjectFileInfo{
-                        wsFolder: folder,
-                        filePath: filePath[parsedPath[0].len + 1..<filePath.len]
-                    }
+    elif workspace.workspaceFolders.toJs().to(bool) and workspace.workspaceFolders.len > 0:
+        var workspaceFolders = workspace.workspaceFolders
+        if workspaceFolders.len == 1:
+            return ProjectFileInfo{
+                wsFolder:workspaceFolders[0],
+                filePath: filePath
+            }
+        else:
+            var parsedPath:seq[cstring] = filePath.split("/")
+            if parsedPath.len > 1:
+                for folder in workspaceFolders:
+                    if parsedPath[0] == folder.name:
+                        return ProjectFileInfo{
+                            wsFolder: folder,
+                            filePath: filePath[parsedPath[0].len + 1..<filePath.len]
+                        }
     
     var parsedPath = path.parse(filePath)
     return ProjectFileInfo{
@@ -142,6 +152,7 @@ proc getNimbleExecPath*():cstring =
 proc isProjectMode*():bool = projects.len > 0
 
 proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
+    console.log("getProjectFileInfo - mapping", projectMapping)
     if not isProjectMode():
         var projectInfo:ProjectFileInfo
         if projectMapping.len > 0:
@@ -153,7 +164,7 @@ proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
         if projectInfo.isNil():
             projectInfo = toProjectInfo(filename)
         return projectInfo
-    
+
     for project in projects:
         if filename.startsWith(path.dirname(toLocalFile(project))):
             return project
@@ -168,11 +179,14 @@ proc getDirtyFile*(doc:VscodeTextDocument):cstring =
     return dirtyFilePath
 
 proc prepareConfig*():void =
-    var config = vscode.workspace.getConfiguration("nim")
-    var cfgProjects = config.get("project")
     projects = @[]
+    projectMapping = @[]
 
-    if cfgProjects.toJs().to(bool):
+    var config:VscodeWorkspaceConfiguration = vscode.workspace.getConfiguration("nim")
+    var cfgProjects = config.get("project")
+    var cfgMappings = config.get("projectMapping")
+
+    if cfgProjects.to(bool):
         if cfgProjects.isJsArray():
             for p in cfgProjects.to(seq[cstring]):
                 projects.add(toProjectInfo(p))
@@ -182,12 +196,10 @@ proc prepareConfig*():void =
                     if res.toJs().to(bool) and res.len > 0:
                         projects.add(toProjectInfo(res[0].fsPath))
                 )
-    
-    var cfgMappings = config.get("projectMapping").toJs()
-    projectMapping = @[]
+
     if not cfgMappings.isNil() and cfgMappings.jsTypeOf() == "object":
         for k in keys(cfgMappings):
-            var path:cstring = cfgMappings.get(k).to(cstring)
+            var path:cstring = cfgMappings[k].to(cstring)
             projectMapping.add(ProjectMappingInfo{
                 fileRegex: newRegExp(k.toJs().to(cstring), ""), projectPath: path
             })

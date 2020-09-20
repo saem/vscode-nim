@@ -20,7 +20,7 @@ from nimStatus import showHideStatus
 from nimIndexer import initWorkspace
 from nimImports import initImports,  removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
-from nimUtils import extensionContext, getDirtyFile, outputLine
+from nimUtils import extensionContext, getDirtyFile, outputLine, prepareConfig
 from nimMode import mode
 
 from strformat import fmt
@@ -29,11 +29,6 @@ import sequtils
 var diagnosticCollection {.threadvar.}:VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}:VscodeFileSystemWatcher
 var terminal {.threadvar.}:VscodeTerminal
-
-# type
-#     FileDiagnostics = tuple
-#         uri:VscodeUri
-#         diags:seq[VscodeDiagnostic]
 
 proc mapSeverityToVscodeSeverity(sev:cstring):VscodeDiagnosticSeverity =
     return case $(sev)
@@ -102,10 +97,11 @@ proc startBuildOnSaveWatcher(subscriptions:seq[VscodeDisposable]) =
             if document.languageId != "nim":
                 return
 
-            if not not vscode.workspace.getConfiguration("nim")["lineOnSave"].to(bool):
+            var config = vscode.workspace.getConfiguration("nim")
+            if config.getBool("lineOnSave"):
                 runCheck(document)
             
-            if not not (vscode.workspace.getConfiguration("nim")["buildOnSave"].to(bool)):
+            if config.getBool("buildOnSave"):
                 vscode.commands.executeCommand("workbench.action.tasks.build")
         ,
         nil,
@@ -115,7 +111,7 @@ proc startBuildOnSaveWatcher(subscriptions:seq[VscodeDisposable]) =
 proc runFile():void =
     var editor = vscode.window.activeTextEditor
     var nimCfg = vscode.workspace.getConfiguration("nim")
-    var nimBuildCmdStr:cstring = "nim " & nimCfg["buildCommand"].to(cstring)
+    var nimBuildCmdStr:cstring = "nim " & nimCfg.getStr("buildCommand")
     if not editor.isNil():
         if terminal.isNil():
             terminal = vscode.window.createTerminal("Nim")
@@ -130,7 +126,7 @@ proc runFile():void =
                 true
             )
         else:
-            var outputDirConfig = nimCfg["runOutputDirectory"].to(cstring)
+            var outputDirConfig = nimCfg.getStr("runOutputDirectory")
             var outputParams:cstring = ""
             if not not outputDirConfig.toJs().to(bool):
                 if vscode.workspace.workspaceFolders.toJs().to(bool):
@@ -179,7 +175,8 @@ proc activate*(ctx:VscodeExtensionContext):void =
     vscode.commands.registerCommand("nim.check", runCheck)
     vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
 
-    if config["enableNimsuggest"].to(bool):
+    prepareConfig()
+    if config.getBool("enableNimsuggest"):
         initNimSuggest()
         ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode, nimCompletionItemProvider, ".", " "))
         ctx.subscriptions.add(vscode.languages.registerDefinitionProvider(mode, nimDefinitionProvider))
@@ -287,12 +284,13 @@ proc activate*(ctx:VscodeExtensionContext):void =
     discard initWorkspace(ctx.storagePath)
     fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim")
     fileWatcher.onDidCreate(proc(uri:VscodeUri) =
-        if config["licenseString"].to(bool):
+        var licenseString = config.getStr("licenseString")
+        if not licenseString.isNil() and licenseString != "":
             var path = uri.fsPath.toLowerAscii()
             if path.endsWith(".nim") or path.endsWith(".nims"):
                 fs.stat(uri.fsPath, proc(err:ErrnoException, stats:FsStats) =
                     var edit = vscode.newWorkspaceEdit()
-                    edit.insert(uri, vscode.newPosition(0, 0), config["licenseString"])
+                    edit.insert(uri, vscode.newPosition(0, 0), licenseString)
                     vscode.workspace.applyEdit(edit)
                 )
         discard addFileToImports(uri.fsPath)
@@ -307,18 +305,17 @@ proc activate*(ctx:VscodeExtensionContext):void =
     startBuildOnSaveWatcher(ctx.subscriptions)
 
     if vscode.window.activeTextEditor.toJs().to(bool) and
-        not not (vscode.workspace.getConfiguration("nim")["lintOnSave"].toJs().to(bool)):
+        config.getBool("lintOnSave"):
             runCheck(vscode.window.activeTextEditor.document)
-    
-    if (vscode.workspace.getConfiguration("nim")["enableNimsuggest"] and
-        config["nimsuggestRestartTimeout"]).to(bool):
-            var timeout = config["nimsuggestRestartTimeout"].toJs().to(cint)
-            if timeout > 0:
-                console.log(fmt"Reset nimsuggest process each {timeout} minutes")
-                global.setInterval(
-                    proc() = discard closeAllNimsuggestProcesses(),
-                    timeout * 60000
-                )
+
+    if config.getBool("enableNimsuggest") and
+        config.getInt("nimsuggestRestartTimeout") > 0:
+            var timeout = config.getInt("nimsuggestRestartTimeout")
+            console.log(fmt"Reset nimsuggest process each {timeout} minutes")
+            global.setInterval(
+                proc() = discard closeAllNimsuggestProcesses(),
+                timeout * 60000
+            )
     
     discard initImports()
     outputLine("[info] Extension Activated")
