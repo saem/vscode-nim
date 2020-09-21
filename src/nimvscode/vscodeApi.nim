@@ -545,7 +545,7 @@ proc showInformationMessage*(win:VscodeWindow, msg:cstring) {.importcpp.}
     ## shows an informational message
 
 # Workspace
-proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Promise[bool] {.importcpp.}
+proc saveAll*(ws:VscodeWorkspace, includeUntitledFile:bool):Future[bool] {.importcpp.}
 proc getConfiguration*(
     ws:VscodeWorkspace,
     name:cstring
@@ -555,6 +555,11 @@ proc getConfiguration*(
     name:cstring,
     scope:VscodeUri
 ):VscodeWorkspaceConfiguration {.importcpp.}
+proc getConfiguration*(
+    ws:VscodeWorkspace,
+    name:cstring,
+    scope:VscodeWorkspaceFolder
+):VscodeWorkspaceConfiguration {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc():void):VscodeDisposable {.importcpp.}
 proc onDidChangeConfiguration*(ws:VscodeWorkspace, cb:proc(e:VscodeConfigurationChangeEvent):void):VscodeDisposable {.importcpp.}
 proc onDidSaveTextDocument*[T](
@@ -563,8 +568,8 @@ proc onDidSaveTextDocument*[T](
     thisArg:T,
     disposables:seq[VscodeDisposable]
 ):VscodeDisposable {.importcpp, discardable.}
-proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
-proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Promise[seq[VscodeUri]] {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Future[seq[VscodeUri]] {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Future[seq[VscodeUri]] {.importcpp.}
 proc getWorkspaceFolder*(ws:VscodeWorkspace, folder:VscodeUri):VscodeWorkspaceFolder {.importcpp.}
 proc asRelativePath*(ws:VscodeWorkspace, filename:cstring, includeWorkspaceFolder:bool):cstring {.importcpp.}
 proc createFileSystemWatcher*(
@@ -574,7 +579,7 @@ proc createFileSystemWatcher*(
 proc applyEdit*(
     ws:VscodeWorkspace,
     e:VscodeWorkspaceEdit
-):Promise[bool] {.importcpp, discardable.}
+):Future[bool] {.importcpp, discardable.}
 
 # WorkspaceConfiguration
 proc has*(c:VscodeWorkspaceConfiguration, section:cstring):bool {.importcpp.}
@@ -677,13 +682,13 @@ proc createTerminal*(
 proc withProgress*[R](
     window:VscodeWindow,
     options:VscodeProgressOptions,
-    task:proc():Promise[R]
-):Promise[R] {.importcpp.}
+    task:proc():Future[R]
+):Future[R] {.importcpp.}
 proc withProgress*[R,P](
     window:VscodeWindow,
     options:VscodeProgressOptions,
-    task:proc(progress:var VscodeProgress[P]):Promise[R]
-):Promise[R] {.importcpp.}
+    task:proc(progress:var VscodeProgress[P]):Future[R]
+):Future[R] {.importcpp.}
 proc createStatusBarItem*(
     window:VscodeWindow,
     align:VscodeStatusBarAlignment,
@@ -730,7 +735,7 @@ proc hide*(item:VscodeStatusBarItem):void {.importcpp.}
 proc dispose*(item:VscodeStatusBarItem):void {.importcpp.}
 
 # TextDocument
-proc save*(doc:VscodeTextDocument):Promise[bool] {.importcpp.}
+proc save*(doc:VscodeTextDocument):Future[bool] {.importcpp.}
 proc lineAt*(doc:VscodeTextDocument, line:cint):VscodeTextLine {.importcpp.}
 proc lineAt*(doc:VscodeTextDocument, position:VscodePosition):VscodeTextLine {.importcpp.}
 proc getText*(doc:VscodeTextDocument):cstring {.importcpp.}
