@@ -1,5 +1,29 @@
 # ChangeLog
 
+# 0.1.3 (24 Sep 2020)
+* README Update
+
+# 0.1.2 (20 Sep 2020)
+* Fixed config parsing
+* 
+* Build command sets backend flag for `nimsuggest` and `nim check`
+
+# 0.1.1 (16 Sep 2020)
+* Remove remaining TypeScript parts
+
+# 0.1.0 (14 Sep 2020)
+* Testing release updates
+* No longer depend upon deprecated `rootpath`
+* Use dedicated extension workspace storage
+* Add initial multi-folder workspace awareness
+* Dirty file in extension storage, more secure(?) and remote workspace friendly
+* Updated nimsuggest elrpc integration, fixing a number of possible bugs
+
+# 0.0.1 (14 Sep 2020)
+* Initial rewrite to nim, very broken
+
+# Pragmagic - Previous TypeScript ChangeLog
+
 ## 0.6.6 (26 Mar 2020)
 * Nim not found in path (#153)
 

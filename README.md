@@ -1,9 +1,9 @@
 # Nim for Visual Studio Code
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
-[![Installs](https://vsmarketplacebadge.apphb.com/installs/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
-[![Ratings](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)
-[![Build Status](https://travis-ci.org/pragmagic/vscode-nim.svg?branch=master)](https://travis-ci.org/pragmagic/vscode-nim)
+[![Version](https://vsmarketplacebadge.apphb.com/version/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
+[![Installs](https://vsmarketplacebadge.apphb.com/installs/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
+[![Ratings](https://vsmarketplacebadge.apphb.com/rating/nimsaem.nimvscode.svg)](https://vsmarketplacebadge.apphb.com/rating/nimsaem.nimvscode.svg)
+(todo - CI build)
 
 This extension adds language support for the Nim language to VS Code, including:
 
@@ -22,7 +22,7 @@ This extension adds language support for the Nim language to VS Code, including:
 
 ## Using
 
-First, you will need to install Visual Studio Code `0.10`.
+First, you will need to install [Visual Studio Code](https://code.visualstudio.com/) `1.27.0` or higher.
 In the command palette (`cmd-shift-p`) select `Install Extension` and choose `Nim`.
 
 The following tools are required for the extension:
@@ -62,7 +62,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	"nim.buildCommand": "c",
 	"nim.lintOnSave": true,
 	"nim.project": ["project.nim", "project2.nim"],
-	"nim.licenseString": "# Copyright 2017.\n\n"
+	"nim.licenseString": "# Copyright 2020.\n\n"
 }
 ```
 
@@ -74,10 +74,19 @@ This command available from file context menu or by `F6` keyboard shortcut.
 
 ## TODO
 
+* Clean-up
+  * Correctly model various nim project concepts
+  * Update `nimsuggest` RPC based on project rework and command/event log
+  * Replace nedb indexing with work inspired from nimedit's finder
+    * Ignore node_modules entirely at this point
+  * Convert to asyncjs API
 * Rename support
 * Debug support
+* Extract most functionality into an LSP (check existing one)
+* Extract Visual Studio Code API into a separate Nimble package
+  * Switch to using concepts for interfaces
 
 ## ChangeLog
 
-ChangeLog is located [here](https://github.com/pragmagic/vscode-nim/blob/master/CHANGELOG.md)
+ChangeLog is located [here](https://github.com/saem/vscode-nim/blob/master/CHANGELOG.md)
 
