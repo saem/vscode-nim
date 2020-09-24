@@ -1,6 +1,11 @@
 # ChangeLog
 
-# 0.1.3 (24 Sep 2020)
+# 0.1.5 (24 Sep 2020)
+* Version number fix
+* README Update
+
+# 0.1.4 (24 Sep 2020)
+* Messed up version numbers in this release
 * README Update
 
 # 0.1.2 (20 Sep 2020)
