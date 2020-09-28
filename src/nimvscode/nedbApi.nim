@@ -71,11 +71,30 @@ proc createDatastore*(nedb:NedbModule, opts:NedbDataStoreOptions):NedbDataStore 
 # Datastore - Specialized for this extensions needs
 
 # Datastore - DML
-proc findOne*(ds:NedbDataStore, q:FindFileQuery, cb:FindOneFileCallback):void {.importcpp.}
-proc find*(ds:NedbDataStore, wsPath:cstring, typeRe:RegExp):NedbFindTypeQueryStmt {.importcpp:"(#.find({ws:#, type:#}))".}
-proc find*(ds:NedbDataStore, wsPath:seq[cstring], typeRe:RegExp):NedbFindTypeQueryStmt {.importcpp:"(#.find({ws:{$$in: #}, type:#}))".}
-proc remove*(ds:NedbDataStore, file:cstring, cb:RemoveCallback):void {.importcpp:"(#.remove({file:#},{multi:true},#))".}
-proc remove*(ds:NedbDataStore, file:cstring):void {.importcpp:"(#.remove({file:#},{multi:true}))".}
+proc findOne*(
+    ds:NedbDataStore,
+    q:FindFileQuery,
+    cb:FindOneFileCallback
+):void {.importcpp.}
+proc find*(
+    ds:NedbDataStore,
+    wsPath:cstring,
+    typeRe:RegExp
+):NedbFindTypeQueryStmt {.importcpp:"(#.find({ws:#, type:#}))".}
+proc find*(
+    ds:NedbDataStore,
+    wsPath:seq[cstring],
+    typeRe:RegExp
+):NedbFindTypeQueryStmt {.importcpp:"(#.find({ws:{$$in: #}, type:#}))".}
+proc remove*(
+    ds:NedbDataStore,
+    file:cstring,
+    cb:RemoveCallback
+):void {.importcpp:"(#.remove({file:#},{multi:true},#))".}
+proc remove*(
+    ds:NedbDataStore,
+    file:cstring
+):void {.importcpp:"(#.remove({file:#},{multi:true}))".}
 proc insert*(ds:NedbDataStore, sym:SymbolData):void {.importcpp.}
 proc insert*(ds:NedbDataStore, file:FileData):void {.importcpp.}
 

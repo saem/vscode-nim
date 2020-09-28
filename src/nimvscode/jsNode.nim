@@ -1,4 +1,4 @@
-import jsffi
+import jsffi, macros
 
 type
     Array*[T] = ref ArrayObj[T]
@@ -79,9 +79,22 @@ iterator entries*[K,V](m:Map[K,V]):(K,V) =
 
 # Buffer
 proc toString*(b:Buffer):cstring {.importcpp.}
+proc toStringBase64*(b:Buffer):cstring
+    {.importcpp:"(#.toString('base64'))".}
 proc toStringUtf8*(b:Buffer, start:cint, stop:cint):cstring
     {.importcpp:"(#.toString('utf8', #, #))".}
 proc slice*(b:Buffer, start:cint):Buffer {.importcpp.}
+
+# JSON
+proc jsonStringify*[T](val:T):cstring {.importcpp:"JSON.stringify(@)".}
+proc toJsonStr(x: NimNode): NimNode {.compileTime.} =
+    result = newNimNode(nnkTripleStrLit)
+    result.strVal = astGenRepr(x)
+template jsonStr*(x: untyped): untyped =
+    ## Convert an expression to a JSON string directly, without quote
+    result = toJsonStr(x)
+proc jsonParse*(val:cstring):JsObject {.importcpp:"JSON.parse(@)".}
+proc jsonParse*(val:cstring, T:typedesc):T {.importcpp:"JSON.parse(@)".}
 
 # Misc
 var numberMinValue* {.importc:"(Number.MIN_VALUE)", nodecl.}: cdouble
