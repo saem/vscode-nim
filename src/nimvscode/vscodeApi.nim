@@ -536,6 +536,11 @@ proc registerCommand*(
     name:cstring,
     fn:proc():void
 ):void {.importcpp.}
+proc registerCommand*(
+    cmds:VscodeCommands,
+    name:cstring,
+    fn:proc():Future[void]
+):void {.importcpp.}
 
 # Uri
 proc with*(uri:VscodeUri, change:VscodeUriChange):VscodeUri {.importcpp.}

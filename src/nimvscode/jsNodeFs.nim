@@ -25,7 +25,7 @@ type
     ReaddirCallback* = proc(err:ErrnoException, files:seq[cstring]):void
     StatCallback* = proc(err:ErrnoException, stats:FsStats):void
 
-    NodeFileHandle* {.importc.} = object of JsRoot
+    NodeFileHandle* {.importc.} = ref object of JsRoot
 
 proc existsSync*(fs:Fs, file:cstring):bool {.importcpp.}
 proc mkdirSync*(fs:Fs, file:cstring):void {.importcpp.}

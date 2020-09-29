@@ -123,7 +123,7 @@ proc indexFile(file:cstring) {.async.} =
             discard await dbFiles.delete equal("file", file)
             var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
             if not folder.isNil():
-                dbFiles.append(FileData{file:file, timestamp:timestamp})
+                dbFiles.insert(FileData{file:file, timestamp:timestamp})
             else:
                 console.log("indexFile - dbFiles - not in workspace")
         except:
@@ -137,7 +137,7 @@ proc indexFile(file:cstring) {.async.} =
                     console.log("indexFile - dbTypes - not in workspace", i.location.uri.fsPath)
                     continue
 
-                dbTypes.append(SymbolData{
+                dbTypes.insert(SymbolData{
                     ws: folder.uri.fsPath,
                     file: i.location.uri.fsPath,
                     range_start: i.location.`range`.start,
@@ -197,16 +197,34 @@ proc cleanOldDb(basePath:cstring, name:cstring):void =
         if fs.existsSync(dbPath):
             fs.unlinkSync(dbPath)
 
+proc indexWorkspaceFiles*() {.async.} =
+    var nimSuggestPath = nimSuggestExec.getNimSuggestPath()
+    if nimSuggestPath.isNil() or nimSuggestPath == "":
+        return;
+
+    var urls = await vscode.workspace.findFiles("**/*.nim")
+    showNimProgress("Indexing, file count: " & $(urls.len))
+    for i, url in urls:
+        var cnt = urls.len - 1
+
+        if cnt mod 10 == 0:
+            updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
+        
+        console.log("indexing: ", i, url)
+        await indexFile(url.fsPath)
+
+    hideNimProgress()
+
 proc initWorkspace*(extPath: cstring) {.async.} =
     # remove old version of indcies
     cleanOldDb(extPath, "files")
     cleanOldDb(extPath, "types")
 
     dbTypes = newFlatDb(path.join(extPath, getDbName("types", dbVersion)))
-    dbTypes.load()
+    discard await dbTypes.load()
 
     dbFiles = newFlatDb(path.join(extPath, getDbName("files", dbVersion)))
-    dbFiles.load()
+    discard await dbFiles.load()
     # dbTypes = nedb.createDatastore(NedbDataStoreOptions{
     #         filename:path.join(extPath, getDbName("types", dbVersion)),
     #         autoload:true
@@ -225,22 +243,7 @@ proc initWorkspace*(extPath: cstring) {.async.} =
     # dbFiles.ensureIndex("file")
     # dbFiles.ensureIndex("timeStamp")
 
-    var nimSuggestPath = nimSuggestExec.getNimSuggestPath()
-    if nimSuggestPath.isNil() or nimSuggestPath == "":
-        return;
-
-    var urls = await vscode.workspace.findFiles("**/*.nim")
-    showNimProgress("Indexing, file count: " & $(urls.len))
-    for i, url in urls:
-        var cnt = urls.len - 1
-
-        if cnt mod 10 == 0:
-            updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
-        
-        console.log("indexing: ", i, url)
-        await indexFile(url.fsPath)
-
-    hideNimProgress()
+    await indexWorkspaceFiles()
 
 proc findWorkspaceSymbols*(
     query:cstring
@@ -271,3 +274,9 @@ proc findWorkspaceSymbols*(
         discard
     finally:
         return symbols
+
+proc clearCaches*() {.async.} =
+    if dbTypes != nil: await dbTypes.drop()
+    if dbFiles != nil: await dbFiles.drop()
+    await indexWorkspaceFiles()
+

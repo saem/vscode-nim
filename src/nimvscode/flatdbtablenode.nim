@@ -10,20 +10,21 @@
 
 ## flat db table
 ## double linked list with table indexes on the values
-import lists, tables, jsffi
+import jsNode, jsffi
 
 type
     FlatDbString* = cstring
     FlatDbInt* = cint
-    Node* = DoublyLinkedNode[Entry]
-    Entry* = tuple[key: cstring, value: JsObject]
-    FlatDbTableData = DoublyLinkedList[Entry]
-    FlatDbTableIndex = Table[cstring, Node]
+    Entry* = tuple
+        key* {.importcpp:"[0]"}: cstring
+        value* {.importcpp:"[1]"}: JsObject
+    FlatDbTableData = Map[cstring, JsObject]
+    # FlatDbTableIndex = Table[cstring, Node]
     FlatDbTableId = cstring
     FlatDbTable* = ref object
         data: FlatDbTableData
-        index: FlatDbTableIndex
-        size: cint
+        # index: FlatDbTableIndex
+        # size: cint
 
 proc newFlatDbTable*(): FlatDbTable =
     result = FlatDbTable()

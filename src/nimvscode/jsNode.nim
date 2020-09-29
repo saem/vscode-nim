@@ -27,6 +27,8 @@ type
     GlobalModule = ref GlobalModuleObj
     GlobalModuleObj {.importc.} = object of JsRoot
 
+    Timeout* = ref object
+
 var process* {.importc, nodecl.}:ProcessModule
 var global* {.importc, nodecl.}:GlobalModule
 
@@ -40,7 +42,8 @@ proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
 proc newArray*[T](size=0):Array[T] {.importcpp: "(new Array(@))".}
 
 # global
-proc setInterval*(g:GlobalModule, f:proc():void, t:cint):void {.importcpp.}
+proc setInterval*(g:GlobalModule, f:proc():void, t:cint):Timeout {.importcpp, discardable.}
+proc clearInterval*(g:GlobalModule, t:Timeout):void {.importcpp.}
 
 # Array
 proc `[]`*[T](a:Array[T]):T {.importcpp: "#[#]".}

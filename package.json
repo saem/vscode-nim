@@ -110,6 +110,11 @@
                 "command": "nim.execSelectionInTerminal",
                 "title": "Run Selection/Line in Nim Terminal",
                 "category": "Nim"
+            },
+            {
+                "command": "nim.clearCaches",
+                "title": "Clear internal caches",
+                "category": "Nim"
             }
         ],
         "menus": {

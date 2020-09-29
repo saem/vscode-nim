@@ -17,7 +17,7 @@ from nimBuild import check,
     activateEvalConsole,
     CheckResult
 from nimStatus import showHideStatus
-from nimIndexer import initWorkspace
+from nimIndexer import initWorkspace, clearCaches
 from nimImports import initImports,  removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
 from nimUtils import extensionContext, getDirtyFile, outputLine, prepareConfig
@@ -172,6 +172,7 @@ proc activate*(ctx:VscodeExtensionContext):void =
     vscode.commands.registerCommand("nim.run.file", runFile)
     vscode.commands.registerCommand("nim.check", runCheck)
     vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
+    vscode.commands.registerCommand("nim.clearCaches", clearCaches)
 
     prepareConfig()
     if config.getBool("enableNimsuggest"):
