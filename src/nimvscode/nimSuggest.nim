@@ -52,7 +52,7 @@ proc provideCompletionItems*(
     return newPromise(proc (
       resolve:proc(val:seq[VscodeCompletionItem]),
       reject:proc(reason:JsObject)
-    ) = vscode.workspace.saveAll(false).then(proc() =
+    ) =
         let filename = doc.fileName
         let `range` = doc.getWordRangeAtPosition(position)
         var txt:cstring = if `range`.isNil(): nil else: doc.getText(`range`).toLowerAscii()
@@ -94,7 +94,6 @@ proc provideCompletionItems*(
                             suggestions.add(suggestion)
                 resolve(suggestions)
             ).catch(proc(reason:JsObject) = reject(reason))
-        ).catch(proc(reason:JsObject) = reject(reason))
     ).catch(proc(reason:JsObject):Promise[seq[VscodeCompletionItem]] =
         console.error("nimSuggest failed: ", reason)
         return promiseReject(reason)

@@ -1,6 +1,9 @@
 import jsffi
 
 type
+    Array*[T] = ref ArrayObj[T]
+    ArrayObj[T] {.importc.} = object of JsRoot
+
     Map*[K,V] = ref MapObj[K,V]
     MapObj[K,V] {.importc.} = object of JsRoot
 
@@ -34,14 +37,22 @@ proc newBuffer*(size:cint):Buffer {.importcpp: "(new Buffer(@))".}
     ## TODO - mark as deprecated
 proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
 
+proc newArray*[T](size=0):Array[T] {.importcpp: "(new Array(@))".}
+
 # global
 proc setInterval*(g:GlobalModule, f:proc():void, t:cint):void {.importcpp.}
+
+# Array
+proc `[]`*[T](a:Array[T]):T {.importcpp: "#[#]".}
+proc `[]=`*[T](a:Array[T],val:T):T {.importcpp: "#[#]=#".}
+proc push*[T](a:Array[T],val:T) {.importcpp: "#.push(#)".}
 
 # Map
 proc get*[K,V](m:Map[K,V], key:K):V {.importcpp.}
 proc set*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp.}
 proc delete*[K,V](m:Map[K,V], key:K) {.importcpp.}
 proc clear*[K,V](m:Map[K,V]) {.importcpp.}
+proc has*[K,V](m:Map[K,V], key:K): bool {.importcpp.}
 
 iterator keys*[K,V](m:Map[K,V]):K =
     ## Yields the `keys` in a Map.

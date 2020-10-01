@@ -51,42 +51,40 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
         VscodeProgressOptions{
             location:VscodeProgressLocation.window,
             cancellable:false,
-            title:"Nim: check projection..."
+            title:"Nim: check project..."
         },
         proc():Promise[seq[CheckResult]] = check(uri.fsPath, config)
     ).then(proc(errors:seq[CheckResult]) =
         diagnosticCollection.clear()
 
-        var diagnosticMap = newMap[cstring,seq[VscodeDiagnostic]]()
+        var diagnosticMap = newJsAssoc[cstring,Array[VscodeDiagnostic]]()
         var err = newJsAssoc[cstring, bool]()
-        for error in errors.filterIt(
-            not err[it.file & $(it.line) & $(it.column) & it.msg].toJs().to(bool)
-        ):
-            var targetUri = error.file
-            var endColumn = error.column
-            if error.msg.contains("'"):
-                endColumn += error.msg.findLast("'") - error.msg.find("'") - 2
-            var line = max(0, error.line  - 1)
-            var errRange = vscode.newRange(
-                line,
-                max(0, error.column - 1),
-                line,
-                max(0, endColumn)
-            )
-            var diagnostic = vscode.newDiagnostic(
-                errRange,
-                error.msg,
-                mapSeverityToVscodeSeverity(error.severity)
-            )
-            var diagnostics = diagnosticMap.get(targetUri)
-            if diagnostic.toJs().to(bool):
-                diagnostics = @[]
-            diagnosticMap.set(targetUri, diagnostics)
-            diagnostics.add(diagnostic)
-            err[error.file & $(error.line) & $(error.column) & error.msg] = true
-        
+        for error in errors:
+            if not err[error.file & $error.line & $error.column & error.msg]:
+                var targetUri = error.file
+                var endColumn = error.column
+                if error.msg.contains("'"):
+                    endColumn += error.msg.findLast("'") - error.msg.find("'") - 1
+                var line = max(0, error.line - 1)
+                
+                var errRange = vscode.newRange(
+                    line,
+                    max(0, error.column),
+                    line,
+                    max(0, endColumn)
+                )
+                var diagnostic = vscode.newDiagnostic(
+                    errRange,
+                    error.msg,
+                    mapSeverityToVscodeSeverity(error.severity)
+                )
+                if not diagnosticMap[targetUri].toJs().to(bool):
+                    diagnosticMap[targetUri] = newArray[VscodeDiagnostic]()
+                diagnosticMap[targetUri].push(diagnostic)
+                err[error.file & $(error.line) & $(error.column) & error.msg] = true
+
         var entries:seq[array[0..1, JsObject]] = @[]
-        for uri, diags in diagnosticMap.entries():
+        for uri, diags in diagnosticMap.pairs():
             entries.add([vscode.uriFile(uri).toJs(), diags.toJs()])
         diagnosticCollection.set(entries)
     )
@@ -98,7 +96,7 @@ proc startBuildOnSaveWatcher(subscriptions:seq[VscodeDisposable]) =
                 return
 
             var config = vscode.workspace.getConfiguration("nim")
-            if config.getBool("lineOnSave"):
+            if config.getBool("lintOnSave"):
                 runCheck(document)
             
             if config.getBool("buildOnSave"):
