@@ -48,8 +48,10 @@ proc `[]=`*[T](a:Array[T],val:T):T {.importcpp: "#[#]=#".}
 proc push*[T](a:Array[T],val:T) {.importcpp: "#.push(#)".}
 
 # Map
-proc get*[K,V](m:Map[K,V], key:K):V {.importcpp.}
-proc set*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp.}
+proc `[]`*[K,V](m:Map[K,V], key:K):V {.importcpp:"#.get(key)".}
+proc `[]=`*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp:"#.set(key, value)".}
+proc get*[K,V](m:Map[K,V], key:K):V {.importcpp, deprecated.}
+proc set*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp, deprecated.}
 proc delete*[K,V](m:Map[K,V], key:K) {.importcpp.}
 proc clear*[K,V](m:Map[K,V]) {.importcpp.}
 proc has*[K,V](m:Map[K,V], key:K): bool {.importcpp.}
