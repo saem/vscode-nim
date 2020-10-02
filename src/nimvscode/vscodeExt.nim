@@ -57,8 +57,8 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
     ).then(proc(errors:seq[CheckResult]) =
         diagnosticCollection.clear()
 
-        var diagnosticMap = newJsAssoc[cstring,Array[VscodeDiagnostic]]()
-        var err = newJsAssoc[cstring, bool]()
+        var diagnosticMap = newMap[cstring,Array[VscodeDiagnostic]]()
+        var err = newMap[cstring, bool]()
         for error in errors:
             if not err[error.file & $error.line & $error.column & error.msg]:
                 var targetUri = error.file
@@ -78,13 +78,13 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
                     error.msg,
                     mapSeverityToVscodeSeverity(error.severity)
                 )
-                if not diagnosticMap[targetUri].toJs().to(bool):
+                if not diagnosticMap.has(targetUri):
                     diagnosticMap[targetUri] = newArray[VscodeDiagnostic]()
                 diagnosticMap[targetUri].push(diagnostic)
                 err[error.file & $(error.line) & $(error.column) & error.msg] = true
 
         var entries:seq[array[0..1, JsObject]] = @[]
-        for uri, diags in diagnosticMap.pairs():
+        for uri, diags in diagnosticMap.entries:
             entries.add([vscode.uriFile(uri).toJs(), diags.toJs()])
         diagnosticCollection.set(entries)
     )
