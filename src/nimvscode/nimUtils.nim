@@ -10,8 +10,6 @@ import jsString
 import jscore
 import strformat
 
-import jsconsole
-
 import sequtils
 
 type
@@ -152,7 +150,6 @@ proc getNimbleExecPath*():cstring =
 proc isProjectMode*():bool = projects.len > 0
 
 proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
-    console.log("getProjectFileInfo - mapping", projectMapping)
     if not isProjectMode():
         var projectInfo:ProjectFileInfo
         if projectMapping.len > 0:
