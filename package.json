@@ -182,6 +182,11 @@
                     "default": true,
                     "description": "Enable calling nimsuggest process to provide completion suggestions, hover suggestions, etc.\nThis option requires restart to take effect."
                 },
+                "nim.useNimsuggestCheck": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use nimsuggest in order to run check, instead of the nim compiler."
+                },
                 "nim.logNimsuggest": {
                     "type": "boolean",
                     "default": false,

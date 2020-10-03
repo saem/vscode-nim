@@ -185,7 +185,7 @@ proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
 proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[seq[CheckResult]] =
     var runningToolsPromises:seq[Promise[seq[CheckResult]]] = @[]
 
-    if nimConfig.getBool("useNimsuggestCheck", true):
+    if nimConfig.getBool("useNimsuggestCheck", false):
         runningToolsPromises.add(newPromise(proc(
                 resolve:proc(values:seq[CheckResult]),
                 reject:proc(reason:JsObject)
