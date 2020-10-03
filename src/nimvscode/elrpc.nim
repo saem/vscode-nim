@@ -93,7 +93,7 @@ proc newEPCPeer(id:cint, socket:NetSocket):EPCPeer =
                         if not content.isNil():
                             var contentSexp:seq[SExpNode] = content.getElems()
                             var guid = cint(contentSexp[1].getNum())
-                            var handle = epc.sessions.get(guid)
+                            var handle = epc.sessions[guid]
                             console.log(fmt"{epc.id} onData - handling:{guid} length:{length}")
                             handle(contentSexp)
                             epc.sessions.delete(guid)
@@ -154,7 +154,7 @@ proc callMethod*(epc:EPCPeer, meth:cstring, params:seq[SExpNode]):Promise[seq[SE
             
             var guid = epc.generateUid()
             var payload = fmt"(call {guid} {meth} {$(sexp(params))})"
-            epc.sessions.set(guid, proc(data:seq[SExpNode]) =
+            epc.sessions[guid] = proc(data:seq[SExpNode]) =
                 if not data.toJs().isJsArray():
                     reject(data.toJs())
                 else:
@@ -162,7 +162,6 @@ proc callMethod*(epc:EPCPeer, meth:cstring, params:seq[SExpNode]):Promise[seq[SE
                     of "return": resolve(data[2].getElems())
                     of "return-error", "epc-error": reject(data[2].toJs())
                     else: console.error("Unknown error handling sexp")
-            )
 
             epc.write(envelop(payload))
     )
