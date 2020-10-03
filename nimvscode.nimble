@@ -1,6 +1,6 @@
 # Package
 
-version     = "0.1.5"
+version     = "0.1.6"
 author      = "saem"
 description = "Experiment converting nim vscode extension from typescript to nim"
 license     = "MIT"

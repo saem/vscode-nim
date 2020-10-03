@@ -1,5 +1,11 @@
 # ChangeLog
 
+# 0.1.6 (02 Oct 2020)
+* Fix lintOnSave setting being ignored and check results
+* No longer saving on any attempt to autocomplete (#3)
+* Documented useNimsuggestCheck in package.json
+* useNimsuggestCheck is no longer the default
+
 # 0.1.5 (24 Sep 2020)
 * Version number fix
 * README Update
