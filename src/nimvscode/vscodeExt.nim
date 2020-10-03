@@ -24,7 +24,6 @@ from nimUtils import extensionContext, getDirtyFile, outputLine, prepareConfig
 from nimMode import mode
 
 from strformat import fmt
-import sequtils
 
 var diagnosticCollection {.threadvar.}:VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}:VscodeFileSystemWatcher
