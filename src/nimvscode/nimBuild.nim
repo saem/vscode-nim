@@ -36,7 +36,7 @@ proc nimExec(
         reject:proc(reason:JsObject)
     ) =
         var execPath = getNimExecPath()
-        if execPath.toJs().to(bool):
+        if execPath.isNil() or execPath.strip() == "":
             resolve(@[])
             return
 
@@ -203,24 +203,17 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
                 "--backend:" & nimConfig.getStr("buildCommand")
             else:
                 ""
-        if not isProjectMode():
-            var project = getProjectFileInfo(filename)
+        var projects = if not isProjectMode(): @[getProjectFileInfo(filename)]
+            else: getProjects()
+        
+        for project in projects:
             runningToolsPromises.add(nimExec(
                 project, 
                 "check",
-                @["--listFullPaths".cstring, project.filePath, backend],
+                @[backend, "--listFullPaths".cstring, project.filePath],
                 true,
                 parseErrors
             ))
-        else:
-            for project in getProjects():
-                runningToolsPromises.add(nimExec(
-                    project, 
-                    "check",
-                    @["--listFullPaths".cstring, project.filePath, backend],
-                    true,
-                    parseErrors
-                ))
 
     return all(runningToolsPromises).then(proc(resultSets:seq[seq[CheckResult]]):seq[CheckResult] =
             var ret:seq[CheckResult] = @[]

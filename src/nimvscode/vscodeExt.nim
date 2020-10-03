@@ -59,18 +59,19 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
         var diagnosticMap = newMap[cstring,Array[VscodeDiagnostic]]()
         var err = newMap[cstring, bool]()
         for error in errors:
-            if not err[error.file & $error.line & $error.column & error.msg]:
+            var errorId = error.file & $error.line & $error.column & error.msg
+            if not err[errorId]:
                 var targetUri = error.file
                 var endColumn = error.column
                 if error.msg.contains("'"):
-                    endColumn += error.msg.findLast("'") - error.msg.find("'") - 1
+                    endColumn += error.msg.findLast("'") - error.msg.find("'")
                 var line = max(0, error.line - 1)
                 
                 var errRange = vscode.newRange(
                     line,
-                    max(0, error.column),
+                    max(0, error.column - 1),
                     line,
-                    max(0, endColumn)
+                    max(0, endColumn - 1)
                 )
                 var diagnostic = vscode.newDiagnostic(
                     errRange,
@@ -80,7 +81,7 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
                 if not diagnosticMap.has(targetUri):
                     diagnosticMap[targetUri] = newArray[VscodeDiagnostic]()
                 diagnosticMap[targetUri].push(diagnostic)
-                err[error.file & $(error.line) & $(error.column) & error.msg] = true
+                err[errorId] = true
 
         var entries:seq[array[0..1, JsObject]] = @[]
         for uri, diags in diagnosticMap.entries:
