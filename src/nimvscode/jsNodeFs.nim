@@ -58,13 +58,18 @@ proc unlink*(
     fp:FsPromises,
     path:cstring
 ):Future[void] {.importcpp:"#.unlink(@)".}
-proc copyfile*(
+proc copyFile*(
     fp:FsPromises,
     src:cstring,
     dest:cstring
-):Future[void] {.discardable, importcpp:"#.promises.copyfile(@)".}
+):Future[void] {.discardable, importcpp:"#.copyFile(@)".}
+proc readFileUtf8*(
+    fp:FsPromises,
+    path:cstring
+):Future[cstring] {.importcpp:"#.readFile(#, {'encoding': 'utf8'})".}
 
 proc close*(fh:NodeFileHandle):Future[void] {.discardable, importcpp.}
+proc write*(fh:NodeFileHandle, data:cstring, position:cint):Future[void] {.importcpp.}
 proc writeFile*(fh:NodeFileHandle, data:cstring):Future[void] {.importcpp.}
 proc sync*(fh:NodeFileHandle):Future[void] {.discardable, importcpp.}
 proc truncate*(fh:NodeFileHandle):Future[void] {.discardable, importcpp.}

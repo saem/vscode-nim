@@ -32,15 +32,19 @@ type
         case opKind*: DbOpKind
         of data: entry*: JsObject
         of remove: discard
+    
+    CmdResult {.pure.} = enum
+        success, failure
 
     DbCmdKind {.pure.} = enum
-        append, close, load, truncate, fsync, backup
+        write, truncate, backup, close
     DbCmd = ref DbCmdObj
     DbCmdObj = object
         case cmdKind*: DbCmdKind
-        of append: op*: DbOp
-        of DbCmdKind.close, load, DbCmdKind.truncate, fsync, backup:
-            doAction*: proc(): Future[void]
+        of DbCmdKind.write: op*: DbOp
+        # of DbCmdKind.load, DbCmdKind.truncate, DbCmdKind.backup, DbCmdKind.close:
+        of DbCmdKind.truncate, DbCmdKind.backup, DbCmdKind.close:
+            afterCallback*: proc(r: CmdResult)
 
     Limit = cint
     FlatDb* = ref object
@@ -51,9 +55,10 @@ type
         autoCompactInterval*: cint
         compactTimeout: Timeout
         processTimeout: Timeout
+        loaded: bool
         opCount: cint
         ioBusy: bool
-        cmdBuffer: seq[DbCmd]
+        cmdBuffer: Array[DbCmd]
     EntryId* = cstring
     Matcher* = proc (x: JsObject): bool 
     QuerySettings* = ref object
@@ -128,31 +133,85 @@ proc genId*(db: FlatDb): EntryId =
         id = genRandomId()
     return id
 
-proc processCommands(db: FlatDb) {.async.} =
+proc processCommands*(db: FlatDb) {.async.} =
+    ## Processes all enqueued writes to disk
+    ## library users: call this if you want to force writing to disk
+    ## Internal use: timer or circumstance based persist actions
     var fh = await db.fileHandle
     if fh.isNil or db.ioBusy:
         return
 
     db.ioBusy = true
+    var lastCmd: cstring = nil
 
     while db.cmdBuffer.len > 0:
-        inc db.opCount
-        var cmd = db.cmdBuffer.pop()
-        # try:
+        # fileHandle might be changed from a comamnd here
+        var fh = await db.fileHandle
+        var cmd = db.cmdBuffer.shift()
         case cmd.cmdKind
-        of append:
-            await fh.writeFile(cmd.op.jsonStringify & nodeOs.eol)
-        of DbCmdKind.close, load, DbCmdKind.truncate, fsync, backup:
-            await cmd.doAction()
-        # except:
-        #     console.error(
-        #         "failed db command",
-        #         $(cmd.cmdKind),
-        #         "message",
-        #         getCurrentExceptionMsg(),
-        #         "exception",
-        #         getCurrentException(),
-        #     )
+        of DbCmdKind.write:
+            var op = cmd.op
+            if lastCmd != "write":
+                lastCmd = "write"
+                console.log(lastCmd)
+            try:
+                inc db.opCount
+                var content:cstring = op.jsonStringify() & nodeOs.eol
+                await fh.writeFile(content)
+            except:
+                console.error(
+                    getCurrentExceptionMsg(),
+                    getCurrentException(),
+                    op
+                )
+        of DbCmdKind.truncate:
+            try:
+                lastCmd = "truncate"
+                console.log(lastCmd)
+                await fh.close()
+                db.fileHandle = fsp.open(db.path, "w+")
+                fh = await db.fileHandle
+                cmd.afterCallback(CmdResult.success)
+            except:
+                console.error(
+                    getCurrentException(),
+                    getCurrentExceptionMsg()
+                )
+                cmd.afterCallback(CmdResult.failure)
+        of DbCmdKind.backup:
+            try:
+                lastCmd = "backup"
+                console.log(lastCmd)
+                let backupPath = db.path & ".bak"
+                try:
+                    # delete old backup
+                    await fsp.unlink(backupPath)
+                except:
+                    #ignore backup not existing
+                    if not getCurrentExceptionMsg().startsWith("ENOENT"):
+                        raise getCurrentException()
+                # copy current db to backup path
+                await fsp.copyFile(db.path, backupPath)
+                cmd.afterCallback(CmdResult.success)
+            except:
+                console.error(
+                    getCurrentException(),
+                    getCurrentExceptionMsg()
+                )
+                cmd.afterCallback(CmdResult.failure)
+        of DbCmdKind.close:
+            try:
+                lastCmd = "close"
+                console.log(lastCmd)
+                await fh.sync()
+                await fh.close()
+                cmd.afterCallback(CmdResult.success)
+            except:
+                console.error(
+                    getCurrentException(),
+                    getCurrentExceptionMsg()
+                )
+                cmd.afterCallback(CmdResult.failure)
 
     db.ioBusy = false
 
@@ -164,102 +223,63 @@ proc appendData(
 ) {.async.} =
     ## appends a json node to the opened database file (line by line)
     db.cmdBuffer.add(DbCmd(
-        cmdKind: append,
-        op: DbOp(opKind: data, id: eid, entry: node)
-    ))
+        cmdKind: DbCmdKind.write,
+        op: DbOp(opKind: data, id: eid, entry: node))
+    )
     if doWrite:
         await db.processCommands()
 
 proc appendRemove(
     db: FlatDb,
     eid: EntryId,
-    doWrite = true
+    doWrite = false
 ) {.async.} =
     ## append an entry removal log item for the table
     db.cmdBuffer.add(DbCmd(
-        cmdKind: append,
-        op: DbOp(opKind: remove, id: eid)
-    ))
+        cmdKind: DbCmdKind.write,
+        op: DbOp(opKind: remove, id: eid))
+    )
     if doWrite:
         await db.processCommands()
 
-proc backup*(db: FlatDb): Future[void] =
+proc backup*(db: FlatDb) {.async.} =
     ## Creates a backup of the original db.
     ## We do this to avoid having the data only in memory.
-    let backupPath = db.path & ".bak"
-    newPromise() do (resolve: proc()):
+    var backupStatus = newPromise do (r: proc(r: CmdResult):void):
         db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                var fh = await db.fileHandle
-                if fh.isNil():
-                    resolve()
-                    return
-                await fh.sync()
-                try:
-                    # delete old backup
-                    await fsp.unlink(backupPath)
-                except:
-                    var e = getCurrentException()
-                    #ignore backup not existing
-                    if e.toJs().to(ErrnoException).code != "ENOENT":
-                        raise e
-                # copy current db to backup path
-                await fsp.copyFile(db.path, backupPath)
-                resolve()
-            )
-        )
+            cmdKind: DbCmdKind.backup,
+            afterCallback: r
+        ))
+    await db.processCommands() # start processing if not started
+    discard await backupStatus
 
-proc unsafeTruncateFile(db: FlatDb): Future[void] =
-    newPromise() do (resolve: proc()):
-        db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                var fh = await db.fileHandle
-                if fh.isNil():
-                    resolve()
-                    return
-                await fh.sync()
-                fh.truncate()
-                resolve()
-            )
-        )
-
-proc drop*(db: FlatDb): Future[void] {.discardable.} = 
+proc drop*(db: FlatDb) {.async, discardable.} = 
     ## DELETES EVERYTHING
     ## deletes the whole database.
     ## after this call we can use the database as normally
-    newPromise() do (resolve: proc()):
+    db.nodes.clear()
+    discard await newPromise do (r: proc(r: CmdResult)):
         db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                await db.unsafeTruncateFile()
-                db.nodes.clear()
-                resolve()
-            )
-        )
+            cmdKind: DbCmdKind.truncate,
+            afterCallback: r
+        ))
+    await db.processCommands()
 
-proc store*(db: FlatDb, nodes: seq[JsObject]): Future[void] =
+proc store*(db: FlatDb, nodes: seq[JsObject]) {.async.} =
     ## write every json node to the db.
     # when not defined(release):
     #   echo "----------- Store got called on: ", db.path
-    newPromise() do (resolve: proc()):
-        db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                for node in nodes:
-                    var key = node.getOrDefault().getStr
-                    db.nodes[key] = node
-                    discard db.appendData(
-                        key,
-                        node,
-                        doWrite = false
-                    )
-                resolve()
-            )
+    for node in nodes:
+        var key = node.getOrDefault("_id").getStr()
+        db.nodes[key] = node
+        discard db.appendData(
+            key,
+            node,
+            doWrite = false
         )
+    await db.processCommands()
 
-proc flush*(db: FlatDb): Future[void] = 
+proc flush*(db: FlatDb) {.async.} = 
     ## appends the whole memory database to the file. If a large number of
     ## changes are made to db.nodes directly, you might want to call this.
     ## alternatively, track the change set and use db.append instead.
@@ -268,45 +288,76 @@ proc flush*(db: FlatDb): Future[void] =
     ## - this will take up more disk space
     ## - make subsequent load slower
     ## - and possibly other adverse effects
-    newPromise() do (resolve: proc()):
-        db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                var allNodes = newSeq[JsObject]()
-                for id, node in db.nodes.pairs():
-                    node["_id"] = id
-                    allNodes.add(node)
-                await db.store(allNodes)
-                resolve()
-            )
-        )
+    var allNodes = newSeq[JsObject]()
+    for id, node in db.nodes.pairs():
+        node["_id"] = id
+        allNodes.add(node)
+    await db.store(allNodes)
 
-proc compact*(db: FlatDb): Future[void] =
+proc compact*(db: FlatDb) {.async.} =
     ## writes the minimal log to create the existing in memory database
     ## overwrites everything: backup -> drop -> write
-    newPromise() do (resolve: proc()):
-        db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                await db.backup()
-                await db.unsafeTruncateFile()
-                await db.flush()
-                resolve()
-            )
+    var noop = proc(r:CmdResult) = discard
+    db.cmdBuffer.add(DbCmd(
+        cmdKind: DbCmdKind.backup,
+        afterCallback: noop
+    ))
+    db.cmdBuffer.add(DbCmd(
+        cmdKind: DbCmdKind.truncate,
+        afterCallback: noop
+    ))
+    for id, node in db.nodes.pairs():
+        node["_id"] = id
+        discard db.appendData(
+            id,
+            node,
+            doWrite = false
         )
+    await db.processCommands()
 
-proc overwrite*(db: FlatDb, nodes: seq[JsObject]): Future[void] {.discardable.} =
+proc overwrite*(db: FlatDb, nodes: seq[JsObject]) {.async, discardable.} =
     ## Backs up and overwrites the database file and memory
-    newPromise() do (resolve: proc()):
+    discard await newPromise do (r: proc(r: CmdResult)):
         db.cmdBuffer.add(DbCmd(
-            cmdKind: load,
-            doAction: proc() {.async.} =
-                await db.backup()
-                await db.unsafeTruncateFile()
-                await db.store(nodes)
-                resolve()
-            )
-        )
+            cmdKind: DbCmdKind.backup,
+            afterCallback: r
+        ))
+    discard await newPromise do (r: proc(r: CmdResult)):
+        db.cmdBuffer.add(DbCmd(
+            cmdKind: DbCmdKind.truncate,
+            afterCallback: r
+        ))
+    await db.store(nodes)
+
+proc load(db: FlatDb): Future[void] =
+    ## clears current state and loads it from the content of the file
+    db.ioBusy = true
+    var loadedTable = newFlatDbTable()
+    fsp.readFileUtf8(db.path).then do (lines:cstring) -> Future[void]:
+        for line in lines.split(nodeOs.eol).filterIt(it.strip() != ""):
+            # TODO - Remove this debugging code
+            try:
+                discard jsonParse(line)
+            except:
+                console.error(getCurrentExceptionMsg(), line)
+
+            var obj = jsonParse(line).to(DbOp)
+
+            if obj.isNil(): continue
+
+            case obj.opKind
+            of data: loadedTable[obj.id] = obj.entry
+            of remove:
+                if loadedTable.hasKey(obj.id): loadedTable.del(obj.id)
+    
+        # don't overwrite existing data that happened before the load
+        for id, node in loadedTable.pairs():
+            if not db.nodes.hasKey(id):
+                db.nodes[id] = node
+        db.ioBusy = false
+        db.loaded = true
+
+        db.processCommands()
 
 proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb = 
     # if inmemory is set to true the filesystem gets not touched at all.
@@ -316,55 +367,38 @@ proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb =
     if not inmemory:
         if not fs.existsSync(path): fs.writeFileSync(path, "")
         result.fileHandle = fsp.open(path, "r+")
-        result.autoCompactInterval = 600000
+        result.autoCompactInterval = 60000 # 1 minute(s)
         result.opCount = 0
+        result.loaded = false
         result.ioBusy = false
-        result.cmdBuffer = newSeq[DbCmd]()
+        result.cmdBuffer = newArray[DbCmd]()
         result.compactTimeout = global.setInterval(
-            proc() = discard result.compact(),
-            600000 # 10 minutes
+            proc():void =
+                if result.loaded:
+                    discard result.compact(),
+            result.autoCompactInterval
         )
         result.processTimeout = global.setInterval(
-            proc() = discard result.processCommands(),
+            proc():void =
+                if result.loaded:
+                    discard result.processCommands(),
             10000 # 10 seconds
         )
+        discard result.load()
+
 
     result.nodes = newFlatDbTable()
 
-proc doLoad(db: FlatDb): Future[bool] {.async.} = 
-    var id: EntryId
-
-    db.nodes.clear()
-    if db.fileHandle.isNil():
-        return false
-    var lines = (await (await db.fileHandle).readFileUtf8()).split(nodeOs.eol)
-    for line in lines.filterIt(it.strip() != ""):
-        # TODO - Remove this debugging code
-        try:
-            discard jsonParse(line)
-        except:
-            console.error(getCurrentExceptionMsg(), line)
-
-        var obj = jsonParse(line).to(DbOp)
-
-        if obj.isNil(): continue
-
-        case obj.opKind
-        of data: db.nodes[id] = obj.entry
-        of remove: db.nodes.del(id)
-    return true
-
-proc load*(db: FlatDb): Future[bool] {.discardable.} = 
-    ## reads the complete flat db and returns true if load sucessfully,
-    ## false otherwise
-
-    newPromise() do (resolve: proc(r: bool), reject: proc(e: JsObject)):
+proc close*(db: FlatDb) {.async.} =
+    # TODO this and opening the file need to handle intervals
+    global.clearInterval(db.compactTimeout)
+    global.clearInterval(db.processTimeout)
+    discard await newPromise do (r: proc(r: CmdResult)):
         db.cmdBuffer.add(DbCmd(
-            cmdKind: DbCmdKind.load,
-            doAction: proc() {.async.} =
-                resolve(await db.doLoad())
-            )
-        )
+            cmdKind: DbCmdKind.close,
+            afterCallback: r
+        ))
+    await db.processCommands()
 
 proc insert*(
     db: FlatDb,
@@ -390,7 +424,7 @@ proc update*(
     value: JsObject,
     doFlush = false
 ): Future[EntryId] {.async.} =
-    ## Updates an entry, if `flush == true` database gets flushed afterwards
+    ## Updates an entry, if `doFlush == true` database gets flushed afterwards
     ## Updateing the db is expensive!
     db.nodes[key] = value
     await db.appendData(key, value, doFlush)
@@ -635,28 +669,16 @@ proc `or`*(p1, p2: proc (x: JsObject): bool): proc (x: JsObject): bool =
 proc `not`*(p1: proc (x: JsObject): bool): proc (x: JsObject): bool =
     return proc (x: JsObject): bool = return not p1(x)
 
-proc close*(db: FlatDb): Future[void] =
-    # TODO this and opening the file need to handle intervals
-    newPromise() do (resolve: proc()):
-        db.cmdBuffer.add(DbCmd(
-            cmdKind: DbCmdKind.close,
-            doAction: proc() {.async.} =
-                var fh = await db.fileHandle
-                if fh.isNil():
-                    resolve()
-                    return
-                await fh.sync()
-                await fh.close()
-                resolve()
-            )
-        )
-
 proc keepIf*(db: FlatDb, matcher: proc) {.async.} = 
     ## filters the database file, only lines that match `matcher`
     ## will be in the new file.
     db.overwrite db.query matcher
 
-proc delete*(db: FlatDb, id: EntryId, doFlush = false): Future[cint] {.async.} =
+proc delete*(
+    db: FlatDb,
+    id: EntryId,
+    doFlush = true
+): Future[cint] {.async.} =
     ## deletes entry by id
     var hit = false
     if db.nodes.hasKey(id):
@@ -746,8 +768,3 @@ proc upsert*(
         var id = entry["_id"].getStr()
         db[id] = node
         return id
-
-# TODO ?
-# proc upsertMany*(db: FlatDb, node: JsObject, matcher: Matcher, flush = db.manualFlush): EntryId {.discardable.} = 
-    ## updates entries by a matcher, if none was found insert new entry
-    ## if flush == true db gets flushed

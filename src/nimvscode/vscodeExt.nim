@@ -17,7 +17,7 @@ from nimBuild import check,
     activateEvalConsole,
     CheckResult
 from nimStatus import showHideStatus
-from nimIndexer import initWorkspace, clearCaches
+from nimIndexer import initWorkspace, clearCaches, onClose
 from nimImports import initImports,  removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
 from nimUtils import extensionContext, getDirtyFile, outputLine, prepareConfig
@@ -320,5 +320,6 @@ proc activate*(ctx:VscodeExtensionContext):void =
     outputLine("[info] Extension Activated")
 
 proc deactivate*():void =
+    discard onClose()
     discard closeAllNimSuggestProcesses()
     fileWatcher.dispose()

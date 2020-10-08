@@ -40,8 +40,9 @@ type
         kind*:VscodeSymbolKind
 
 proc findFile(file:cstring, timestamp:cint):Future[FileData] {.async.} =
-    return (dbFiles.queryOne equal("file", file) and equal("timestamp", timestamp))
-        .to(FileData)
+    return dbFiles.queryOne(
+            equal("file", file) and higherEqual("timestamp", timestamp)
+        ).to(FileData)
     # return newPromise(proc(
     #         resolve:proc(val:FileData):void,
     #         reject:proc(reason:JsObject):void
@@ -111,7 +112,7 @@ proc getFileSymbols*(
     return symbols
 
 proc indexFile(file:cstring) {.async.} =
-    var timestamp = cint(fs.statSync(file).mtime.getTime())
+    var timestamp = fs.statSync(file).mtime.getTime().toJs().to(cint)
     var doc = await findFile(file, timestamp)
     if doc.isNil():
         var infos = await getFileSymbols(file, "")
@@ -119,15 +120,18 @@ proc indexFile(file:cstring) {.async.} =
         if infos.isNull() or infos.len == 0:
             return
 
+        var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
         try:
-            discard await dbFiles.delete equal("file", file)
-            var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
+            discard await (dbFiles.delete equal("file", file))
+        except:
+            console.error("indexFile - dbFiles - delete", getCurrentExceptionMsg(), getCurrentException())
+        try:
             if not folder.isNil():
                 dbFiles.insert(FileData{file:file, timestamp:timestamp})
             else:
                 console.log("indexFile - dbFiles - not in workspace")
         except:
-            console.error("indexFile - dbFiles", getCurrentException())
+            console.error("indexFile - dbFiles - insert", getCurrentExceptionMsg(), getCurrentException())
 
         try:
             discard await dbTypes.delete equal("file", file)
@@ -221,10 +225,9 @@ proc initWorkspace*(extPath: cstring) {.async.} =
     cleanOldDb(extPath, "types")
 
     dbTypes = newFlatDb(path.join(extPath, getDbName("types", dbVersion)))
-    discard await dbTypes.load()
 
     dbFiles = newFlatDb(path.join(extPath, getDbName("files", dbVersion)))
-    discard await dbFiles.load()
+
     # dbTypes = nedb.createDatastore(NedbDataStoreOptions{
     #         filename:path.join(extPath, getDbName("types", dbVersion)),
     #         autoload:true
@@ -244,6 +247,8 @@ proc initWorkspace*(extPath: cstring) {.async.} =
     # dbFiles.ensureIndex("timeStamp")
 
     await indexWorkspaceFiles()
+    discard dbFiles.processCommands()
+    discard dbTypes.processCommands()
 
 proc findWorkspaceSymbols*(
     query:cstring
@@ -279,4 +284,10 @@ proc clearCaches*() {.async.} =
     if dbTypes != nil: await dbTypes.drop()
     if dbFiles != nil: await dbFiles.drop()
     await indexWorkspaceFiles()
+
+proc onClose*() {.async.} =
+    discard await allSettled(@[
+        dbFiles.processCommands(),
+        dbTypes.processCommands()
+    ])
 
