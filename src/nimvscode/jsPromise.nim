@@ -8,7 +8,6 @@ type
   ## temporary bridge until fully migrated to asyncjs
 
 # Statics
-# proc newPromise*[T](handler:proc(resolve:proc(val:T))):Future[T] {.importcpp: "new Promise(@)".}
 proc newPromise*[T,R](handler:proc(resolve:proc(val:T), reject:proc(reason:R))):Future[T] {.importcpp: "new Promise(@)".}
 proc newEmptyPromise*():Future[void] {.importcpp: "(Promise.resolve())".}
 proc race*[T](iterable:openarray[T]):Future[T] {.importcpp: "Promise.race(#)",discardable.}
