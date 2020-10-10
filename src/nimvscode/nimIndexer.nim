@@ -5,7 +5,6 @@ import sequtils
 import nimStatus
 import nimSuggestExec
 
-# import nedbApi
 import flatdbnode
 
 import jsNodeFs
@@ -18,9 +17,6 @@ import jsre
 import jsconsole
 
 var dbVersion:cint = 5
-
-# var dbFiles:NedbDataStore
-# var dbTypes:NedbDataStore
 
 var dbFiles:FlatDb
 var dbTypes:FlatDb
@@ -43,15 +39,6 @@ proc findFile(file:cstring, timestamp:cint):Future[FileData] {.async.} =
     return dbFiles.queryOne(
             equal("file", file) and higherEqual("timestamp", timestamp)
         ).to(FileData)
-    # return newPromise(proc(
-    #         resolve:proc(val:FileData):void,
-    #         reject:proc(reason:JsObject):void
-    #     ) =
-    #         dbFiles.findOne(
-    #             FindFileQuery{file:file, timestamp:timestamp},
-    #             proc(err:NedbError, doc:FileData) = resolve(doc)
-    #         )
-    # )
 
 proc vscodeKindFromNimSym(kind:cstring):VscodeSymbolKind =
     case $kind
@@ -123,15 +110,12 @@ proc indexFile(file:cstring) {.async.} =
         var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
         try:
             discard await (dbFiles.delete equal("file", file))
-        except:
-            console.error("indexFile - dbFiles - delete", getCurrentExceptionMsg(), getCurrentException())
-        try:
             if not folder.isNil():
                 dbFiles.insert(FileData{file:file, timestamp:timestamp})
             else:
                 console.log("indexFile - dbFiles - not in workspace")
         except:
-            console.error("indexFile - dbFiles - insert", getCurrentExceptionMsg(), getCurrentException())
+            console.error("indexFile - dbFiles", getCurrentExceptionMsg(), getCurrentException())
 
         try:
             discard await dbTypes.delete equal("file", file)
@@ -151,35 +135,7 @@ proc indexFile(file:cstring) {.async.} =
                     kind: i.kind
                 })
         except:
-            console.error("indexFile - dbTypes", getCurrentException())
-        # dbFiles.remove(file, proc(err:NedbError, n:cint) =
-        #     if not err.isNil():
-        #         console.error("indexFile - dbFiles", err)
-        #     var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
-        #     if not folder.isNil():
-        #         dbFiles.insert(FileData{file:file, timestamp:timestamp})
-        #     else:
-        #         console.log("indexFile - dbFiles - not in workspace")
-        # )
-        # dbTypes.remove(file, proc(err:NedbError, n:cint) =
-        #     if not err.isNil():
-        #         console.error("indexFile - dbTypes", err)
-        #     for i in infos:
-        #         var folder = vscode.workspace.getWorkspaceFolder(i.location.uri)
-        #         if folder.isNil():
-        #             console.log("indexFile - dbTypes - not in workspace", i.location.uri.fsPath)
-        #             continue
-
-        #         dbTypes.insert(SymbolData{
-        #             ws: folder.uri.fsPath,
-        #             file: i.location.uri.fsPath,
-        #             range_start: i.location.`range`.start,
-        #             range_end: i.location.`range`.`end`,
-        #             `type`: i.name,
-        #             container: i.containerName,
-        #             kind: i.kind
-        #         })
-        # )
+            console.error("indexFile - dbTypes", getCurrentExceptionMsg(), getCurrentException())
 
 proc removeFromIndex(file:cstring):void =
     dbFiles.delete equal("file", file)
@@ -224,27 +180,8 @@ proc initWorkspace*(extPath: cstring) {.async.} =
     cleanOldDb(extPath, "files")
     cleanOldDb(extPath, "types")
 
-    dbTypes = newFlatDb(path.join(extPath, getDbName("types", dbVersion)))
-
     dbFiles = newFlatDb(path.join(extPath, getDbName("files", dbVersion)))
-
-    # dbTypes = nedb.createDatastore(NedbDataStoreOptions{
-    #         filename:path.join(extPath, getDbName("types", dbVersion)),
-    #         autoload:true
-    #     })
-    # dbTypes.persistence.setAutocompactionInterval(600000) # 10 munites
-    # dbTypes.ensureIndex("workspace")
-    # dbTypes.ensureIndex("file")
-    # dbTypes.ensureIndex("timestamp")
-    # dbTypes.ensureIndex("type")
-
-    # dbFiles = nedb.createDatastore(NedbDataStoreOptions{
-    #         filename:path.join(extPath, getDbName("files", dbVersion)),
-    #         autoload:true
-    #     })
-    # dbFiles.persistence.setAutocompactionInterval(600000) # 10 munites
-    # dbFiles.ensureIndex("file")
-    # dbFiles.ensureIndex("timeStamp")
+    dbTypes = newFlatDb(path.join(extPath, getDbName("types", dbVersion)))
 
     await indexWorkspaceFiles()
     discard dbFiles.processCommands()

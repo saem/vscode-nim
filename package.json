@@ -28,9 +28,7 @@
     "scripts": {
         "vscode:prepublish": "nimble release"
     },
-    "dependencies": {
-        "nedb": "1.8.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",

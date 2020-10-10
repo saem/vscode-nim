@@ -12,10 +12,4 @@ vscodeNim/**
 .gitignore
 tsconfig.json
 tslint.json
-node_modules/.bin/**
-node_modules/gulp*/**
-node_modules/vsce/**
-node_modules/mocha/**
-node_modules/tslint/**
-node_modules/typescript/**
-node_modules/vscode/**
+node_modules/**
