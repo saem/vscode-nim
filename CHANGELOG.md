@@ -1,5 +1,12 @@
 # ChangeLog
 
+# 0.1.7 (10 Oct 2020)
+* fixed `nim check` which now woks
+* fixed issue highlighting from check results
+* remove nedb dependency, overall extension size should be much smaller
+* replacement for nedb means files and type db files are now version 5
+* added clear internal cache command, allows kicking off index rebuild
+
 # 0.1.6 (02 Oct 2020)
 * Fix lintOnSave setting being ignored and check results
 * No longer saving on any attempt to autocomplete (#3)
@@ -16,7 +23,6 @@
 
 # 0.1.2 (20 Sep 2020)
 * Fixed config parsing
-* 
 * Build command sets backend flag for `nimsuggest` and `nim check`
 
 # 0.1.1 (16 Sep 2020)
