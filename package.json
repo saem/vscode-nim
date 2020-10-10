@@ -28,9 +28,7 @@
     "scripts": {
         "vscode:prepublish": "nimble release"
     },
-    "dependencies": {
-        "nedb": "1.8.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
@@ -109,6 +107,11 @@
             {
                 "command": "nim.execSelectionInTerminal",
                 "title": "Run Selection/Line in Nim Terminal",
+                "category": "Nim"
+            },
+            {
+                "command": "nim.clearCaches",
+                "title": "Clear internal caches",
                 "category": "Nim"
             }
         ],

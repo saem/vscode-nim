@@ -103,6 +103,9 @@ proc parseCint*(s:cstring, radix:cint):cint {.importcpp:"parseInt(@)".}
 proc join*(s:seq[cstring], sep:cstring):cstring {.importcpp:"#.join(@)".}
   ## Join an array of strings into a single string
 
+proc toString*(i:int):cstring {.importcpp:"(#.toString(@))".}
+  ## Convert an int to a string
+
 proc toString*(i:int, radix:Natural):cstring {.importcpp:"(#.toString(@))".}
   ## Convert an int to a string given a radix
 

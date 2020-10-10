@@ -1,4 +1,4 @@
-import jsffi
+import jsffi, macros
 
 type
     Array*[T] = ref ArrayObj[T]
@@ -27,25 +27,30 @@ type
     GlobalModule = ref GlobalModuleObj
     GlobalModuleObj {.importc.} = object of JsRoot
 
+    Timeout* = ref object
+
 var process* {.importc, nodecl.}:ProcessModule
 var global* {.importc, nodecl.}:GlobalModule
 
 # static
-proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
 proc newMap*[K,V]():Map[K,V] {.importcpp: "(new Map())".}
-proc newBuffer*(size:cint):Buffer {.importcpp: "(new Buffer(@))".}
-    ## TODO - mark as deprecated
-proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
-
 proc newArray*[T](size=0):Array[T] {.importcpp: "(new Array(@))".}
 
+proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
+proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
+
 # global
-proc setInterval*(g:GlobalModule, f:proc():void, t:cint):void {.importcpp.}
+proc setInterval*(g:GlobalModule, f:proc():void, t:cint):Timeout {.importcpp, discardable.}
+proc clearInterval*(g:GlobalModule, t:Timeout):void {.importcpp.}
 
 # Array
 proc `[]`*[T](a:Array[T]):T {.importcpp: "#[#]".}
 proc `[]=`*[T](a:Array[T],val:T):T {.importcpp: "#[#]=#".}
-proc push*[T](a:Array[T],val:T) {.importcpp: "#.push(#)".}
+proc push*[T](a:Array[T],val:T):cint {.discardable, importcpp.}
+proc add*[T](a:Array[T],val:T) {.importcpp: "#.push(#)".}
+proc pop*[T](a:Array[T]):T {.importcpp.}
+proc shift*[T](a:Array[T]):T {.importcpp.}
+proc len*[T](a:Array[T]):cint {.importcpp: "#.length".}
 
 # Map
 proc `[]`*[K,V](m:Map[K,V], key:K):V {.importcpp:"#.get(@)".}
@@ -79,9 +84,22 @@ iterator entries*[K,V](m:Map[K,V]):(K,V) =
 
 # Buffer
 proc toString*(b:Buffer):cstring {.importcpp.}
+proc toStringBase64*(b:Buffer):cstring
+    {.importcpp:"(#.toString('base64'))".}
 proc toStringUtf8*(b:Buffer, start:cint, stop:cint):cstring
     {.importcpp:"(#.toString('utf8', #, #))".}
 proc slice*(b:Buffer, start:cint):Buffer {.importcpp.}
+
+# JSON
+proc jsonStringify*[T](val:T):cstring {.importcpp:"JSON.stringify(@)".}
+proc toJsonStr(x: NimNode): NimNode {.compileTime.} =
+    result = newNimNode(nnkTripleStrLit)
+    result.strVal = astGenRepr(x)
+template jsonStr*(x: untyped): untyped =
+    ## Convert an expression to a JSON string directly, without quote
+    result = toJsonStr(x)
+proc jsonParse*(val:cstring):JsObject {.importcpp:"JSON.parse(@)".}
+proc jsonParse*(val:cstring, T:typedesc):T {.importcpp:"JSON.parse(@)".}
 
 # Misc
 var numberMinValue* {.importc:"(Number.MIN_VALUE)", nodecl.}: cdouble
