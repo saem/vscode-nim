@@ -1,4 +1,6 @@
 ## Testsuit for flatdb
+## 
+## TODO - figure out how to get tests working with aysnc calls
 
 import nimvscode/flatdbnode, sequtils, unittest, strutils, algorithm, jsNode, jsffi
 
