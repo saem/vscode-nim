@@ -20,9 +20,9 @@ export flatdbtablenode
 ## this stores msg lines as json but seperated by "\n"
 ## This is not a _real_ database, so expect a few quirks.
 
-## This database is designed like:
-##  - Mostly append only (append only is fast)
-##  - Update is inefficent (has to write whole database again)
+## Database design:
+##  - Meant primarily for append only inserts
+##  - High churn from updates or deletes will grow data volumes
 type
     DbOpKind {.pure.} = enum
         data, remove
@@ -42,7 +42,6 @@ type
     DbCmdObj = object
         case cmdKind*: DbCmdKind
         of DbCmdKind.write: op*: DbOp
-        # of DbCmdKind.load, DbCmdKind.truncate, DbCmdKind.backup, DbCmdKind.close:
         of DbCmdKind.truncate, DbCmdKind.backup, DbCmdKind.close:
             afterCallback*: proc(r: CmdResult)
 
@@ -142,7 +141,6 @@ proc processCommands*(db: FlatDb) {.async.} =
         return
 
     db.ioBusy = true
-    var lastCmd: cstring = nil
 
     while db.cmdBuffer.len > 0:
         # fileHandle might be changed from a comamnd here
@@ -151,9 +149,6 @@ proc processCommands*(db: FlatDb) {.async.} =
         case cmd.cmdKind
         of DbCmdKind.write:
             var op = cmd.op
-            if lastCmd != "write":
-                lastCmd = "write"
-                console.log(lastCmd)
             try:
                 inc db.opCount
                 var content:cstring = op.jsonStringify() & nodeOs.eol
@@ -166,8 +161,6 @@ proc processCommands*(db: FlatDb) {.async.} =
                 )
         of DbCmdKind.truncate:
             try:
-                lastCmd = "truncate"
-                console.log(lastCmd)
                 await fh.close()
                 db.fileHandle = fsp.open(db.path, "w+")
                 fh = await db.fileHandle
@@ -180,8 +173,6 @@ proc processCommands*(db: FlatDb) {.async.} =
                 cmd.afterCallback(CmdResult.failure)
         of DbCmdKind.backup:
             try:
-                lastCmd = "backup"
-                console.log(lastCmd)
                 let backupPath = db.path & ".bak"
                 try:
                     # delete old backup
@@ -201,8 +192,6 @@ proc processCommands*(db: FlatDb) {.async.} =
                 cmd.afterCallback(CmdResult.failure)
         of DbCmdKind.close:
             try:
-                lastCmd = "close"
-                console.log(lastCmd)
                 await fh.sync()
                 await fh.close()
                 cmd.afterCallback(CmdResult.success)
@@ -335,12 +324,6 @@ proc load(db: FlatDb): Future[void] =
     var loadedTable = newFlatDbTable()
     fsp.readFileUtf8(db.path).then do (lines:cstring) -> Future[void]:
         for line in lines.split(nodeOs.eol).filterIt(it.strip() != ""):
-            # TODO - Remove this debugging code
-            try:
-                discard jsonParse(line)
-            except:
-                console.error(getCurrentExceptionMsg(), line)
-
             var obj = jsonParse(line).to(DbOp)
 
             if obj.isNil(): continue
@@ -367,7 +350,7 @@ proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb =
     if not inmemory:
         if not fs.existsSync(path): fs.writeFileSync(path, "")
         result.fileHandle = fsp.open(path, "r+")
-        result.autoCompactInterval = 60000 # 1 minute(s)
+        result.autoCompactInterval = 600000 # 10 minutes(s)
         result.opCount = 0
         result.loaded = false
         result.ioBusy = false
@@ -385,7 +368,6 @@ proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb =
             10000 # 10 seconds
         )
         discard result.load()
-
 
     result.nodes = newFlatDbTable()
 
