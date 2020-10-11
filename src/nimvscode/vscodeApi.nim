@@ -342,6 +342,20 @@ type
     VscodeDiagnosticCollection* = ref VscodeDiagnosticCollectionObj
     VscodeDiagnosticCollectionObj {.importc.} = object of VscodeDisposable
 
+    VscodeFileSystem* = ref VscodeFileSystemObj
+    VscodeFileSystemObj {.importc.} = object of JsRoot
+
+    VscodeFileType* {.pure, nodecl.} = enum
+        unknown = (0, "Unknown")
+        file = (1, "File"),
+        directory = (2, "Directory"),
+        symbolicLink = (64, "SymbolicLink"),
+        symlinkFile = (65, "symlinkFile"),
+        symlinkDir = (66, "symlinkDir")
+
+    VscodeReadDirResult* = ref VscodeReadDirResultObj
+    VscodeReadDirResultObj {.importc.} = object of JsRoot
+
     VscodeFileSystemWatcher* = ref VscodeFileSystemWatcherObj
     VscodeFileSystemWatcherObj {.importc.} = object of JsRoot
 
@@ -462,6 +476,7 @@ type
     VscodeWorkspaceObj {.importc.} = object of JsRoot
         rootPath*:cstring
         workspaceFolders*:seq[VscodeWorkspaceFolder]
+        fs*:VscodeFileSystem
 
     VscodeLanguages* = ref VscodeLanguagesObj
     VscodeLanguagesObj {.importc.} = object of JsRoot
@@ -585,6 +600,16 @@ proc applyEdit*(
     ws:VscodeWorkspace,
     e:VscodeWorkspaceEdit
 ):Future[bool] {.importcpp, discardable.}
+
+# FileSystem
+proc readDirectory*(
+    fs:VscodeFileSystem,
+    uri:VscodeUri
+):Future[seq[VscodeReadDirResult]] {.importcpp.}
+proc name*(r:VscodeReadDirResult):cstring {.importcpp: "#[0]".}
+proc `name=`*(r:VscodeReadDirResult, n:cstring) {.importcpp: "(#[0]=#)".}
+proc fileType*(r:VscodeReadDirResult):VscodeFileType {.importcpp: "#[1]".}
+proc `fileType=`*(r:VscodeReadDirResult, f:VscodeFileType) {.importcpp: "(#[1]=#)".}
 
 # WorkspaceConfiguration
 proc has*(c:VscodeWorkspaceConfiguration, section:cstring):bool {.importcpp.}

@@ -29,6 +29,48 @@ var diagnosticCollection {.threadvar.}:VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}:VscodeFileSystemWatcher
 var terminal {.threadvar.}:VscodeTerminal
 
+type
+    CandidateKind* {.pure.} = enum
+        nimFile, nimble, nims, cfg
+    CandidateProject* = ref object
+        workspaceFolder*: VscodeWorkspaceFolder
+        kind*: CandidateKind
+        name*: cstring
+
+proc listCandidateProjects() =
+    var map = newMap[cstring, Array[CandidateProject]]()
+    for folder in vscode.workspace.workspaceFolders:
+        map[folder.name] = newArray[CandidateProject]()
+        vscode.workspace.fs.readDirectory(folder.uri).then(proc(r:seq[VscodeReadDirResult]) =
+            for i in r:
+                case i.fileType
+                of symbolicLink, symlinkFile, symlinkDir, unknown:
+                    continue #skip symlinks & unknowns
+                else:
+                    var kind = if i.name.endsWith(".nimble"):
+                            nimble
+                        elif i.name.endsWith(".cfg") or i.name.endsWith(".nimcfg"):
+                            cfg
+                        elif i.name.endsWith(".nims"):
+                            nims
+                        elif i.name.endsWith(".nim"):
+                            nimFile
+                        else:
+                            continue
+
+                    map[folder.name].add(CandidateProject(
+                        workspaceFolder: folder,
+                        kind: kind,
+                        name: i.name
+                    ))
+
+                    # TODO check dir entries if nothing found
+            for n, cs in map.entries():
+                for c in cs:
+                    outputLine(fmt"[info] workspaceFolder: {n}, name: {c.name}, kind: {$(c.kind)}")
+        ).catch do(r:JsObject):
+            console.error(r)
+
 proc mapSeverityToVscodeSeverity(sev:cstring):VscodeDiagnosticSeverity =
     return case $(sev)
         of "Hint", "Warning": VscodeDiagnosticSeverity.warning
@@ -173,6 +215,7 @@ proc activate*(ctx:VscodeExtensionContext):void =
     vscode.commands.registerCommand("nim.check", runCheck)
     vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
     vscode.commands.registerCommand("nim.clearCaches", clearCaches)
+    vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)
 
     prepareConfig()
     if config.getBool("enableNimsuggest"):

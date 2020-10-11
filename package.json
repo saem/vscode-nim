@@ -113,6 +113,11 @@
                 "command": "nim.clearCaches",
                 "title": "Clear internal caches",
                 "category": "Nim"
+            },
+            {
+                "command": "nim.listCandidateProjects",
+                "title": "List candidate nim projects",
+                "category": "Nim"
             }
         ],
         "menus": {

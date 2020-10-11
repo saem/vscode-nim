@@ -52,6 +52,21 @@ proc pop*[T](a:Array[T]):T {.importcpp.}
 proc shift*[T](a:Array[T]):T {.importcpp.}
 proc len*[T](a:Array[T]):cint {.importcpp: "#.length".}
 
+iterator items*[T](a:Array[T]):T =
+    ## Yields the elements in an Array.
+    var i:T
+    {.emit: "for (let `i` of `a`) {".}
+    yield i
+    {.emit: "}".}
+
+iterator pairs*[T](a:Array[T]):T =
+    ## Yields the elements in an Array.
+    var k:cint
+    var v:T
+    {.emit: "for (let [`k`, `v`] of `a`.entries()) {".}
+    yield (k,v)
+    {.emit: "}".}
+
 # Map
 proc `[]`*[K,V](m:Map[K,V], key:K):V {.importcpp:"#.get(@)".}
 proc `[]=`*[K,V](m:Map[K,V], key:K, value:V):void {.importcpp:"#.set(@)".}
