@@ -30,44 +30,98 @@ var fileWatcher {.threadvar.}:VscodeFileSystemWatcher
 var terminal {.threadvar.}:VscodeTerminal
 
 type
-    CandidateKind* {.pure.} = enum
-        nimFile, nimble, nims, cfg
+    # FileExtensions* {.pure, size: sizeof(cint).} = enum
+    #     nimble, nims, nimCfg = "nim.cfg", cfg, nim
+    CandidateKind* {.pure, size: sizeof(cint).} = enum
+        nimble, prjNims, configNims, prjNimCfg, cfg, nim
+    CandidateKinds* = set[CandidateKind]
+    CandidateMatchBoost* {.pure.} = enum
+        noBoost,
+        nameMatchesParentViaSrc,
+        nameMatchesParent
     CandidateProject* = ref object
         workspaceFolder*: VscodeWorkspaceFolder
-        kind*: CandidateKind
+        kinds*: CandidateKinds
+        matchBoost*: CandidateMatchBoost
         name*: cstring
+        fsPath*: cstring
+        coverPathPrefixes*: seq[cstring]
+    UserProvidedProject* = ref object
+        name*: cstring
+        
 
 proc listCandidateProjects() =
+    ## Find all the "projects" in the workspace and folders
+    ## 
+    ## Rules for project discovery, is a folder oriented decision tree. The top
+    ## level decision tree starts off as follows:
+    ## 1. ignore symlinks
+    ## #. ignore folders prefixed with '.' (.git, .vscode, etc...)
+    ## #. ignore folders unlikely to be useful (node_modules)
+    ## #. ignore non-nim files
+    ## #. discover projects (see below)
+    ## 
+    ## Discover projects, order indicates preference:
+    ## 1. `foo.nimble` in `/foo` dir
+    ##    (proj=foo, cover=nimble `srcDir` and `binDir`, `/foo/tests`)
+    ## #. `bar.nimble` in `/foo` dir
+    ##    (proj=bar, cover=nimble `srcDir` and `binDir`, `/foo/bar`)
+    ## #. `foo.nim` and `foo.(nims|nim.cfg)` in `/foo` and no `/foo/src`
+    ##    (proj=foo, cover=`/foo`)
+    ## #. `foo.nim` and `foo.(nims|nim.cfg)` in `/foo` and `/foo/src`
+    ##    (proj=foo, cover=`/foo/(src|tests)`)
+    ## #. `foo.nims` in `/foo` and no `/foo/src`
+    ##    (proj=foo, cover=`/foo`, non-project *.nim)
+    ## #. `foo.nims` in `/foo` and `/foo/src`
+    ##    (proj=foo, cover=`/foo/(foo|tests|src)`)
+    ## #. `bar.nims` in `/foo` and `/foo/bar`
+    ##    (proj=bar, cover=`/foo/bar`)
+    ## #. `foo.nim` and `foo.(nims|nim.cfg)` in `/bar`
+    ##    (proj=foo, cover=`/bar/foo`)
+    ## #. `/foo/src/foo.(nim|nims|nim.cfg)`
+    ##    (proj=foo, cover=`/foo/(src|test)`)
+    ## #. `/bar/src/foo.(nim|nims|nim.cfg)`
+    ##    (proj=foo, cover=`/foo/(src|test)`)
+    ## #. `foo.nim` and no (`*.(nims|nim.cfg|)` or `nim.cfg`) in `/foo`
+    ##    (proj=foo, cover=`/foo`)
+    ## #. if none of the above, resort to one .nim one project
+    ## 
+    ## TODO - finish implementing
     var map = newMap[cstring, Array[CandidateProject]]()
     for folder in vscode.workspace.workspaceFolders:
         map[folder.name] = newArray[CandidateProject]()
         vscode.workspace.fs.readDirectory(folder.uri).then(proc(r:seq[VscodeReadDirResult]) =
             for i in r:
                 case i.fileType
-                of symbolicLink, symlinkFile, symlinkDir, unknown:
+                of symbolicLink, symlinkDir, unknown:
                     continue #skip symlinks & unknowns
                 else:
-                    var kind = if i.name.endsWith(".nimble"):
+                    var kind:CandidateKind = if i.name.endsWith(".nimble"):
                             nimble
-                        elif i.name.endsWith(".cfg") or i.name.endsWith(".nimcfg"):
+                        elif i.name.endsWith(".nim.cfg"):
+                            prjNimCfg
+                        elif i.name.endsWith("nim.cfg"):
                             cfg
+                        elif i.name.endsWith("config.nims"):
+                            configNims
                         elif i.name.endsWith(".nims"):
-                            nims
+                            prjNims
                         elif i.name.endsWith(".nim"):
-                            nimFile
+                            nim
                         else:
                             continue
 
                     map[folder.name].add(CandidateProject(
                         workspaceFolder: folder,
-                        kind: kind,
-                        name: i.name
+                        kinds: {kind},
+                        name: i.name,
+                        fsPath: path.join(folder.uri.fsPath, i.name)
                     ))
 
                     # TODO check dir entries if nothing found
             for n, cs in map.entries():
                 for c in cs:
-                    outputLine(fmt"[info] workspaceFolder: {n}, name: {c.name}, kind: {$(c.kind)}")
+                    outputLine(fmt"[info] workspaceFolder: {n}, name: {c.name}, kind: {$(c.kinds)}")
         ).catch do(r:JsObject):
             console.error(r)
 
