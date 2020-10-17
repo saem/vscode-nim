@@ -72,6 +72,62 @@ The following commands are provided by the extension:
 * `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter.
 This command available from file context menu or by `F6` keyboard shortcut.
 
+---
+### Debugging
+Visual Studio Code inclues a powerful debugging system, and the Nim tooling can take advantage of that. However, in order to do so, some setup is required.
+
+#### Setting up
+First, install a debugging extension, such as [CodeLLDB](https://open-vsx.org/extension/vadimcn/vscode-lldb), and any native packages the extension may require (such as clang and lldb).
+
+Next, you need to create a `tasks.json` file for your project, under the `.vscode` directory of your project root. Here is an example for CodeLLDB:
+```jsonc
+// .vscode/tasks.json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "nim: build current file (for debugging)",
+            "command": "nim",
+            "args": [
+                "compile",
+                "-g",
+                "--debugger:native",
+                "-o:${workspaceRoot}/bin/${fileBasenameNoExtension}",
+                "${relativeFile}"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "type": "shell",
+        }
+    ]
+}
+```
+
+Then, you need to create a launch configuration in the project's launch.json file. Again, this example works with CodeLLDB:
+```jsonc
+// .vscode/launch.json
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "nim: debug current file",
+			"preLaunchTask": "nim: build current file (for debugging)",
+			"program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
+			"args": [],
+			"cwd": "${workspaceFolder}",
+		}
+	]
+}
+```
+
+You should be set up now to be able to debug from a given file in the native VS Code(ium) debugger.
+
+![Debugger preview screenshot](images/debugging-screenshot.png)
+
+---
 ## TODO
 
 * Clean-up
@@ -81,7 +137,6 @@ This command available from file context menu or by `F6` keyboard shortcut.
     * Ignore node_modules entirely at this point
   * Convert to asyncjs API
 * Rename support
-* Debug support
 * Extract most functionality into an LSP (check existing one)
 * Extract Visual Studio Code API into a separate Nimble package
   * Switch to using concepts for interfaces
