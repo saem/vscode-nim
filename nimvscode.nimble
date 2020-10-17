@@ -10,6 +10,7 @@ srcDir      = "src"
 # Deps
 
 requires "nim >= 1.3.7"
+requires "compiler >= 1.2.0"
 
 # Tasks
 task main, "This compiles the vscode Nim extension":
