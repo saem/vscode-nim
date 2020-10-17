@@ -37,9 +37,6 @@
         "vsce": "^1.79.5",
         "vscode-test": "^1.4.0"
     },
-    "extensionDependencies": [
-        "ms-vscode.cpptools"
-    ],
     "engines": {
         "vscode": "^1.27.0"
     },

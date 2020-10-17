@@ -1,5 +1,9 @@
 # ChangeLog
 
+# 0.1.8 (19 Oct 2020)
+* removed unneeded dependency on ms-vscode.cpptools (#10)
+* added instructions for setting up native debugging (#10)
+
 # 0.1.7 (10 Oct 2020)
 * fixed `nim check` which now woks
 * fixed issue highlighting from check results
