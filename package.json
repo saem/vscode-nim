@@ -90,6 +90,42 @@
                 "path": "./syntaxes/nimble.json"
             }
         ],
+        "problemMatchers": [
+            {
+                "name": "nim",
+                "owner": "nim",
+                "fileLocation": "absolute",
+                "severity": "error",
+                "pattern": {
+                    "regexp": "(?!^(\\.+|Hint|\\s+$))(.*)\\((\\d+),\\s(\\d+)\\)\\s+((Error|Warning|Hint):\\s(.*)|(template/generic instantiation from here.*))(\\s\\[.*\\])?",
+                    "file": 2,
+                    "line": 3,
+                    "column": 4,
+                    "severity": 6,
+                    "message": 7
+                }
+            },
+            {
+                "name": "nim test",
+                "owner": "nim",
+                "fileLocation": "absolute",
+                "pattern": [
+                    {
+                        "regexp": "  \\[(OK|FAILED|SKIPPED)\\] (.*)",
+                        "severity": 1,
+                        "code": 2
+                    },
+                    {
+                        "regexp": "    (.*)\\((\\d+), (\\d+)\\): (.*)",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "message": 4,
+                        "loop": true
+                    }
+                ]
+            }
+        ],
         "commands": [
             {
                 "command": "nim.run.file",
