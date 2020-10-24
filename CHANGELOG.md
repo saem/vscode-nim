@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.9 (xx xxx 2020)
+* Added publishing for open-vsx.org
+
 # 0.1.8 (19 Oct 2020)
 * removed unneeded dependency on ms-vscode.cpptools (#10)
 * added instructions for setting up native debugging (#10)

@@ -18,3 +18,8 @@ task main, "This compiles the vscode Nim extension":
 
 task release, "This compiles a release version":
     exec "nim js -d:nodejs -d:release --outdir:out --checks:off --sourceMap src/nimvscode.nim"
+
+# Tasks for publishing the extension
+task extReleasePatch, "Patch release on vscode marketplace and openvsx registry":
+    exec "./node_modules/.bin/vsce publish patch" # this bumps the version number
+    exec "./node_modules/.bin/ovsx publish -p $OVSX_PAT"
