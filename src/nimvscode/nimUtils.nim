@@ -11,6 +11,7 @@ import jscore
 import strformat
 
 import sequtils
+import hashes
 
 type
     ProjectFileInfo* = ref object
@@ -170,7 +171,7 @@ proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
 proc getDirtyFile*(doc:VscodeTextDocument):cstring =
     ## temporary file path of edited document
     var dirtyFilePath = path.normalize(
-        path.join(extensionContext.storagePath,"vscodenimdirty.nim")
+        path.join(extensionContext.storagePath,"vscodenimdirty" & $int(hash(doc.uri.fsPath)) & ".nim")
     )
     fs.writeFileSync(dirtyFilePath, doc.getText())
     return dirtyFilePath
