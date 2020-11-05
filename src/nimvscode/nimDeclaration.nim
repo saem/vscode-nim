@@ -26,7 +26,6 @@ proc provideDefinition*(
             proc(result:seq[NimSuggestResult]) =
                 if(not result.isNull() and not result.isUndefined() and result.len > 0):
                     let locations = newArray[VscodeLocation]()
-                    console.log "miauz: ", result.len
                     for def in result:
                         if not(def.isUndefined() or def.isNull()):
                             locations.push def.location
