@@ -1,16 +1,18 @@
 import vscodeApi
 import nimSuggestExec
 import nimUtils
+import jsNode
+import jsconsole
 
 proc provideDefinition*(
     doc:VscodeTextDocument,
     position:VscodePosition,
     token:VscodeCancellationToken
-): Promise[VscodeLocation] =
+): Promise[Array[VscodeLocation]] =
     ## TODO - the return type is a sub-set of what's in the TypeScript API
     ## Since we're providing the result this isn't a practical problem
     return newPromise(proc (
-      resolve:proc(val:VscodeLocation),
+      resolve:proc(val:Array[VscodeLocation]),
       reject:proc(reason:JsObject)
     ) =
         let pos:cint = position.line + 1
@@ -23,13 +25,16 @@ proc provideDefinition*(
         ).then(
             proc(result:seq[NimSuggestResult]) =
                 if(not result.isNull() and not result.isUndefined() and result.len > 0):
-                    let def = result[0]
-                    if(def.isUndefined() or def.isNull()):
-                        resolve(jsNull.to(VscodeLocation))
-                    else:
-                        resolve(def.location)
-                else:
-                    resolve(jsNull.to(VscodeLocation))
+                    let locations = newArray[VscodeLocation]()
+                    console.log "miauz: ", result.len
+                    for def in result:
+                        if not(def.isUndefined() or def.isNull()):
+                            locations.push def.location
+
+                    if locations.len > 0:
+                        resolve(locations)
+
+                resolve(jsNull.to(Array[VscodeLocation]))
         ).catch(proc(reason:JsObject) = reject(reason))
     )
 
