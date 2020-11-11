@@ -18,7 +18,8 @@ proc provideReferences*(
                 doc.fileName,
                 pos,
                 position.character,
-                getDirtyFile(doc)
+                true,
+                doc.getText()
             ).then(
                 proc(results:seq[NimSuggestResult]) =
                     var references: seq[VscodeLocation] = @[]

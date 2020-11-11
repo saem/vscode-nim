@@ -189,7 +189,7 @@ proc check*(filename:cstring, nimConfig:VscodeWorkspaceConfiguration):Promise[se
         runningToolsPromises.add(newPromise(proc(
                 resolve:proc(values:seq[CheckResult]),
                 reject:proc(reason:JsObject)
-            ) = execNimSuggest(NimSuggestType.chk, filename, 0, 0, "").then(
+            ) = execNimSuggest(NimSuggestType.chk, filename, 0, 0, false).then(
                     proc(items:seq[NimSuggestResult]) =
                         if items.toJs().to(bool) and items.len > 0:
                             resolve(parseNimsuggestErrors(items))

@@ -74,7 +74,8 @@ proc provideSignatureHelp(
                 filename,
                 startPos,
                 position.character,
-                getDirtyFile(doc)
+                true,
+                doc.getText()
             ).then(proc(items:seq[NimSuggestResult]) =
                 var signatures = vscode.newSignatureHelp()
                 var isModule = 0

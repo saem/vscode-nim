@@ -55,20 +55,23 @@ proc vscodeKindFromNimSym(kind:cstring):VscodeSymbolKind =
 
 proc getFileSymbols*(
     file:cstring,
-    dirtyFile:cstring
-):Future[seq[VscodeSymbolInformation]] {.async.} =
+    useDirtyFile:bool,
+    dirtyFileContent:cstring=""
+):
+    Future[seq[VscodeSymbolInformation]] {.async.} =
     console.log(
-        "getFileSymbols - execnimsuggest - ",
+        "getFileSymbols - execnimsuggest - useDirtyFile",
         $(NimSuggestType.outline),
         file,
-        dirtyFile
+        useDirtyFile
     )
     var items = await nimSuggestExec.execNimSuggest(
         NimSuggestType.outline,
         file,
         0,
         0,
-        dirtyFile
+        useDirtyFile,
+        dirtyFileContent
     )
     
     var symbols:seq[VscodeSymbolInformation] = @[]
@@ -102,7 +105,7 @@ proc indexFile(file:cstring) {.async.} =
     var timestamp = fs.statSync(file).mtime.getTime().toJs().to(cint)
     var doc = await findFile(file, timestamp)
     if doc.isNil():
-        var infos = await getFileSymbols(file, "")
+        var infos = await getFileSymbols(file, false)
 
         if infos.isNull() or infos.len == 0:
             return

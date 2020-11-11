@@ -19,7 +19,8 @@ proc provideDefinition*(
             doc.fileName,
             pos,
             position.character,
-            getDirtyFile(doc)
+            true,
+            doc.getText()
         ).then(
             proc(result:seq[NimSuggestResult]) =
                 if(not result.isNull() and not result.isUndefined() and result.len > 0):

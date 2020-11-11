@@ -73,7 +73,8 @@ proc provideCompletionItems*(
                 filename,
                 startPos,
                 position.character,
-                getDirtyFile(doc)
+                true,
+                doc.getText()
             ).then(proc(items:seq[NimSuggestResult]) =
                 var suggestions: seq[VscodeCompletionItem] = @[]
                 if (not items.isNull() and not items.isUndefined()):
