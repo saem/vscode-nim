@@ -30,7 +30,6 @@ type
 proc existsSync*(fs:Fs, file:cstring):bool {.importcpp.}
 proc mkdirSync*(fs:Fs, file:cstring):void {.importcpp.}
 proc unlinkSync*(fs:Fs, file:cstring):void {.importcpp.}
-proc removedirSync*(fs:Fs, file:cstring):void {.importcpp.}
 proc stat*(fs:Fs, file:cstring, cb:StatCallback):void {.importcpp.}
 proc statSync*(fs:Fs, file:cstring):FsStats {.importcpp.}
 proc lstatSync*(fs:Fs, file:cstring):FsStats {.importcpp.}

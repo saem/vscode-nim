@@ -12,7 +12,7 @@ proc provideDocumentSymbols(
     doc:VscodeTextDocument,
     token:VscodeCancellationToken
 ):Promise[seq[VscodeSymbolInformation]] =
-    return getFileSymbols(doc.filename, getDirtyFile(doc))
+    return getFileSymbols(doc.filename, true, doc.getText())
 
 type NimOutline* = ref object
     provideWorkspaceSymbols*:proc(

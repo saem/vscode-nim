@@ -18,7 +18,8 @@ proc provideRenameEdits*(
         doc.fileName,
         pos,
         position.character,
-        getDirtyFile(doc)
+        true,
+        doc.getText()
       ).then(proc (suggestions:seq[NimSuggestResult]) =
         var references = vscode.newWorkspaceEdit()
         if not suggestions.isNull() and not suggestions.isUndefined():

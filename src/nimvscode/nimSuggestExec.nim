@@ -136,6 +136,7 @@ proc closeAllNimSuggestProcesses*():Promise[void] =
     console.log("Close all nimsuggest processes")
     for project in nimSuggestProcessCache.keys():
         nimSuggestProcessCache[project].then(proc(desc:NimSuggestProcessDescription):void =
+            cleanupDirtyFileFolder(desc.process.pid)
             closeCachedProcess(desc)
         )
     nimSuggestProcessCache = newJsAssoc[cstring, Promise[NimSuggestProcessDescription]]()
@@ -146,6 +147,7 @@ proc closeNimSuggestProcess*(project:ProjectFileInfo) {.async.} =
     if process.toJs().to(bool):
         try:
             var desc = await process
+            cleanupDirtyFileFolder(desc.process.pid)
             closeCachedProcess(desc)
         except:
             console.log("closeNimSuggestProcess ignorable error", getCurrentException())
@@ -196,6 +198,7 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Future[NimSuggestProcessDe
                     console.log("getNimSuggestProcess - stderr pid: ", process.pid, "data:", data.toString())
                 )
                 process.onClose(proc(code:cint, signal:cstring):void =
+                    cleanupDirtyFileFolder(process.pid)
                     var codeStr = if code.toJs().isNull(): "unknown" else: $(code)
                     var msg = fmt"nimsuggest {process.pid} (args: {args.join("" "")}) closed with code: {codeStr} and signal: {signal}"
                     if code != 0:
@@ -209,6 +212,8 @@ proc getNimSuggestProcess(nimProject:ProjectFileInfo):Future[NimSuggestProcessDe
                             )
                     reject(msg.toJs())
                 )
+
+                fs.mkdirSync(getDirtyFileFolder(process.pid))
         )
     return nimSuggestProcessCache[projectPath]
 
@@ -217,7 +222,8 @@ proc execNimSuggest*(
     filename:cstring,
     line:cint,
     column:cint,
-    dirtyFile: cstring
+    useDirtyFile:bool,
+    dirtyFileContent:cstring=""
 ):Future[seq[NimSuggestResult]] {.async.} =
     var nimSuggestExec = getNimSuggestPath()
     var ret:seq[NimSuggestResult] = @[]
@@ -240,6 +246,10 @@ proc execNimSuggest*(
         var desc = await getNimSuggestProcess(projectFile)
         var suggestCmd:cstring = $(suggestType)
         var isValidDesc = desc.toJs().to(bool)
+        var dirtyFile = cstring ""
+
+        if useDirtyFile:
+            dirtyFile = getDirtyFile(desc.process.pid, filename, dirtyFileContent)
 
         if isValidDesc and desc.process.toJs().to(bool):
             trace(

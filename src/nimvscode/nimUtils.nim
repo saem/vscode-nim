@@ -11,6 +11,7 @@ import jscore
 import strformat
 
 import sequtils
+import hashes
 
 type
     ProjectFileInfo* = ref object
@@ -167,8 +168,35 @@ proc getProjectFileInfo*(filename:cstring):ProjectFileInfo =
             return project
     return projects[0]
 
+proc removeDirSync*(p:cstring):void =
+    if fs.existsSync(p):
+        for entry in fs.readdirSync(p):
+            var curPath = path.resolve(p, entry)
+            if fs.lstatSync(curPath).isDirectory():
+                removeDirSync(curPath)
+            else:
+                fs.unlinkSync(curPath)
+        fs.rmdirSync(p)
+
+proc getDirtyFileFolder*(nimsuggestPid:cint): cstring =
+    path.join(extensionContext.storagePath, "vscodenimdirty_" & $nimsuggestPid)
+
+proc cleanupDirtyFileFolder*(nimsuggestPid:cint) =
+    removeDirSync(getDirtyFileFolder(nimsuggestPid))
+
+proc getDirtyFile*(nimsuggestPid:cint,filepath,content:cstring):cstring =
+    ## temporary file path of edited document
+    ## for each nimsuggest instance each file has a unique dirty file
+    var dirtyFilePath = path.normalize(
+        path.join(getDirtyFileFolder(nimsuggestPid), $int(hash(filepath)) & ".nim")
+    )
+    fs.writeFileSync(dirtyFilePath, content)
+    return dirtyFilePath
+
 proc getDirtyFile*(doc:VscodeTextDocument):cstring =
     ## temporary file path of edited document
+    ## returns always the same file, so it shouldn't
+    ## be used for nimsuggest, only nimpretty!
     var dirtyFilePath = path.normalize(
         path.join(extensionContext.storagePath,"vscodenimdirty.nim")
     )
@@ -202,16 +230,6 @@ proc prepareConfig*():void =
             })
 
 proc getProjects*():seq[ProjectFileInfo] = projects
-
-proc removeDirSync*(p:cstring):void =
-    if fs.existsSync(p):
-        for entry in fs.readdirSync(p):
-            var curPath = path.resolve(p, entry)
-            if fs.lstatSync(curPath).isDirectory():
-                removeDirSync(curPath)
-            else:
-                fs.unlinkSync(curPath)
-        fs.rmdirSync(p)
 
 var channel:VscodeOutputChannel
 proc getOutputChannel*():VscodeOutputChannel =
