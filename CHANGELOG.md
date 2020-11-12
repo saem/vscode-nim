@@ -1,7 +1,10 @@
 # ChangeLog
 
-# 0.1.9 (xx xxx 2020)
+# 0.1.9 (11 Nov 2020)
 * Added publishing for open-vsx.org
+* handle multiple definitions returned by newer versions of nimsuggest (#12)
+* nimsuggest uses a unique dirty file per source (#13)
+* USERPROFILE is included in the bin search path for nim executables
 
 # 0.1.8 (19 Oct 2020)
 * removed unneeded dependency on ms-vscode.cpptools (#10)
