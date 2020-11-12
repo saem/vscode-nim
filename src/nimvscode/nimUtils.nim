@@ -38,6 +38,12 @@ proc getBinPath*(tool:cstring):cstring =
             process.env["PATH"] & path.delimiter & process.env["HOME"],
                 ".nimble",
                 "bin")
+        if process.platform == "win32":
+            # USERPROFILE is the standard equivalent of HOME on windows.
+            process.env["PATH"] = path.join(
+                process.env["PATH"] & path.delimiter & process.env["USERPROFILE"],
+                ".nimble",
+                "bin")
         var pathParts = process.env["PATH"].split(path.delimiter)
         var endings = if process.platform == "win32": @[".exe", ".cmd", ""]
             else: @[""]
