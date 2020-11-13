@@ -78,7 +78,7 @@ proc nimExec(
         var output:cstring = ""
         executor.onExit(proc(code:cint, signal:cstring) =
             if signal == "SIGKILL":
-                reject([].toJs())
+                reject(jsNull)
             else:
                 executors[projectPath] = ExecutorStatus{
                     initialized: false,
@@ -94,8 +94,8 @@ proc nimExec(
                             split = lfSplit
 
                     resolve(cb(split))
-                except:
-                    reject(getCurrentException().toJs())
+                except JsError as x:
+                    reject(x.toJs())
         )
 
         if useStdErr:
@@ -125,8 +125,9 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
     ):
         var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
             .exec(line)
-        if not match.toJs().to(bool) and messageText.len < 1024:
-            messageText &= nodeOs.eol & line
+        if not match.toJs().to(bool):
+            if messageText.len < 1024:
+                messageText &= nodeOs.eol & line
         else:
             var file = match[1]
             var lineStr = match[2]
@@ -134,7 +135,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
             var severity = match[6]
             var msg = match[7]
 
-            if msg == "template/generic instantiation from here":
+            if msg.startsWith("template/generic instantiation"):
                 if isWorkspaceFile(file):
                     lastFile = file
                     lastColumn = charStr
