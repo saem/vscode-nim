@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.10 (13 Nov 2020)
+* fix exception which can occur while retrieving nim check output (#14)
+
 # 0.1.9 (11 Nov 2020)
 * Added publishing for open-vsx.org
 * handle multiple definitions returned by newer versions of nimsuggest (#12)
