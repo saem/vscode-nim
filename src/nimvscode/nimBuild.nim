@@ -94,8 +94,8 @@ proc nimExec(
                             split = lfSplit
 
                     resolve(cb(split))
-                except JsError as x:
-                    reject(x.toJs())
+                except:
+                    reject(getCurrentException().toJs())
         )
 
         if useStdErr:
@@ -129,14 +129,16 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
             if messageText.len < 1024:
                 messageText &= nodeOs.eol & line
         else:
-            var file = match[1]
-            var lineStr = match[2]
-            var charStr = match[4]
-            var severity = match[6]
-            var msg = match[7]
+            var
+                file = match[1]
+                lineStr = match[2]
+                charStr = match[4]
+                severity = if match[6].toJs.to(bool): match[6] else: ""
+                msg = match[7]
+                isInWorkspace = isWorkspaceFile(file)
 
             if msg.startsWith("template/generic instantiation"):
-                if isWorkspaceFile(file):
+                if isInWorkspace:
                     lastFile = file
                     lastColumn = charStr
                     lastLine = lineStr
@@ -145,7 +147,7 @@ proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
                     ret[ret.len - 1].msg &= nodeOs.eol & messageText
                 
                 messageText = ""
-                if isWorkspaceFile(file):
+                if isInWorkspace:
                     ret.add(CheckResult{
                         file: file,
                         line:lineStr.parseCint(),
