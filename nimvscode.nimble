@@ -1,16 +1,18 @@
 # Package
 
-version     = "0.1.10"
+version     = "0.1.11"
 author      = "saem"
-description = "Experiment converting nim vscode extension from typescript to nim"
+description = "Nim language support for Visual Studio Code written in Nim"
 license     = "MIT"
 backend     = "js"
 srcDir      = "src"
+binDir      = "out"
+bin         = @["nimvscode"]
 
 # Deps
 
 requires "nim >= 1.3.7"
-requires "compiler >= 1.2.0"
+requires "compiler >= 1.3.7"
 
 # Tasks
 task main, "This compiles the vscode Nim extension":
