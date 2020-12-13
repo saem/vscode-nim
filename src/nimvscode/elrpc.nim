@@ -82,7 +82,7 @@ proc newEPCPeer(id:cint, socket:NetSocket):EPCPeer =
 
     epc.socket.onData(proc(data:Buffer) =
         if data.toJs().to(bool):
-            epc.receivedBuffer = bufferConcat(@[epc.receivedBuffer, data])
+            epc.receivedBuffer = bufferConcat(newArrayWith[Buffer](epc.receivedBuffer, data))
         while epc.receivedBuffer.len > 0:
             if epc.receivedBuffer.len >= 6:
                 var length = parseCint(epc.receivedBuffer.toStringUtf8(0, 6), 16)

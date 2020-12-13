@@ -223,7 +223,7 @@ proc prepareConfig*():void =
                 projects.add(toProjectInfo(p))
         else:
             vscode.workspace.findFiles(cfgProjects.to(cstring))
-                .then(proc(res:seq[VscodeUri]) =
+                .then(proc(res:Array[VscodeUri]) =
                     if res.toJs().to(bool) and res.len > 0:
                         projects.add(toProjectInfo(res[0].fsPath))
                 )

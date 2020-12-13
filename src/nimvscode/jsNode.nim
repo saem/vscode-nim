@@ -35,8 +35,9 @@ var global* {.importc, nodecl.}:GlobalModule
 # static
 proc newMap*[K,V]():Map[K,V] {.importcpp: "(new Map())".}
 proc newArray*[T](size=0):Array[T] {.importcpp: "(new Array(@))".}
+proc newArrayWith*[T]():Array[T] {.importcpp: "(new Array(@))", varargs.}
 
-proc bufferConcat*(b:seq[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
+proc bufferConcat*(b:Array[Buffer]):Buffer {.importcpp: "(Buffer.concat(@))".}
 proc bufferAlloc*(size:cint):Buffer {.importcpp: "(Buffer.alloc(@))".}
 
 # global
@@ -44,8 +45,8 @@ proc setInterval*(g:GlobalModule, f:proc():void, t:cint):Timeout {.importcpp, di
 proc clearInterval*(g:GlobalModule, t:Timeout):void {.importcpp.}
 
 # Array
-proc `[]`*[T](a:Array[T]):T {.importcpp: "#[#]".}
-proc `[]=`*[T](a:Array[T],val:T):T {.importcpp: "#[#]=#".}
+proc `[]`*[T](a:Array[T],idx:cint):T {.importcpp: "#[#]".}
+proc `[]=`*[T](a:Array[T],idx:cint,val:T):T {.importcpp: "#[#]=#".}
 proc push*[T](a:Array[T],val:T):cint {.discardable, importcpp.}
 proc add*[T](a:Array[T],val:T) {.importcpp: "#.push(#)".}
 proc pop*[T](a:Array[T]):T {.importcpp.}
@@ -59,7 +60,7 @@ iterator items*[T](a:Array[T]):T =
     yield i
     {.emit: "}".}
 
-iterator pairs*[T](a:Array[T]):T =
+iterator pairs*[T](a:Array[T]):(cint,T) =
     ## Yields the elements in an Array.
     var k:cint
     var v:T
