@@ -1,15 +1,16 @@
 import jsffi
 
 type
-    Util* = ref UtilObj
-    UtilObj {.importc.} = object of JsRoot
+  Util* = ref UtilObj
+  UtilObj {.importc.} = object of JsRoot
 
-    TextEncoder* = ref object
+  TextEncoder* = ref object
 
 # util
-proc newTextEncoder*(u:Util):TextEncoder {.importcpp:"(new #.TextEncoder(@))".}
+proc newTextEncoder*(u: Util): TextEncoder {.
+    importcpp: "(new #.TextEncoder(@))".}
 
 # TextEncoder
-proc encode*(enc:TextEncoder, content:cstring):seq[uint8] {.importcpp.}
+proc encode*(enc: TextEncoder, content: cstring): seq[uint8] {.importcpp.}
 
-var util*:Util = require("util").toJs().to(Util)
+var util*: Util = require("util").toJs().to(Util)
