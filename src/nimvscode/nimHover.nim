@@ -30,9 +30,9 @@ proc provideHover*(
                 var hoverLabel:VscodeMarkedString = VscodeHoverLabel{ language: mode.language, value: label }
 
                 if definition.documentation != "":
-                    resolve(vscode.newVscodeHover(@[hoverLabel, definition.documentation]))
+                    resolve(vscode.newVscodeHover(newArrayWith[VscodeMarkedString](hoverLabel, definition.documentation)))
                 else:
-                    resolve(vscode.newVscodeHover(@[hoverLabel]))
+                    resolve(vscode.newVscodeHover(newArrayWith[VscodeMarkedString](hoverLabel)))
             else:
                 resolve(jsUndefined.to(VscodeHover))
         ).catch(proc(reason:JsObject) = reject(reason))

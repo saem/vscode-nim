@@ -1,6 +1,9 @@
-import jsffi, jsPromise, asyncjs, jsre
+import
+    jsffi, jsPromise, asyncjs, jsre,
 
-export jsffi, jsPromise
+    jsNode
+
+export jsffi, jsPromise, jsNode
 
 ## TODO: Move from JsObject to JsRoot for more explict errors
 
@@ -129,9 +132,9 @@ type
         code*:cstring
         ## An array of related diagnostic information, e.g. when symbol-names within
         ## a scope collide all definitions can be marked via this property.
-        relatedInformation*:seq[VscodeDiagnosticRelatedInformation]
+        relatedInformation*:Array[VscodeDiagnosticRelatedInformation]
         ## Additional metadata about the diagnostic.
-        tags*:seq[VscodeDiagnosticTag]
+        tags*:Array[VscodeDiagnosticTag]
 
     VscodeDocumentFilter* = ref object
         language*:cstring
@@ -183,7 +186,7 @@ converter toVscodeMarkedString*(s:VscodeMarkdownString):VscodeMarkedString = s.m
 type
     VscodeHover* = ref VscodeHoverObj
     VscodeHoverObj {.importc.} = object of JsObject
-        contents*:seq[VscodeMarkedString]
+        contents*:Array[VscodeMarkedString]
         `range`*:VscodeRange
 
 type
@@ -242,12 +245,12 @@ type
 type
     VscodeSignatureInformation* = ref VscodeSignatureInformationObj
     VscodeSignatureInformationObj {.importc.} = object of JsObject
-        parameters*:seq[VscodeParameterInformation]
+        parameters*:Array[VscodeParameterInformation]
 
 type
     VscodeSignatureHelp* = ref VscodeSignatureHelpObj
     VscodeSignatureHelpObj {.importc.} = object of JsObject
-        signatures*:seq[VscodeSignatureInformation]
+        signatures*:Array[VscodeSignatureInformation]
         activeSignature*:cint
         activeParameter*:cint
 
@@ -367,7 +370,7 @@ type
     VscodeExtensionContextObj {.importc.} = object of JsRoot
         ## An array to which disposables can be added. When this
         ## extension is deactivated the disposables will be disposed.
-        subscriptions*:seq[VscodeDisposable]
+        subscriptions*:Array[VscodeDisposable]
         ## A memento object that stores state in the context
         ## of the currently opened [workspace](#workspace.workspaceFolders).
         workspaceState*:VscodeMemento
@@ -396,7 +399,7 @@ type
         ## The line comment token, like `// this is a comment`
         lineComment*:cstring
         ## The block comment character pair, like `/* block comment *&#47;`
-        blockComment*:seq[VscodeCharacterPair]
+        blockComment*:Array[VscodeCharacterPair]
 
     VscodeIndentAction* {.nodecl, pure.} = enum
         none = (0, "None")
@@ -444,7 +447,7 @@ type
     VscodeLanguageConfiguration* = ref object
         comments*:VscodeCommentRule
         ## This configuration implicitly affects pressing Enter around these brackets
-        brackets*:seq[VscodeCharacterPair]
+        brackets*:Array[VscodeCharacterPair]
         ## The language's word definition.
         ## If the language supports Unicode identifiers (e.g. JavaScript), it is preferable
         ## to provide a word definition that uses exclusion of known separators.
@@ -452,7 +455,7 @@ type
         ##    /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g
         wordPattern*:RegExp
         indentationRules*:VscodeIndentationRule
-        onEnterRules*:seq[VscodeOnEnterRule]
+        onEnterRules*:Array[VscodeOnEnterRule]
 
 type
     VscodeOutputChannel* = ref VscodeOutputChannelObj
@@ -475,7 +478,7 @@ type
     VscodeWorkspace* = ref VscodeWorkspaceObj
     VscodeWorkspaceObj {.importc.} = object of JsRoot
         rootPath*:cstring
-        workspaceFolders*:seq[VscodeWorkspaceFolder]
+        workspaceFolders*:Array[VscodeWorkspaceFolder]
         fs*:VscodeFileSystem
 
     VscodeLanguages* = ref VscodeLanguagesObj
@@ -484,7 +487,7 @@ type
     VscodeWindow* = ref VscodeWindowObj
     VscodeWindowObj {.importc.} = object of JsRoot
         activeTextEditor*:VscodeTextEditor
-        visibleTextEditors*:seq[VscodeTextEditor]
+        visibleTextEditors*:Array[VscodeTextEditor]
 
     VscodeCommands* = ref VscodeCommandsObj
     VscodeCommandsObj {.importc.} = object of JsObject
@@ -524,7 +527,12 @@ proc newDiagnostic*(
     msg:cstring,
     sev:VscodeDiagnosticSeverity
 ):VscodeDiagnostic {.importcpp:"(new #.Diagnostic(@))".}
-proc newLocation*(vscode:Vscode, uri:VscodeUri, pos:VscodePosition):VscodeLocation {.importcpp: "(new #.Location(@))".}
+proc newDiagnosticRelatedInformation*(
+    vscode:Vscode,
+    location:VscodeLocation,
+    message:cstring
+):VscodeDiagnosticRelatedInformation {.importcpp:"new #.DiagnosticRelatedInformation(@)".}
+proc newLocation*(vscode:Vscode, uri:VscodeUri, pos:VscodePosition|VscodeRange):VscodeLocation {.importcpp: "(new #.Location(@))".}
 proc newCompletionItem*(vscode:Vscode, name:cstring, kind:VscodeCompletionKind):VscodeCompletionItem {.importcpp: "(new #.CompletionItem(@))".}
 proc newMarkdownString*(vscode:Vscode, text:cstring):VscodeMarkdownString {.importcpp: "(new #.MarkdownString(@))".}
 proc newSignatureHelp*(vscode:Vscode):VscodeSignatureHelp {.importcpp: "(new #.SignatureHelp(@))".}
@@ -539,9 +547,9 @@ proc newSymbolInformation*(
         container:cstring
     ):VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString):VscodeHover {.importcpp: "(new #.Hover(@))".}
-proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:Array[VscodeMarkedString]):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode:Vscode, contents:VscodeMarkedString, `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
-proc newVscodeHover*(vscode:Vscode, contents:seq[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
+proc newVscodeHover*(vscode:Vscode, contents:Array[VscodeMarkedString], `range`:VscodeRange):VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc uriFile*(vscode:Vscode, file:cstring):VscodeUri {.importcpp:"(#.Uri.file(@))".}
 proc workspaceFolderLike*(vscode:Vscode, uri:VscodeUri, name:cstring, index:cint):VscodeWorkspaceFolder {.importcpp:"({uri:#, name:#, index:#})".}
 
@@ -586,10 +594,10 @@ proc onDidSaveTextDocument*[T](
     ws:VscodeWorkspace,
     cb:proc(d:VscodeTextDocument):void,
     thisArg:T,
-    disposables:seq[VscodeDisposable]
+    disposables:Array[VscodeDisposable]
 ):VscodeDisposable {.importcpp, discardable.}
-proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Future[seq[VscodeUri]] {.importcpp.}
-proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Future[seq[VscodeUri]] {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring):Future[Array[VscodeUri]] {.importcpp.}
+proc findFiles*(ws:VscodeWorkspace, includeGlob:cstring, excludeGlob:cstring):Future[Array[VscodeUri]] {.importcpp.}
 proc getWorkspaceFolder*(ws:VscodeWorkspace, folder:VscodeUri):VscodeWorkspaceFolder {.importcpp.}
 proc asRelativePath*(ws:VscodeWorkspace, filename:cstring, includeWorkspaceFolder:bool):cstring {.importcpp.}
 proc createFileSystemWatcher*(
@@ -605,7 +613,7 @@ proc applyEdit*(
 proc readDirectory*(
     fs:VscodeFileSystem,
     uri:VscodeUri
-):Future[seq[VscodeReadDirResult]] {.importcpp.}
+):Future[Array[VscodeReadDirResult]] {.importcpp.}
 proc name*(r:VscodeReadDirResult):cstring {.importcpp: "#[0]".}
 proc `name=`*(r:VscodeReadDirResult, n:cstring) {.importcpp: "(#[0]=#)".}
 proc fileType*(r:VscodeReadDirResult):VscodeFileType {.importcpp: "#[1]".}
@@ -740,11 +748,11 @@ proc onDidChangeActiveTextEditor*[T](
     window:VscodeWindow,
     listener:proc():void,
     thisArg:T,
-    disposables:seq[VscodeDisposable]
+    disposables:Array[VscodeDisposable]
 ):VscodeDisposable {.importcpp, discardable.}
 proc showQuickPick*(
     window:VscodeWindow,
-    items:seq[VscodeQuickPickItem]
+    items:Array[VscodeQuickPickItem]
 ):Future[VscodeQuickPickItem] {.importcpp.}
 
 # Terminal

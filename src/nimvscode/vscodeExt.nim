@@ -90,7 +90,7 @@ proc listCandidateProjects() =
     var map = newMap[cstring, Array[CandidateProject]]()
     for folder in vscode.workspace.workspaceFolders:
         map[folder.name] = newArray[CandidateProject]()
-        vscode.workspace.fs.readDirectory(folder.uri).then(proc(r:seq[VscodeReadDirResult]) =
+        vscode.workspace.fs.readDirectory(folder.uri).then(proc(r:Array[VscodeReadDirResult]) =
             for i in r:
                 case i.fileType
                 of symbolicLink, symlinkDir, unknown:
@@ -131,6 +131,20 @@ proc mapSeverityToVscodeSeverity(sev:cstring):VscodeDiagnosticSeverity =
         of "Error": VscodeDiagnosticSeverity.error
         else: VscodeDiagnosticSeverity.error
 
+proc findErrorRange(msg: cstring,line,column:cint): VscodeRange =
+    var endColumn = column
+    if msg.contains("'"):
+        endColumn += msg.findLast("'") - msg.find("'")
+    
+    let line = max(0, line - 1)
+
+    vscode.newRange(
+        line,
+        max(0, column - 1),
+        line,
+        max(0, endColumn - 1)
+    )
+
 proc runCheck(doc:VscodeTextDocument = nil):void =
     var config = vscode.workspace.getConfiguration("nim")
     var document = doc
@@ -158,22 +172,22 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
             var errorId = error.file & $error.line & $error.column & error.msg
             if not err[errorId]:
                 var targetUri = error.file
-                var endColumn = error.column
-                if error.msg.contains("'"):
-                    endColumn += error.msg.findLast("'") - error.msg.find("'")
-                var line = max(0, error.line - 1)
-                
-                var errRange = vscode.newRange(
-                    line,
-                    max(0, error.column - 1),
-                    line,
-                    max(0, endColumn - 1)
-                )
+
                 var diagnostic = vscode.newDiagnostic(
-                    errRange,
+                    findErrorRange(error.msg,error.line,error.column),
                     error.msg,
                     mapSeverityToVscodeSeverity(error.severity)
                 )
+                if error.stacktrace.len > 0:
+                    diagnostic.relatedInformation = newArray[VscodeDiagnosticRelatedInformation]()
+                    for entry in error.stacktrace:
+                        diagnostic.relatedInformation.add(
+                            vscode.newDiagnosticRelatedInformation(
+                                vscode.newLocation(
+                                    vscode.uriFile(entry.file),
+                                    findErrorRange(entry.msg, entry.line,entry.column)),
+                                entry.msg
+                        ))
                 if not diagnosticMap.has(targetUri):
                     diagnosticMap[targetUri] = newArray[VscodeDiagnostic]()
                 diagnosticMap[targetUri].push(diagnostic)
@@ -185,7 +199,7 @@ proc runCheck(doc:VscodeTextDocument = nil):void =
         diagnosticCollection.set(entries)
     )
 
-proc startBuildOnSaveWatcher(subscriptions:seq[VscodeDisposable]) =
+proc startBuildOnSaveWatcher(subscriptions:Array[VscodeDisposable]) =
     vscode.workspace.onDidSaveTextDocument(
         proc(document:VscodeTextDocument) =
             if document.languageId != "nim":
@@ -288,7 +302,7 @@ proc activate*(ctx:VscodeExtensionContext):void =
 
     var languageConfig = VscodeLanguageConfiguration{
             # @Note Literal whitespace in below regexps is removed
-            onEnterRules: @[
+            onEnterRules: newArrayWith[VscodeOnEnterRule](
                 VscodeOnEnterRule{
                     beforeText: newRegExp(r"^(\s)*## ", ""),
                     action: VscodeEnterAction{
@@ -342,7 +356,7 @@ proc activate*(ctx:VscodeExtensionContext):void =
                         indentAction: VscodeIndentAction.outdent
                     }
                 }
-            ],
+            ),
             wordPattern: newRegExp(
                 r"(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\""\,\.\<\>\/\?\s]+)",
                 r"g"

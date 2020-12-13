@@ -11,16 +11,24 @@ import jsre
 import jsconsole
 import sequtils
 
-type CheckResult* = ref object
-    file*:cstring
-    line*:cint
-    column*:cint
-    msg*:cstring
-    severity*:cstring
+type
+    CheckStacktrace* = ref object
+        file*:cstring
+        line*:cint
+        column*:cint
+        msg*:cstring
 
-type ExecutorStatus = ref object
-    initialized:bool
-    process:ChildProcess
+    CheckResult* = ref object
+        file*:cstring
+        line*:cint
+        column*:cint
+        msg*:cstring
+        severity*:cstring
+        stacktrace*:seq[CheckStacktrace]
+
+    ExecutorStatus = ref object
+        initialized:bool
+        process:ChildProcess
 
 var executors = newJsAssoc[cstring, ExecutorStatus]()
 
@@ -112,64 +120,53 @@ proc nimExec(
     )
 
 proc parseErrors(lines:seq[cstring]):seq[CheckResult] =
-    var ret:seq[CheckResult] = @[]
-    var messageText = ""
-    var lastFile:cstring = ""
-    var lastColumn:cstring = ""
-    var lastLine:cstring = ""
+    var
+        messageText = ""
+        stacktrace:seq[CheckStacktrace]
 
     # Progress indicator from nim CLI is just dots
     var dots = newRegExp(r"^\.+$")
-    for line in lines.mapIt(it.strip()).filterIt(
-        not(it.startsWith("Hint:") or it == "" or dots.test(it))
-    ):
-        var match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
+    for line in lines:
+        let line = line.strip()
+
+        if line.startsWith("Hint:") or line == "" or dots.test(line):
+            continue
+
+        let match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
             .exec(line)
         if not match.toJs().to(bool):
             if messageText.len < 1024:
                 messageText &= nodeOs.eol & line
         else:
-            var
+            let
                 file = match[1]
                 lineStr = match[2]
                 charStr = match[4]
-                severity = if match[6].toJs.to(bool): match[6] else: ""
+                severity = match[6]
                 msg = match[7]
-                isInWorkspace = isWorkspaceFile(file)
 
-            if msg.startsWith("template/generic instantiation"):
-                if isInWorkspace:
-                    lastFile = file
-                    lastColumn = charStr
-                    lastLine = lineStr
+            if severity == nil:
+                stacktrace.add(CheckStacktrace(
+                    file:file,
+                    line: lineStr.parseCint(),
+                    column: charStr.parseCint(),
+                    msg:msg))
             else:
-                if messageText.len > 0 and ret.len > 0:
-                    ret[ret.len - 1].msg &= nodeOs.eol & messageText
-                
+                if messageText.len > 0 and result.len > 0:
+                    result[^1].msg &= nodeOs.eol & messageText
+
                 messageText = ""
-                if isInWorkspace:
-                    ret.add(CheckResult{
-                        file: file,
-                        line:lineStr.parseCint(),
-                        column:charStr.parseCint(),
-                        msg:msg,
-                        severity:severity
-                    })
-                elif lastFile != "":
-                    ret.add(CheckResult{
-                        file:lastFile,
-                        line:lastLine.parseCint(),
-                        column:lastColumn.parseCint(),
-                        msg:msg,
-                        severity:severity
-                    })
-                lastFile = ""
-                lastColumn = ""
-                lastLine = ""
-    if messageText.len > 0 and ret.len > 0:
-        ret[ret.len - 1].msg &= nodeOs.eol & messageText
-    
-    return ret
+                result.add(CheckResult(
+                    file: file,
+                    line:lineStr.parseCint(),
+                    column:charStr.parseCint(),
+                    msg:msg,
+                    severity:severity,
+                    stacktrace:stacktrace
+                ))
+                stacktrace.setLen(0)
+    if messageText.len > 0 and result.len > 0:
+        result[^1].msg &= nodeOs.eol & messageText
 
 proc parseNimsuggestErrors(items:seq[NimSuggestResult]):seq[CheckResult] =
     var ret:seq[CheckResult] = @[]
@@ -237,7 +234,7 @@ proc activateEvalConsole*():void =
     )
 
 proc selectTerminal():Future[cstring] {.async.} =
-    var items:seq[VscodeQuickPickItem] = @[
+    let items = newArrayWith[VscodeQuickPickItem](
         VscodeQuickPickItem{
             label:"nim",
             description:"Using `nim secret` command"
@@ -245,8 +242,7 @@ proc selectTerminal():Future[cstring] {.async.} =
         VscodeQuickPickItem{
             label:"inim",
             description:"Using `inim` command"
-        }
-    ]
+    })
     var quickPick = await vscode.window.showQuickPick(items)
     return if quickPick.isNil(): jsUndefined.to(cstring) else: quickPick.label
 
