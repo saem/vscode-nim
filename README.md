@@ -16,10 +16,38 @@ This extension adds language support for the Nim language to VS Code, including:
 - Build-on-save
 - Workspace symbol search
 - Quick info
-- Nim check result reported in `Nim` output channel (great for macro development).
 - Problem Matchers for nim compiler and test output
+- Nim check result reported in `Nim` output channel (great for macro development) <details><summary>demo</summary>![output channel demo](images/nim_vscode_output_demo.gif "Demo of macro evaluation in the output channel")</details>
 
-![output channel demo](images/nim_vscode_output_demo.gif)
+[Read how it differs](#history--trivia) from other Nim extensions, of which there are a surprising number.
+
+## History & Trivia
+
+This extension started out as a [Nim port](https://github.com/pragmagic/vscode-nim/issues/172) of an extension written in [TypeScript](https://marketplace.visualstudio.com/items?itemName=kosz78.nim) for the Nim language. The port was done as a learning exercise for myself (@saem) and also meant to allow the community to contribute to it more easily. For the "full museum" experience be sure to checkout the [original announcement](https://forum.nim-lang.org/t/6862#42899) on the nim forums. This entire section wouldn't be here if it wasn't for [cpbotha's post suggesting it](https://forum.nim-lang.org/t/7242#45847), thanks.
+
+Since then community members (noteably: @RSDuck, @dscottboggs, and yours truly) have made various contributions directly to this version. From bug fixes to small enhancements.
+
+Presently (2020-12-13) the difference between the two extensions is likley not particularly noticeable to the casual user, arguably it's seen more active maintenance. Some differences you might notice:
+* diagnostics for macro based errors
+* log highlighting and problem detection with links to source code
+* `nimsuggest` and `nim check` take backend into account so JS projects
+* IPC and process management for nimsuggest seem to handle more edge cases
+* support for multi-folder workspaces
+* uses vscode extension storage instead of `/tmp` (seems insecure)
+* can confirm that debugging native code is possible with this extension (at least Linux GDB)
+
+For anyone who might wish to see heavy JavaScript or NodeJS interop example or submit a small patch the difference is significant:
+
+* likely the most complete FFI for the VS Code API
+* likely the most complete FFI for NodeJS and a number of ES6 APIs
+* lots of examples of Promise and async APIs -- admittedly not pretty
+* it's written in Nim -- warning there is still a lot of "my first Nim code"
+* the build tooling is nimble -- presently not released as a package
+* a horrible port of flatdb for nodejs
+
+Here is one of those really convincing testamonials as a conclusion:
+> I learned some Nim, a bit about VS Code extensions, got a useful Nim editor, and it might help someone else. Not bad.
+> -- Saem
 
 ## Using
 
@@ -133,11 +161,7 @@ You should be set up now to be able to debug from a given file in the native VS 
 
 * Clean-up
   * Correctly model various nim project concepts
-  * Update `nimsuggest` RPC based on project rework and command/event log
-  * Replace nedb indexing with work inspired from nimedit's finder
-    * Ignore node_modules entirely at this point
   * Convert to asyncjs API
-* Rename support
 * Extract most functionality into an LSP (check existing one)
 * Extract Visual Studio Code API into a separate Nimble package
   * Switch to using concepts for interfaces
