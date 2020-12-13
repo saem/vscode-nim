@@ -1,5 +1,10 @@
 # ChangeLog
 
+# 0.1.11 (13 Dec 2020)
+* errors in macros results in stack traces, these are now properly handled (#15)
+* internal - code has been reformatted based on nimpretty
+* internal - nimble cleanup moving closer to a more standardized build and future package
+
 # 0.1.10 (13 Nov 2020)
 * fix exception which can occur while retrieving nim check output (#14)
 
