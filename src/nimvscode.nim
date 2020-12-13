@@ -21,7 +21,7 @@ module.exports.deactivate = deactivate
 # Long story short, one of two things happens:
 # 1. a user opens a singular file (easy to tell project)
 # 2. a user opens a folder and then all sorts of projects might exist
-# 
+#
 # Single nim file project
 # directory, with:
 # - only foo.nim
