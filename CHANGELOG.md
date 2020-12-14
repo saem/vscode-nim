@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.12 (13 Dec 2020)
+* Updated readme to highlight the difference between this and original extension
+
 # 0.1.11 (13 Dec 2020)
 * errors in macros results in stack traces, these are now properly handled (#15)
 * internal - code has been reformatted based on nimpretty
