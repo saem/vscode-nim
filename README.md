@@ -162,6 +162,18 @@ You should be set up now to be able to debug from a given file in the native VS 
 ![Debugger preview screenshot](images/debugging-screenshot.png)
 
 ---
+# Developing the Extension
+
+* If this is the first time you're building the extension on your machine, do an npm install to get the dependencies
+* Press `F5` or whatever your `Run -> Start Debugging` command short cut is
+* If prompted choose launch `Extension`
+* This launches a new VS Code Window which is running your patched extension
+* You can open a Nim code base to try it out
+  * If you want to try it out on the extension source itself, create a new workspace and add the source as a folder to the workspace so VS Code doesn't take you back to the development window
+
+Alternatively, feel free to give side-loading a shot by building the extension first via npm.
+
+---
 ## TODO
 
 * Clean-up
@@ -174,4 +186,3 @@ You should be set up now to be able to debug from a given file in the native VS 
 ## ChangeLog
 
 ChangeLog is located [here](https://github.com/saem/vscode-nim/blob/master/CHANGELOG.md)
-
