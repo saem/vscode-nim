@@ -13,20 +13,21 @@ import strformat
 import sequtils
 import hashes
 
-type
-  ProjectFileInfo* = ref object
-    wsFolder*: VscodeWorkspaceFolder
-    filePath*: cstring
+import spec
 
-  ProjectMappingInfo* = ref object
-    fileRegex*: RegExp
-    projectPath*: cstring
+export ProjectFileInfo, ProjectMappingInfo
 
-var
-  pathsCache = newJsAssoc[cstring, cstring]()
-  projects: seq[ProjectFileInfo] = @[]
-  projectMapping: seq[ProjectMappingInfo] = @[]
-  extensionContext*: VscodeExtensionContext
+var ext*: ExtensionState
+
+# Bridging code while refactoring state around - start
+
+template pathsCache(): Map[cstring, cstring] = ext.pathsCache
+template projects(): Array[ProjectFileInfo] = ext.projects
+template projectMapping(): Array[ProjectMappingInfo] = ext.projectMapping
+template extensionContext(): VscodeExtensionContext = ext.ctx
+template channel(): VscodeOutputChannel = ext.channel
+
+# Bridging code while refactoring state around - end
 
 proc correctBinname*(binname: cstring): cstring =
   if process.platform == "win32": binname & ".exe" else: binname
@@ -140,8 +141,8 @@ proc toLocalFile*(project: ProjectFileInfo): cstring =
     }).fsPath
 
 proc getOptionalToolPath(tool: cstring): cstring =
-  if pathsCache[tool].isUndefined():
-    var execPath = path.resolve(getBinPath(tool))
+  if pathsCache.has(tool):
+    let execPath = path.resolve(getBinPath(tool))
     if fs.existsSync(execPath):
       pathsCache[tool] = execPath
     else:
@@ -163,7 +164,9 @@ proc getProjectFileInfo*(filename: cstring): ProjectFileInfo =
     var projectInfo: ProjectFileInfo
     if projectMapping.len > 0:
       var uriPath = vscode.uriFile(filename).path
-      for mapping in projectMapping.filterIt(it.fileRegex.test(uriPath)):
+      for mapping in projectMapping:
+        if mapping.fileRegex.test(uriPath):
+          continue
         projectInfo = toProjectInfo(
             uriPath.replace(mapping.fileRegex, mapping.projectPath))
         break
@@ -212,8 +215,8 @@ proc getDirtyFile*(doc: VscodeTextDocument): cstring =
   return dirtyFilePath
 
 proc prepareConfig*(): void =
-  projects = @[]
-  projectMapping = @[]
+  projects.setLen(0)
+  projectMapping.setLen(0)
 
   var config: VscodeWorkspaceConfiguration = vscode.workspace.getConfiguration("nim")
   var cfgProjects = config.get("project")
@@ -237,13 +240,8 @@ proc prepareConfig*(): void =
           fileRegex: newRegExp(k.toJs().to(cstring), ""), projectPath: path
       })
 
-proc getProjects*(): seq[ProjectFileInfo] = projects
+proc getProjects*(): Array[ProjectFileInfo] = projects
 
-var channel: VscodeOutputChannel
-proc getOutputChannel*(): VscodeOutputChannel =
-  if channel.isNil():
-    channel = vscode.window.createOutputChannel("Nim")
-  return channel
 proc padStart(len: cint, input: cstring): cstring =
   var output = cstring("0").repeat(input.len)
   return output & input
@@ -259,6 +257,4 @@ proc cleanDateString(date: DateTime): cstring =
 
 proc outputLine*(message: cstring): void =
   ## Prints message in Nim's output channel
-  var channel = getOutputChannel()
-  var timeNow = newDate()
-  channel.appendLine(fmt"{cleanDateString(timeNow)} - {message}")
+  channel.appendLine(fmt"{cleanDateString(newDate())} - {message}")
