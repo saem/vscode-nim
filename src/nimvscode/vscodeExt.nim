@@ -3,6 +3,8 @@ import vscodeApi
 import jsconsole
 import jsNode, jsre, jsString, jsNodeFs, jsNodePath
 
+from spec import ExtensionState, ProjectFileInfo, ProjectMappingInfo
+
 import nimRename,
   nimSuggest,
   nimDeclaration,
@@ -20,11 +22,12 @@ from nimStatus import showHideStatus
 from nimIndexer import initWorkspace, clearCaches, onClose
 from nimImports import initImports, removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
-from nimUtils import extensionContext, getDirtyFile, outputLine, prepareConfig
+from nimUtils import ext, getDirtyFile, outputLine, prepareConfig
 from nimMode import mode
 
 from strformat import fmt
 
+var state: ExtensionState
 var diagnosticCollection {.threadvar.}: VscodeDiagnosticCollection
 var fileWatcher {.threadvar.}: VscodeFileSystemWatcher
 var terminal {.threadvar.}: VscodeTerminal
@@ -270,10 +273,19 @@ proc runFile(): void =
         )
 
 proc activate*(ctx: VscodeExtensionContext): void =
-  nimUtils.extensionContext = ctx
+  var config = vscode.workspace.getConfiguration("nim")
+  state = ExtensionState(
+    ctx: ctx,
+    config: config,
+    pathsCache: newMap[cstring, cstring](),
+    projects: newArray[ProjectFileInfo](),
+    projectMapping: newArray[ProjectMappingInfo](),
+    channel: vscode.window.createOutputChannel("Nim")
+  )
+  nimUtils.ext = state
+
   nimSuggestExec.extensionContext = ctx
   nimFormatting.extensionContext = ctx
-  var config = vscode.workspace.getConfiguration("nim")
 
   vscode.commands.registerCommand("nim.run.file", runFile)
   vscode.commands.registerCommand("nim.check", runCheck)
@@ -381,7 +393,9 @@ proc activate*(ctx: VscodeExtensionContext): void =
   activateEvalConsole()
   if not fs.existsSync(ctx.storagePath):
     fs.mkdirSync(ctx.storagePath)
+
   discard initWorkspace(ctx.storagePath)
+
   fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim")
   fileWatcher.onDidCreate(proc(uri: VscodeUri) =
     var licenseString = config.getStr("licenseString")
@@ -395,7 +409,6 @@ proc activate*(ctx: VscodeExtensionContext): void =
         )
     discard addFileToImports(uri.fsPath)
   )
-
   fileWatcher.onDidDelete(proc(uri: VscodeUri) =
     discard removeFileFromImports(uri.fsPath)
   )

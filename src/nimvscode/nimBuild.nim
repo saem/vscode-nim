@@ -204,7 +204,7 @@ proc check*(filename: cstring, nimConfig: VscodeWorkspaceConfiguration): Promise
           "--backend:" & nimConfig.getStr("buildCommand")
       else:
           ""
-    var projects = if not isProjectMode(): @[getProjectFileInfo(filename)]
+    var projects = if not isProjectMode(): newArray(getProjectFileInfo(filename))
       else: getProjects()
 
     for project in projects:

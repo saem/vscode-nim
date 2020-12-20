@@ -11,5 +11,6 @@
     "editor.insertSpaces": true,
 
     "nim.buildCommand": "js",
-    "nim.runOutputDirectory": "out"
+    "nim.runOutputDirectory": "out",
+    "nim.project": ["src/nimvscode.nim"]
 }

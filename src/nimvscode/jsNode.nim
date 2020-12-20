@@ -35,7 +35,8 @@ var global* {.importc, nodecl.}: GlobalModule
 # static
 proc newMap*[K, V](): Map[K, V] {.importcpp: "(new Map())".}
 proc newArray*[T](size = 0): Array[T] {.importcpp: "(new Array(@))".}
-proc newArrayWith*[T](): Array[T] {.importcpp: "(new Array(@))", varargs.}
+proc newArray*[T](i: T): Array[T] {.importcpp: "(new Array(@))", varargs.}
+proc newArrayWith*[T](i: T): Array[T] {.importcpp: "(new Array(@))", varargs.}
 
 proc bufferConcat*(b: Array[Buffer]): Buffer {.importcpp: "(Buffer.concat(@))".}
 proc bufferAlloc*(size: cint): Buffer {.importcpp: "(Buffer.alloc(@))".}
@@ -47,12 +48,15 @@ proc clearInterval*(g: GlobalModule, t: Timeout): void {.importcpp.}
 
 # Array
 proc `[]`*[T](a: Array[T], idx: cint): T {.importcpp: "#[#]".}
+proc `[]`*[T](a: Array[T], idx: int): T {.importcpp: "#[#]".}
 proc `[]=`*[T](a: Array[T],idx: cint, val: T): T {.importcpp: "#[#]=#".}
 proc push*[T](a: Array[T], val: T): cint {.discardable, importcpp.}
 proc add*[T](a: Array[T], val: T) {.importcpp: "#.push(#)".}
 proc pop*[T](a: Array[T]): T {.importcpp.}
 proc shift*[T](a: Array[T]): T {.importcpp.}
+proc unshift*[T](a: Array[T]): T {.importcpp.}
 proc len*[T](a: Array[T]): cint {.importcpp: "#.length".}
+proc setLen*[T](a: Array[T], newlen: Natural): void {.importcpp: "#.length = #".}
 
 iterator items*[T](a: Array[T]): T =
   ## Yields the elements in an Array.
