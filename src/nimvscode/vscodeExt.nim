@@ -308,50 +308,41 @@ proc activate*(ctx: VscodeExtensionContext): void =
     # @Note Literal whitespace in below regexps is removed
     onEnterRules: newArrayWith[VscodeOnEnterRule](
       VscodeOnEnterRule{
-          beforeText: newRegExp(r"^(\s)*## ", ""),
-          action: VscodeEnterAction{
-            indentAction: VscodeIndentAction.none,
-            appendText: "## "
-          }
+        beforeText: newRegExp(r"^(\s)*## ", ""),
+        action: VscodeEnterAction{
+          indentAction: VscodeIndentAction.none,
+          appendText: "## "
+        }
       },
       VscodeOnEnterRule{
         beforeText: newRegExp("""
-                    ^\s*
-                    (
-                        (case) \b .* :
-                    )
-                    \s*$
-                """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
+          ^\s*
+          ( (case) \b .* : )
+          \s*$
+          """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
         action: VscodeEnterAction{ indentAction: VscodeIndentAction.none }
       },
       VscodeOnEnterRule{
         beforeText: newRegExp("""
-                    ^\s*
-                    (
-                        (
-                            (proc|macro|iterator|template|converter|func) \b .*=
-                        )|(
-                            (import|export|let|var|const|type) \b
-                        )|(
-                            [^:]+:
-                        )
-                    )
-                    \s*$
-                """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
+          ^\s*
+          (
+            ((proc|macro|iterator|template|converter|func) \b .*=) |
+            ((import|export|let|var|const|type) \b) |
+            ([^:]+:)
+          )
+          \s*$
+          """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
         action: VscodeEnterAction{ indentAction: VscodeIndentAction.indent }
       },
       VscodeOnEnterRule{
         beforeText: newRegExp("""
-                ^\s*
-                    (
-                        (
-                            (return|raise|break|continue) \b .*
-                        )|(
-                            (discard) \b
-                        )
-                    )
-                    \s*
-                """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
+          ^\s*
+          (
+            ((return|raise|break|continue) \b .*) |
+            ((discard) \b)
+          )
+          \s*
+          """.replace(newRegExp(r"\s+?", r"g"), ""), ""),
         action: VscodeEnterAction{ indentAction: VscodeIndentAction.outdent }
       }
     ),
@@ -422,8 +413,8 @@ proc activate*(ctx: VscodeExtensionContext): void =
     var timeout = config.getInt("nimsuggestRestartTimeout")
     console.log(fmt"Reset nimsuggest process each {timeout} minutes")
     global.setInterval(
-        proc() = discard closeAllNimsuggestProcesses(),
-        timeout * 60000
+      proc() = discard closeAllNimsuggestProcesses(),
+      timeout * 60000
     )
 
   discard initImports()

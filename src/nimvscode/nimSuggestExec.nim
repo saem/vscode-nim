@@ -163,9 +163,9 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
   var projectPath = toLocalFile(nimProject)
   if nimSuggestProcessCache[projectPath].isNil():
     nimSuggestProcessCache[projectPath] = newPromise(proc(
-                resolve: proc(s: NimSuggestProcessDescription),
-                reject: proc(reason: JsObject)
-            ) =
+      resolve: proc(s: NimSuggestProcessDescription),
+      reject: proc(reason: JsObject)
+    ) =
       var nimConfig = vscode.workspace.getConfiguration("nim")
       var args = @["--epc".cstring, "--v2".cstring]
       if nimConfig.getBool("logNimsuggest"):
