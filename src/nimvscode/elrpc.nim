@@ -5,7 +5,6 @@ import jsconsole
 import jsNode
 import jsNodeNet
 import jsNodeUtil
-import jsNodeCp
 import jsString
 import jsPromise
 
@@ -148,8 +147,8 @@ proc newEPCPeer(id: cint, socket: NetSocket): EPCPeer =
 proc callMethod*(epc: EPCPeer, meth: cstring, params: seq[SExpNode]): Promise[
     seq[SExpNode]] =
   return newPromise(proc(
-    resolve: proc(data: seq[SExpNode]),
-    reject: proc(reason: JsObject)
+      resolve: proc(data: seq[SExpNode]),
+      reject: proc(reason: JsObject)
     ) =
       if epc.socketClosed:
         reject("Connection closed".toJs())

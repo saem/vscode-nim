@@ -1,6 +1,5 @@
 import vscodeApi
 import nimSuggestExec
-import nimUtils
 import jsString
 import jsre
 import jsconsole

@@ -1,8 +1,6 @@
 import vscodeApi
 import nimSuggestExec
-import nimUtils
 import jsNode
-import jsconsole
 
 proc provideDefinition*(
   doc: VscodeTextDocument,

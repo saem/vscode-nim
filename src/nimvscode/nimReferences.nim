@@ -1,6 +1,5 @@
 import vscodeApi
 import nimSuggestExec
-import nimUtils
 
 proc provideReferences*(
   doc: VscodeTextDocument,

@@ -1,6 +1,5 @@
 import vscodeApi
 import nimIndexer
-import nimUtils
 
 proc provideWorkspaceSymbols(
   query: cstring,

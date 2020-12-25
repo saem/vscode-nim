@@ -1,6 +1,5 @@
 import vscodeApi
 import nimSuggestExec
-import nimUtils
 
 proc provideRenameEdits*(
   doc: VscodeTextDocument,
