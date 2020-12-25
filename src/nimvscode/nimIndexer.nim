@@ -16,10 +16,14 @@ import jsre
 
 import jsconsole
 
-var dbVersion: cint = 5
+from jscore import Math, max
 
-var dbFiles: FlatDb
-var dbTypes: FlatDb
+let
+  dbVersion: cint = 5
+
+var
+  dbFiles: FlatDb
+  dbTypes: FlatDb
 
 type
   FileData = ref object of JsRoot
@@ -28,17 +32,13 @@ type
 
   SymbolData = ref object
     ws*: cstring
+      ## TODO should be named more like workspace folder, not ws (workspace)
     file*: cstring
     range_start*: VscodePosition
     range_end*: VscodePosition
     `type`*: cstring
     container*: cstring
     kind*: VscodeSymbolKind
-
-proc findFile(file: cstring, timestamp: cint): Future[FileData] {.async.} =
-  return dbFiles.queryOne(
-          equal("file", file) and higherEqual("timestamp", timestamp)
-    ).to(FileData)
 
 proc vscodeKindFromNimSym(kind: cstring): VscodeSymbolKind =
   case $kind
@@ -102,9 +102,15 @@ proc getFileSymbols*(
   return symbols
 
 proc indexFile(file: cstring) {.async.} =
-  var timestamp = fs.statSync(file).mtime.getTime().toJs().to(cint)
-  var doc = await findFile(file, timestamp)
-  if doc.isNil():
+  let
+    fsStat = fs.statSync(file)
+    timestamp = Math.max(fsStat.mtimeMs, fsStat.ctimeMs)
+    # doc query has a minor race condition for sub-second changes, but it's all
+    #   transient data anyways
+    doc = dbFiles.queryOne(equal("file", file) and 
+                           higherEqual("timestamp", timestamp)).to(FileData)
+
+  if doc.toJs().to(bool) == false:
     var infos = await getFileSymbols(file, false)
 
     if infos.isNull() or infos.len == 0:
@@ -131,13 +137,13 @@ proc indexFile(file: cstring) {.async.} =
           continue
 
         dbTypes.insert(SymbolData{
-            ws: folder.uri.fsPath,
-            file: i.location.uri.fsPath,
-            range_start: i.location.`range`.start,
-            range_end: i.location.`range`.`end`,
-            `type`: i.name,
-            container: i.containerName,
-            kind: i.kind
+          ws: folder.uri.fsPath,
+          file: i.location.uri.fsPath,
+          range_start: i.location.`range`.start,
+          range_end: i.location.`range`.`end`,
+          `type`: i.name,
+          container: i.containerName,
+          kind: i.kind
         })
     except:
       console.error("indexFile - dbTypes", getCurrentExceptionMsg(),
@@ -163,7 +169,7 @@ proc cleanOldDb(basePath: cstring, name: cstring): void =
     if fs.existsSync(dbPath):
       fs.unlinkSync(dbPath)
 
-proc indexWorkspaceFiles*() {.async.} =
+proc indexWorkspaceFiles() {.async.} =
   var nimSuggestPath = nimSuggestExec.getNimSuggestPath()
   if nimSuggestPath.isNil() or nimSuggestPath == "":
     return;
@@ -173,7 +179,7 @@ proc indexWorkspaceFiles*() {.async.} =
   for i, url in urls:
     var cnt = urls.len - 1
 
-    if cnt mod 10 == 0:
+    if cnt mod 20 == 0:
       updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
 
     console.log("indexing: ", i, url)
@@ -194,7 +200,7 @@ proc initWorkspace*(extPath: cstring) {.async.} =
   discard dbTypes.processCommands()
 
 proc findWorkspaceSymbols*(
-    query: cstring
+  query: cstring
 ): Future[seq[VscodeSymbolInformation]] {.async.} =
   var symbols: seq[VscodeSymbolInformation] = @[]
   try:
@@ -209,12 +215,11 @@ proc findWorkspaceSymbols*(
     for d in docs:
       var doc = d.to(SymbolData)
       symbols.add(vscode.newSymbolInformation(
-          doc.`type`,
-          doc.kind,
-          vscode.newRange(
-              vscode.newPosition(doc.range_start.line,
-                  doc.range_start.character),
-              vscode.newPosition(doc.range_end.line, doc.range_end.character)
+        doc.`type`,
+        doc.kind,
+        vscode.newRange(
+          vscode.newPosition(doc.range_start.line, doc.range_start.character),
+          vscode.newPosition(doc.range_end.line, doc.range_end.character)
         ),
         vscode.uriFile(doc.file),
         doc.container
@@ -231,7 +236,7 @@ proc clearCaches*() {.async.} =
 
 proc onClose*() {.async.} =
   discard await allSettled(@[
-      dbFiles.processCommands(),
-      dbTypes.processCommands()
+    dbFiles.processCommands(),
+    dbTypes.processCommands()
   ])
 

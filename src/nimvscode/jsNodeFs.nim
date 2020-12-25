@@ -11,6 +11,8 @@ type
   FsStats* = ref FsStatsObj
   FsStatsObj {.importc.} = object of JsRoot
     mtime*: DateTime
+    mtimeMs*: cint
+    ctimeMs*: cint
 
   ErrnoException* = ref ErrnoExceptionObj
   ErrnoExceptionObj {.importc.} = object of JsRoot
