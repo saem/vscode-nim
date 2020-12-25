@@ -16,12 +16,12 @@ requires "compiler >= 1.3.7"
 
 # Tasks
 task main, "This compiles the vscode Nim extension":
-    exec "nim js -d:nodejs --outdir:out --checks:on --sourceMap src/nimvscode.nim"
+  exec "nim js --outdir:out --checks:on --sourceMap src/nimvscode.nim"
 
 task release, "This compiles a release version":
-    exec "nim js -d:nodejs -d:release --outdir:out --checks:off --sourceMap src/nimvscode.nim"
+  exec "nim js -d:release --outdir:out --checks:off --sourceMap src/nimvscode.nim"
 
 # Tasks for publishing the extension
 task extReleasePatch, "Patch release on vscode marketplace and openvsx registry":
-    exec "./node_modules/.bin/vsce publish patch" # this bumps the version number
-    exec "./node_modules/.bin/ovsx publish -p $OVSX_PAT"
+  exec "./node_modules/.bin/vsce publish patch" # this bumps the version number
+  exec "./node_modules/.bin/ovsx publish -p $OVSX_PAT"
