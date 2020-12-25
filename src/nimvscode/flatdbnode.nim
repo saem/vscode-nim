@@ -323,7 +323,7 @@ proc load(db: FlatDb): Future[void] =
   var loadedTable = newFlatDbTable()
   fsp.readFileUtf8(db.path).then do (lines: cstring) -> Future[void]:
     for line in lines.split(nodeOs.eol).filterIt(it.strip() != ""):
-      var obj = jsonParse(line).to(DbOp)
+      var obj = try: jsonParse(line).to(DbOp) except: nil
 
       if obj.isNil(): continue
 
