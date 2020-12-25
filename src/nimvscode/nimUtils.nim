@@ -22,10 +22,11 @@ type
     fileRegex*: RegExp
     projectPath*: cstring
 
-var pathsCache = newJsAssoc[cstring, cstring]()
-var projects: seq[ProjectFileInfo] = @[]
-var projectMapping: seq[ProjectMappingInfo] = @[]
-var extensionContext*: VscodeExtensionContext
+var
+  pathsCache = newJsAssoc[cstring, cstring]()
+  projects: seq[ProjectFileInfo] = @[]
+  projectMapping: seq[ProjectMappingInfo] = @[]
+  extensionContext*: VscodeExtensionContext
 
 proc correctBinname*(binname: cstring): cstring =
   if process.platform == "win32": binname & ".exe" else: binname
@@ -35,26 +36,25 @@ proc getBinPath*(tool: cstring): cstring =
   if not process.env["PATH"].isNil():
     # add support for choosenim
     process.env["PATH"] = path.join(
-        process.env["PATH"] & path.delimiter & process.env["HOME"],
-            ".nimble",
-            "bin")
+      process.env["PATH"] & path.delimiter & process.env["HOME"],
+      ".nimble",
+      "bin")
     if process.platform == "win32":
       # USERPROFILE is the standard equivalent of HOME on windows.
       process.env["PATH"] = path.join(
-          process.env["PATH"] & path.delimiter & process.env["USERPROFILE"],
-          ".nimble",
-          "bin")
+        process.env["PATH"] & path.delimiter & process.env["USERPROFILE"],
+        ".nimble",
+        "bin")
     var pathParts = process.env["PATH"].split(path.delimiter)
     var endings = if process.platform == "win32": @[".exe", ".cmd", ""]
-            else: @[""]
+                  else: @[""]
 
     pathsCache[tool] = pathParts.mapIt(
         block:
-                var dir = it
-                endings.mapIt(path.join(dir, tool & it))
-            ).foldl(
-            a & b # flatten nested arays
-      ).filterIt(fs.existsSync(it))[0]
+          var dir = it
+          endings.mapIt(path.join(dir, tool & it)))
+      .foldl(a & b)# flatten nested arays
+      .filterIt(fs.existsSync(it))[0]
 
     if process.platform != "win32":
       try:
