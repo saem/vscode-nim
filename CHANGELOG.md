@@ -1,7 +1,8 @@
 # ChangeLog
 
-# 0.1.13 (XX Dec 2020)
+# 0.1.13 (28 Dec 2020)
 * Updated logo thanks to @Knaque (#19)
+* Fixed a bug where a project was index on startup every time
 
 # 0.1.12 (13 Dec 2020)
 * Updated readme to highlight the difference between this and original extension
