@@ -8,6 +8,7 @@ import jsString
 import jsre
 import jsconsole
 import jsffi
+from nimProjects import getProjects, isProjectMode
 
 type
   NimbleModuleInfo = ref object

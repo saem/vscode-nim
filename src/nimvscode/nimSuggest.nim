@@ -1,10 +1,10 @@
 import vscodeApi
 import nimSuggestExec
 import nimImports
-import nimUtils
 import jsString
 import jsre
 import jsconsole
+from nimProjects import getProjectFileInfo
 
 proc vscodeKindFromNimSym(kind: cstring): VscodeCompletionKind =
   case $kind:
