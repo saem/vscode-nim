@@ -5,7 +5,6 @@ import jsNodeFs
 import jsNodePath
 import jsNodeCp
 
-import jsre
 import jsString
 import jscore
 import strformat
@@ -15,22 +14,15 @@ import hashes
 
 import spec
 
-export ProjectFileInfo, ProjectMappingInfo
-
 var ext*: ExtensionState
 
 # Bridging code while refactoring state around - start
 
 template pathsCache(): Map[cstring, cstring] = ext.pathsCache
-template projects(): Array[ProjectFileInfo] = ext.projects
-template projectMapping(): Array[ProjectMappingInfo] = ext.projectMapping
 template extensionContext(): VscodeExtensionContext = ext.ctx
 template channel(): VscodeOutputChannel = ext.channel
 
 # Bridging code while refactoring state around - end
-
-proc correctBinname*(binname: cstring): cstring =
-  if process.platform == "win32": binname & ".exe" else: binname
 
 proc getBinPath*(tool: cstring): cstring =
   if pathsCache[tool].toJs().to(bool): return pathsCache[tool]
@@ -77,71 +69,14 @@ proc getBinPath*(tool: cstring): cstring =
         discard #ignore
   pathsCache[tool]
 
-
 proc getNimExecPath*(executable: cstring = "nim"): cstring =
   var path = getBinPath(executable)
   if path.isNil():
     vscode.window.showInformationMessage(fmt"No '{executable}' binary could be found in PATH environment variable")
   return path
 
-proc isWorkspaceFile*(filePath: cstring): bool =
-  ## Returns true if filePath is related to any workspace file
-  ## assumes filePath is absolute
-
-  if vscode.workspace.workspaceFolders.toJs().to(bool):
-    return vscode.workspace.workspaceFolders
-      .anyIt(it.uri.scheme == "file" and
-          filePath.toLowerAscii().startsWith(it.uri.fsPath.toLowerAscii()
-      )
-    )
-  else:
-    return false
-
-proc toProjectInfo*(filePath: cstring): ProjectFileInfo =
-  var workspace = vscode.workspace
-  if path.isAbsolute(filePath):
-    var workspaceFolder = workspace.getWorkspaceFolder(vscode.uriFile(filePath))
-    if workspaceFolder.toJs().to(bool):
-      return ProjectFileInfo{
-              wsFolder: workspaceFolder,
-              filePath: workspace.asRelativePath(filePath, false)
-        }
-  elif workspace.workspaceFolders.toJs().to(bool) and
-      workspace.workspaceFolders.len > 0:
-    var workspaceFolders = workspace.workspaceFolders
-    if workspaceFolders.len == 1:
-      return ProjectFileInfo{
-          wsFolder: workspaceFolders[0],
-          filePath: filePath
-      }
-    else:
-      var parsedPath: seq[cstring] = filePath.split("/")
-      if parsedPath.len > 1:
-        for folder in workspaceFolders:
-          if parsedPath[0] == folder.name:
-            return ProjectFileInfo{
-                wsFolder: folder,
-                filePath: filePath[parsedPath[0].len + 1..<filePath.len]
-            }
-
-  var parsedPath = path.parse(filePath)
-  return ProjectFileInfo{
-      wsFolder: vscode.workspaceFolderLike(
-              vscode.uriFile(parsedPath.dir),
-              cstring("root"),
-              cint(0)
-    ),
-      filePath: parsedPath.base
-  }
-
-proc toLocalFile*(project: ProjectFileInfo): cstring =
-  ## Returns a project file's file system path string
-  return project.wsFolder.uri.with(VscodeUriChange{
-          path: project.wsFolder.uri.path & "/" & project.filePath
-    }).fsPath
-
 proc getOptionalToolPath(tool: cstring): cstring =
-  if pathsCache.has(tool):
+  if not pathsCache.has(tool):
     let execPath = path.resolve(getBinPath(tool))
     if fs.existsSync(execPath):
       pathsCache[tool] = execPath
@@ -157,27 +92,22 @@ proc getNimbleExecPath*(): cstring =
   ## full path to nimble executable or an empty string if not found
   return getOptionalToolPath("nimble")
 
-proc isProjectMode*(): bool = projects.len > 0
+proc isSubpath(parent, child: cstring): bool =
+  result = if process.platform == "win32":
+             child.toLowerAscii.startsWith(parent.toLowerAscii)
+           else:
+             child.startsWith(parent.toLowerAscii)
 
-proc getProjectFileInfo*(filename: cstring): ProjectFileInfo =
-  if not isProjectMode():
-    var projectInfo: ProjectFileInfo
-    if projectMapping.len > 0:
-      var uriPath = vscode.uriFile(filename).path
-      for mapping in projectMapping:
-        if mapping.fileRegex.test(uriPath):
-          continue
-        projectInfo = toProjectInfo(
-            uriPath.replace(mapping.fileRegex, mapping.projectPath))
-        break
-    if projectInfo.isNil():
-      projectInfo = toProjectInfo(filename)
-    return projectInfo
+proc isWorkspaceFile*(filePath: cstring): bool =
+  ## Returns true if filePath is related to any workspace file
+  ## assumes filePath is absolute
 
-  for project in projects:
-    if filename.startsWith(path.dirname(toLocalFile(project))):
-      return project
-  return projects[0]
+  if vscode.workspace.workspaceFolders.toJs().to(bool):
+    return vscode.workspace.workspaceFolders
+      .anyIt(it.uri.scheme == "file" and
+             isSubpath(it.uri.fsPath, filePath))
+  else:
+    return false
 
 proc removeDirSync*(p: cstring): void =
   if fs.existsSync(p):
@@ -213,34 +143,6 @@ proc getDirtyFile*(doc: VscodeTextDocument): cstring =
   )
   fs.writeFileSync(dirtyFilePath, doc.getText())
   return dirtyFilePath
-
-proc prepareConfig*(): void =
-  projects.setLen(0)
-  projectMapping.setLen(0)
-
-  var config: VscodeWorkspaceConfiguration = vscode.workspace.getConfiguration("nim")
-  var cfgProjects = config.get("project")
-  var cfgMappings = config.get("projectMapping")
-
-  if cfgProjects.to(bool):
-    if cfgProjects.isJsArray():
-      for p in cfgProjects.to(seq[cstring]):
-        projects.add(toProjectInfo(p))
-    else:
-      vscode.workspace.findFiles(cfgProjects.to(cstring))
-        .then(proc(res: Array[VscodeUri]) =
-          if res.toJs().to(bool) and res.len > 0:
-            projects.add(toProjectInfo(res[0].fsPath))
-        )
-
-  if not cfgMappings.isNil() and cfgMappings.jsTypeOf() == "object":
-    for k in keys(cfgMappings):
-      var path: cstring = cfgMappings[k].to(cstring)
-      projectMapping.add(ProjectMappingInfo{
-          fileRegex: newRegExp(k.toJs().to(cstring), ""), projectPath: path
-      })
-
-proc getProjects*(): Array[ProjectFileInfo] = projects
 
 proc padStart(len: cint, input: cstring): cstring =
   var output = cstring("0").repeat(input.len)

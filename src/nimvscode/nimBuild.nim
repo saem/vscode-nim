@@ -10,6 +10,8 @@ import jsString
 import jsre
 import jsconsole
 import sequtils
+from nimProjects import getProjects, isProjectMode, getProjectFileInfo,
+                        ProjectFileInfo, toLocalFile
 
 type
   CheckStacktrace* = ref object

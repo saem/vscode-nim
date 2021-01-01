@@ -16,6 +16,9 @@ import jsPromise
 import jsre
 import jsString
 
+from nimProjects import isProjectMode, toLocalFile,
+  getProjectFileInfo, ProjectFileInfo
+
 from dom import isNaN
 from strformat import fmt
 
@@ -92,8 +95,6 @@ proc initNimSuggest*() =
 
     console.log(versionOutput)
     console.log("Nimsuggest version: " & nimSuggestVersion)
-
-  discard vscode.workspace.onDidChangeConfiguration(prepareConfig)
 
 proc isNimSuggestVersion*(version: cstring): bool =
   ## Returns true if nimsuggest version is greater or equal to version

@@ -3,7 +3,7 @@ import vscodeApi
 import jsconsole
 import jsNode, jsre, jsString, jsNodeFs, jsNodePath
 
-from spec import ExtensionState, ProjectFileInfo, ProjectMappingInfo
+from spec import ExtensionState
 
 import nimRename,
   nimSuggest,
@@ -22,7 +22,8 @@ from nimStatus import showHideStatus
 from nimIndexer import initWorkspace, clearCaches, onClose
 from nimImports import initImports, removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
-from nimUtils import ext, getDirtyFile, outputLine, prepareConfig
+from nimUtils import ext, getDirtyFile, outputLine
+from nimProjects import processConfig, configUpdate
 from nimMode import mode
 
 from strformat import fmt
@@ -278,8 +279,6 @@ proc activate*(ctx: VscodeExtensionContext): void =
     ctx: ctx,
     config: config,
     pathsCache: newMap[cstring, cstring](),
-    projects: newArray[ProjectFileInfo](),
-    projectMapping: newArray[ProjectMappingInfo](),
     channel: vscode.window.createOutputChannel("Nim")
   )
   nimUtils.ext = state
@@ -293,7 +292,9 @@ proc activate*(ctx: VscodeExtensionContext): void =
   vscode.commands.registerCommand("nim.clearCaches", clearCaches)
   vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)
 
-  prepareConfig()
+  processConfig(config)
+  discard vscode.workspace.onDidChangeConfiguration(configUpdate)
+
   if config.getBool("enableNimsuggest"):
     initNimSuggest()
     ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode,

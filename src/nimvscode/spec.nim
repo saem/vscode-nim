@@ -1,22 +1,12 @@
 from vscodeApi import VscodeExtensionContext, VscodeWorkspaceConfiguration,
     VscodeOutputChannel,
     VscodeWorkspaceFolder
-from jsre import RegExp
 from jsNode import Map, Array
-# import jsNodeCp, elrpc
 
 type
   Backend* = cstring
   Timestamp* = cint
   NimsuggestId* = cstring
-
-  ProjectFileInfo* = ref object
-    wsFolder*: VscodeWorkspaceFolder
-    filePath*: cstring
-
-  ProjectMappingInfo* = ref object
-    fileRegex*: RegExp
-    projectPath*: cstring
 
   ExtensionState* = ref object
     ctx*: VscodeExtensionContext
@@ -25,10 +15,6 @@ type
 
     # TODO - rename to binPathsCache
     pathsCache*: Map[cstring, cstring]
-
-    # TODO - cached from config parsing, lift into separate object
-    projects*: Array[ProjectFileInfo]
-    projectMapping*: Array[ProjectMappingInfo]
 
     channel*: VscodeOutputChannel
 
