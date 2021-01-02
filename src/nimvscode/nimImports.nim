@@ -1,5 +1,4 @@
 import vscodeApi
-import nimUtils
 import jsNodeCp
 import jsNodeFs
 import jsNodePath
@@ -8,7 +7,9 @@ import jsString
 import jsre
 import jsconsole
 import jsffi
+
 from nimProjects import getProjects, isProjectMode
+from nimBinTools import getNimExecPath, getNimbleExecPath
 
 type
   NimbleModuleInfo = ref object

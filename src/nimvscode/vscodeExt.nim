@@ -278,7 +278,6 @@ proc activate*(ctx: VscodeExtensionContext): void =
   state = ExtensionState(
     ctx: ctx,
     config: config,
-    pathsCache: newMap[cstring, cstring](),
     channel: vscode.window.createOutputChannel("Nim")
   )
   nimUtils.ext = state

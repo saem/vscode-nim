@@ -12,6 +12,7 @@ import jsconsole
 import sequtils
 from nimProjects import getProjects, isProjectMode, getProjectFileInfo,
                         ProjectFileInfo, toLocalFile
+from nimBinTools import getNimExecPath
 
 type
   CheckStacktrace* = ref object
