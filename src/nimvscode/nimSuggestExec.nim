@@ -17,7 +17,8 @@ import jsre
 import jsString
 
 from nimProjects import isProjectMode, toLocalFile,
-  getProjectFileInfo, ProjectFileInfo
+                        getProjectFileInfo, ProjectFileInfo
+from nimBinTools import getBinPath
 
 from dom import isNaN
 from strformat import fmt

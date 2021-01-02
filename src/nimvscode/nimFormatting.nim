@@ -5,6 +5,8 @@ import jsNodeFs
 import jsconsole
 from strformat import fmt
 
+from nimBinTools import getNimPrettyExecPath
+
 var extensionContext*: VscodeExtensionContext
 
 proc provideDocumentFormattingEdits*(

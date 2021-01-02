@@ -1,7 +1,6 @@
 from vscodeApi import VscodeExtensionContext, VscodeWorkspaceConfiguration,
     VscodeOutputChannel,
     VscodeWorkspaceFolder
-from jsNode import Map, Array
 
 type
   Backend* = cstring
@@ -12,9 +11,6 @@ type
     ctx*: VscodeExtensionContext
 
     config*: VscodeWorkspaceConfiguration
-
-    # TODO - rename to binPathsCache
-    pathsCache*: Map[cstring, cstring]
 
     channel*: VscodeOutputChannel
 
