@@ -7,11 +7,11 @@ import nimSuggestExec
 
 import flatdbnode
 
+import jsNode
 import jsNodeFs
 import jsNodePath
 import jsPromise
 import asyncjs
-import jsString
 import jsre
 
 import jsconsole
@@ -79,20 +79,20 @@ proc getFileSymbols*(
 
   var res = if items.toJs().to(bool): items else: @[]
   try:
-    for item in res.filterIt(not (
-        # skip let and var in proc and methods
-      (it.suggest notin ["skLet".cstring, "skVar"]) and
-          it.containerName.contains(".")
-    )):
+    for item in res:
+      # skip let and var in proc and methods
+      if item.suggest in ["skLet".cstring, "skVar"] and
+         item.names.len >= 2: # module name + fn name
+           continue
+
       var toAdd = $(item.column) & ":" & $(item.line)
       if not any(exists, proc(x: cstring): bool = x == toAdd):
         exists.add(toAdd)
         var symbolInfo = vscode.newSymbolInformation(
             item.symbolname,
             vscodeKindFromNimSym(item.suggest),
-            item.`range`,
-            item.uri,
-            item.containerName
+            item.containerName,
+            item.location
         )
         symbols.add(symbolInfo)
   except:
@@ -100,6 +100,60 @@ proc getFileSymbols*(
     console.error("getFileSymbols - failed", e)
     raise e
   return symbols
+
+proc getDocumentSymbols*(
+    file: cstring,
+    useDirtyFile: bool,
+    dirtyFileContent: cstring = ""
+): Future[seq[VscodeDocumentSymbol]] {.async.} =
+  console.log(
+      "getDocumentSymbols - execnimsuggest - useDirtyFile",
+      $(NimSuggestType.outline),
+      file,
+      useDirtyFile
+  )
+  var items = await nimSuggestExec.execNimSuggest(
+      NimSuggestType.outline,
+      file,
+      0,
+      0,
+      useDirtyFile,
+      dirtyFileContent)
+
+  var
+    symbolMap = newMap[cstring, VscodeDocumentSymbol]()
+    res = if items.toJs().to(bool): items else: @[]
+  try:
+    for item in res:
+      if not symbolMap.has(item.fullName):
+        symbolMap[item.fullName] = vscode.newDocumentSymbol(
+          item.symbolname,
+          cstring(""),
+          vscodeKindFromNimSym(item.suggest),
+          item.`range`, # we don't have the comment and other useful bits
+          item.`range`
+        )
+  except:
+    var e = getCurrentException()
+    console.error("getDocumentSymbols - failed", e)
+    raise e
+
+  let childrenToFilter = [cstring("skLet"), "skVar"]
+  for item in res:
+    if symbolMap.has(item.containerName):
+      let
+        parent = symbolMap[item.containerName]
+        parentIsFuncLike = parent.kind == VscodeSymbolKind.function
+        childIsLocalVarLike = item.suggest in childrenToFilter
+        childName = item.fullName
+      if not parentIsFuncLike and not childIsLocalVarLike:
+        parent.children.add(symbolMap[childName])
+      symbolMap.delete(childName)
+    elif ":anonymous" in item.names:
+      # filter out anonymous params we couldn't find a home for
+      symbolMap.delete(item.fullName)
+
+  return toSeq(symbolMap.values)
 
 proc indexFile(file: cstring) {.async.} =
   let
@@ -203,28 +257,36 @@ proc findWorkspaceSymbols*(
   query: cstring
 ): Future[seq[VscodeSymbolInformation]] {.async.} =
   var symbols: seq[VscodeSymbolInformation] = @[]
+  var
+    reg = newRegExp(query, r"i")
+    folders = vscode.workspace.workspaceFolders
+    folderPaths: seq[cstring] = @[]
+  
+  if not folders.toJs.to(bool):
+    return symbols
+
   try:
-    var reg = newRegExp(query, r"i")
-    var folders: seq[cstring] = vscode.workspace.workspaceFolders
-      .mapIt(it.uri.fsPath)
+    for f in folders:
+      folderPaths.add(f.uri.fsPath)
 
     var docs = await dbTypes.query(
         qs().lim(100),
-        oneOf("ws", folders) and matches("type", reg)
-    )
+        oneOf("ws", folderPaths) and matches("type", reg)
+      )
+
     for d in docs:
       var doc = d.to(SymbolData)
       symbols.add(vscode.newSymbolInformation(
         doc.`type`,
         doc.kind,
-        vscode.newRange(
-          vscode.newPosition(doc.range_start.line, doc.range_start.character),
-          vscode.newPosition(doc.range_end.line, doc.range_end.character)
-        ),
-        vscode.uriFile(doc.file),
-        doc.container
-      ))
+        doc.container,
+        vscode.newLocation(
+          vscode.uriFile(doc.file),
+          vscode.newPosition(doc.range_start.line, doc.range_start.character))
+        )
+      )
   except:
+    console.error("findWorkspaceSymbols - query exception", query, reg, folders)
     discard
   finally:
     return symbols
