@@ -35,7 +35,6 @@ Since then community members (noteably: @RSDuck, @dscottboggs, and yours truly) 
 Presently (2020-12-13) the difference between the two extensions is likley not particularly noticeable to the casual user, arguably it's seen more active maintenance. Some differences you might notice:
 * diagnostics for macro based errors
 * log highlighting and problem detection with links to source code
-* `nimsuggest` and `nim check` take backend into account so JS projects
 * IPC and process management for nimsuggest seem to handle more edge cases
 * support for multi-folder workspaces
 * uses vscode extension storage instead of `/tmp` (seems insecure)

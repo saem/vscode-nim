@@ -203,10 +203,6 @@ proc check*(filename: cstring, nimConfig: VscodeWorkspaceConfiguration): Promise
       )
     )
   else:
-    var backend: cstring = if nimConfig.has("buildCommand"):
-          "--backend:" & nimConfig.getStr("buildCommand")
-      else:
-          ""
     var projects = if not isProjectMode(): newArray(getProjectFileInfo(filename))
       else: getProjects()
 
@@ -214,7 +210,7 @@ proc check*(filename: cstring, nimConfig: VscodeWorkspaceConfiguration): Promise
       runningToolsPromises.add(nimExec(
           project,
           "check",
-          @[backend, "--listFullPaths".cstring, project.filePath],
+          @["--listFullPaths".cstring, project.filePath],
           true,
           parseErrors
       ))

@@ -174,8 +174,6 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
         args.add("--log".cstring)
       if nimConfig.getBool("useNimsuggestCheck"):
         args.add("--refresh:on".cstring)
-      if nimConfig.getBool("buildCommand"):
-        args.add("--backend:" & nimConfig.getStr("buildCommand"))
 
       args.add(nimProject.filePath)
       var cwd = nimProject.wsFolder.uri.fsPath
