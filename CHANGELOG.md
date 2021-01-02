@@ -1,5 +1,10 @@
 # ChangeLog
 
+# 0.1.14 (02 Jan 2020)
+* Backend is no longer hardcoded for nimsuggest and nim check (#20)
+* Outline view is now hierarchical, types with fields under them
+* Workspace symbol search now works and no longer errors out
+
 # 0.1.13 (28 Dec 2020)
 * Updated logo thanks to @Knaque (#19)
 * Fixed a bug where a project was index on startup every time
