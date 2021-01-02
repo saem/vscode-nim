@@ -39,7 +39,7 @@ proc isWorkspaceFile*(filePath: cstring): bool =
   else:
     return false
 
-proc removeDirSync*(p: cstring): void =
+proc removeDirSync(p: cstring): void =
   if fs.existsSync(p):
     for entry in fs.readdirSync(p):
       var curPath = path.resolve(p, entry)

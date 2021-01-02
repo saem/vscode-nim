@@ -77,6 +77,18 @@ type
     containerName*: cstring
     kind*: VscodeSymbolKind
     location*: VscodeLocation
+  
+  VscodeSymbolTag* {.pure, nodecl.} = enum 
+    deprecated = (1, "Deprecated")
+
+  VscodeDocumentSymbol* = ref object
+    children*: Array[VscodeDocumentSymbol]
+    detail*: cstring
+    kind*: VscodeSymbolKind
+    name*: cstring
+    `range`*: VscodeRange
+    selectionRange*: VscodeRange
+    tags: Array[VscodeSymbolTag]
 
   VscodeDiagnosticSeverity* {.nodecl, pure.} = enum
     ## Something not allowed by the rules of a language or other means.
@@ -537,6 +549,21 @@ proc newSignatureInformation*(vscode: Vscode, kind: cstring,
 proc newParameterInformation*(vscode: Vscode,
   name: cstring): VscodeParameterInformation {.
   importcpp: "(new #.ParameterInformation(@))".}
+proc newDocumentSymbol*(
+  vscode: Vscode,
+  name: cstring,
+  detail: cstring,
+  kind: VscodeSymbolKind,
+  rng: VscodeRange,
+  selectionRange: VscodeRange
+): VscodeDocumentSymbol {.importcpp: "(new #.DocumentSymbol(@))".}
+proc newSymbolInformation*(
+  vscode: Vscode,
+  name: cstring,
+  kind: VscodeSymbolKind,
+  container: cstring,
+  loc: VscodeLocation
+): VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))".}
 proc newSymbolInformation*(
   vscode: Vscode,
   name: cstring,
@@ -544,7 +571,7 @@ proc newSymbolInformation*(
   rng: VscodeRange,
   file: VscodeUri,
   container: cstring
-): VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))".}
+): VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))", deprecated.}
 proc newVscodeHover*(vscode: Vscode, contents: VscodeMarkedString): VscodeHover {.
   importcpp: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode: Vscode, contents: Array[

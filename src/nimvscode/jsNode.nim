@@ -95,6 +95,15 @@ iterator values*[K, V](m: Map[K, V]): V =
   yield v
   {.emit: "}".}
 
+iterator pairs*[K, V](m: Map[K, V]): (K, V) =
+  ## Yields the `entries` in a Map.
+  var k: K
+  var v: V
+  {.emit: "for (let e of `m`.entries()) {".}
+  {.emit: "  `k` = e[0]; `v` = e[1];".}
+  yield (k, v)
+  {.emit: "}".}
+
 iterator entries*[K, V](m: Map[K, V]): (K, V) =
   ## Yields the `entries` in a Map.
   var k: K
