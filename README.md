@@ -184,4 +184,4 @@ Alternatively, feel free to give side-loading a shot by building the extension f
 
 ## ChangeLog
 
-ChangeLog is located [here](https://github.com/saem/vscode-nim/blob/master/CHANGELOG.md)
+ChangeLog is located [here](https://github.com/saem/vscode-nim/blob/main/CHANGELOG.md)

@@ -9,7 +9,7 @@
     },
     "license": "MIT",
     "icon": "images/nim_icon.png",
-    "homepage": "https://github.com/saem/vscode-nim/blob/master/README.md",
+    "homepage": "https://github.com/saem/vscode-nim/blob/main/README.md",
     "categories": [
         "Programming Languages",
         "Linters"
