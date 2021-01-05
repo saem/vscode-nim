@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.15 (04 Jan 2020)
+* Fix a bug where "nim.project" config was being ignored
+
 # 0.1.14 (02 Jan 2020)
 * Backend is no longer hardcoded for nimsuggest and nim check (#20)
 * Outline view is now hierarchical, types with fields under them
