@@ -120,7 +120,7 @@ proc processConfig*(conf: VscodeWorkspaceConfiguration): void =
   ## to be called whenever the config updates and on initial startup
   
   var
-    cfgProjects = conf.get("projects")
+    cfgProjects = conf.get("project")
     cfgMappings = conf.get("projectMapping")
   
   processConfigProjects(cfgProjects)
@@ -128,11 +128,11 @@ proc processConfig*(conf: VscodeWorkspaceConfiguration): void =
 
 proc configUpdate*(cfgChg: VscodeConfigurationChangeEvent): void =
   let
-    projectsChanged = cfgChg.affectsConfiguration("nim.projects")
+    projectsChanged = cfgChg.affectsConfiguration("nim.project")
     mappingsChanged = cfgChg.affectsConfiguration("nim.projectMapping")
     conf = vscode.workspace.getConfiguration("nim")
 
   if projectsChanged:
-    processConfigProjects(conf.get("projects"))
+    processConfigProjects(conf.get("project"))
   if mappingsChanged:
     processConfigProjectMapping(conf.get("projectMapping"))
