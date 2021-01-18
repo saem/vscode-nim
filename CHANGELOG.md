@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.16 (17 Jan 2021)
+* Fixed potential nimsuggest process leak (reported by @arkanoid87 via IRC)
+* add `cint` to built-in concrete types highlighting
 # 0.1.15 (04 Jan 2020)
 * Fix a bug where "nim.project" config was being ignored
 
