@@ -130,35 +130,42 @@ proc trace(pid: cint, projectFile: ProjectFileInfo, msg: JsObject): void =
 
 proc closeCachedProcess(desc: NimSuggestProcessDescription): void =
   if desc.toJs().to(bool):
-    if not desc.rpc.toJs().to(bool):
-      desc.rpc.stop()
-    if not desc.process.toJs().to(bool):
-      desc.process.kill()
+    try:
+      if not desc.rpc.toJs().to(bool):
+        desc.rpc.stop()
+    finally:
+      if not desc.process.toJs().to(bool):
+        desc.process.kill()
 
-proc closeAllNimSuggestProcesses*(): Promise[void] =
-  console.log("Close all nimsuggest processes")
-  for project in nimSuggestProcessCache.keys():
-    nimSuggestProcessCache[project].then(proc(
-        desc: NimSuggestProcessDescription): void =
-      cleanupDirtyFileFolder(desc.process.pid)
-      closeCachedProcess(desc)
-    )
-  nimSuggestProcessCache = newJsAssoc[cstring, Promise[
-      NimSuggestProcessDescription]]()
-
-proc closeNimSuggestProcess*(project: ProjectFileInfo) {.async.} =
-  var file = toLocalFile(project)
+proc closeNimsuggestProcess*(file: cstring) {.async.} =
   var process = nimSuggestProcessCache[file]
   if process.toJs().to(bool):
     try:
       var desc = await process
-      cleanupDirtyFileFolder(desc.process.pid)
+      let pid = desc.process.pid
+
+      try:
+        cleanupDirtyFileFolder(pid)
+      except:
+        console.log("cleanupDirtyFileFolder failed - ignorable", pid)
+
       closeCachedProcess(desc)
     except:
-      console.log("closeNimSuggestProcess ignorable error", getCurrentException())
+      console.error("closeCachedProcess failed", getCurrentException())
     finally:
       nimSuggestProcessCache[file] = jsUndefined.to(Promise[NimSuggestProcessDescription])
       discard jsDelete nimSuggestProcessCache[file]
+
+proc closeNimsuggestProcess*(project: ProjectFileInfo) {.async.} =
+  await closeNimsuggestProcess(toLocalFile(project))
+
+proc closeAllNimSuggestProcesses*() {.async.} =
+  console.log("Close all nimsuggest processes")
+  for project in nimSuggestProcessCache.keys():
+    try:
+      await closeNimsuggestProcess(project)
+    except:
+      console.error("failed to close", getCurrentException())
 
 proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
     NimSuggestProcessDescription] =
@@ -308,7 +315,7 @@ proc execNimSuggest*(
           ret.add(item)
       elif r.toJs().to(cstring) == "EPC Connection closed":
         console.error("execNimSuggest failed, EPC Connection closed", ret)
-        await closeNimSuggestProcess(projectFile)
+        await closeNimsuggestProcess(projectFile)
       else:
         ret.add(NimSuggestResult{suggest: "" & r.toJs().to(cstring)})
 
@@ -317,9 +324,9 @@ proc execNimSuggest*(
             it.document.uri.fsPath != filename
       )
     if nonProjectAndFileClosed:
-      await closeNimSuggestProcess(projectFile)
+      await closeNimsuggestProcess(projectFile)
 
     return ret
   except:
-    console.error("Error in execNimSuggest: ", getCurrentException())
-    await closeNimSuggestProcess(projectFile)
+    console.error("Error in execNimSuggest: ", getCurrentException(), getCurrentExceptionMsg())
+    await closeNimsuggestProcess(projectFile)
