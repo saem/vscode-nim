@@ -4,6 +4,10 @@
             "prefix": "proc",
             "body": "proc ${1:name}(${2:arguments}): ${3:return type} =\n\t$0"
         },
+        "function": {
+            "prefix": "func",
+            "body": "func ${1:name}(${2:arguments}): ${3:return type} =\n\t$0"
+        },
         "method": {
             "prefix": "method",
             "body": "method ${1:name}(${2:arguments}): ${3:return type} =\n\t$0"
