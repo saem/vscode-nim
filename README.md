@@ -159,6 +159,10 @@ Then, you need to create a launch configuration in the project's launch.json fil
 You should be set up now to be able to debug from a given file in the native VS Code(ium) debugger.
 
 ![Debugger preview screenshot](images/debugging-screenshot.png)
+---
+## Code Completion
+
+This extension relies on nimsuggest for code completion. Nimsuggest is basically a frontend for the nim compiler, so it accepts compiler flags, like `--path`, as well as reads [config files.](https://nim-lang.org/docs/nimc.html#compiler-usage-configuration-files) If you're not getting code completion suggestions, nimsuggest does not have a complete picture of your project. You likely need to create a config file for your project file with `--path` options for nimsuggest.
 
 ---
 # Developing the Extension
