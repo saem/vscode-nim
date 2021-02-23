@@ -1,8 +1,14 @@
 # ChangeLog
 
+# 0.1.17 (23 Jan 2021)
+* fixed syntax highlighting `openArray` instead of `openarray` (#27)
+* added a snippet for `func` (#24) @RSDuck
+* clarified this extension's nimsuggest dependency (#25) @geekrelief
+
 # 0.1.16 (17 Jan 2021)
 * Fixed potential nimsuggest process leak (reported by @arkanoid87 via IRC)
 * add `cint` to built-in concrete types highlighting
+
 # 0.1.15 (04 Jan 2020)
 * Fix a bug where "nim.project" config was being ignored
 
