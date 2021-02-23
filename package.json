@@ -2,7 +2,7 @@
     "name": "nimvscode",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code written in Nim",
-    "version": "0.1.16",
+    "version": "0.1.17",
     "publisher": "nimsaem",
     "author": {
         "name": "Saem"
