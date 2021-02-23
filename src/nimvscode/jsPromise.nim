@@ -11,12 +11,12 @@ type
 proc newPromise*[T, R](handler: proc(resolve: proc(val: T), reject: proc(
     reason: R))): Future[T] {.importcpp: "new Promise(@)".}
 proc newEmptyPromise*(): Future[void] {.importcpp: "(Promise.resolve())".}
-proc race*[T](iterable: openarray[T]): Future[T] {.importcpp: "Promise.race(#)", discardable.}
+proc race*[T](iterable: openArray[T]): Future[T] {.importcpp: "Promise.race(#)", discardable.}
 proc all*[T](
-  iterable: openarray[Future[T]]
+  iterable: openArray[Future[T]]
 ): Future[seq[T]] {.importcpp: "Promise.all(@)", discardable.}
 proc allSettled*[T](
-  iterable: openarray[Future[T]]
+  iterable: openArray[Future[T]]
 ): Future[seq[T]] {.importcpp: "Promise.allSettled(@)", discardable.}
 proc promiseReject*[T](reason: T): Future[T] {.importcpp: "Promise.reject(#)", discardable.}
 proc promiseResolve*[T](val: T): Future[T] {.importcpp: "Promise.resolve(#)", discardable.}
