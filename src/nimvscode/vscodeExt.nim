@@ -131,7 +131,8 @@ proc mapSeverityToVscodeSeverity(sev: cstring): VscodeDiagnosticSeverity =
 proc findErrorRange(msg: cstring, line, column: cint): VscodeRange =
   var endColumn = column
   if msg.contains("'"):
-    endColumn += msg.findLast("'") - msg.find("'")
+    # -1 because findLast includes the index of the quote
+    endColumn += msg.findLast("'") - msg.find("'") - 1
 
   let line = max(0, line - 1)
 
