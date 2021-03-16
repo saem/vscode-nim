@@ -1,5 +1,8 @@
 # ChangeLog
 
+# 0.1.18 (15 Mar 2021)
+* fixed error/hint/warn highlights being off by one (#33), reported and fixed by @Yardanico
+
 # 0.1.17 (23 Jan 2021)
 * fixed syntax highlighting `openArray` instead of `openarray` (#27)
 * added a snippet for `func` (#24) @RSDuck
