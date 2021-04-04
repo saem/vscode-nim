@@ -87,6 +87,7 @@ proc getProjectFileInfo*(filename: cstring): ProjectFileInfo =
     if filename.startsWith(path.dirname(toLocalFile(project))):
       return project
   return projects[0]
+
 proc processConfigProjects(conf: JsObject): void =
   ## updates `projects` from config `nim.projects`, if `nim.projects` changed
   ## ensure that process `processConfigProjectMapping` is called thereafter

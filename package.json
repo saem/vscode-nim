@@ -187,47 +187,56 @@
                 "nim.project": {
                     "type": "array",
                     "default": [],
-                    "description": "Nim project file, if empty use current selected."
+                    "description": "Nim project file, if empty use current selected.",
+                    "scope": "resource"
                 },
                 "nim.projectMapping": {
                     "type": "object",
                     "default": {},
-                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"(.*).inim\": \"$1.nim\"}```"
+                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"(.*).inim\": \"$1.nim\"}```",
+                    "scope": "resource"
                 },
                 "nim.test-project": {
                     "type": "string",
                     "default": "",
-                    "description": "Optional test project."
+                    "description": "Optional test project.",
+                    "scope": "resource"
                 },
                 "nim.buildOnSave": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Execute build task from tasks.json file on save."
+                    "description": "Execute build task from tasks.json file on save.",
+                    "scope": "resource"
                 },
                 "nim.buildCommand": {
                     "type": "string",
                     "default": "c",
-                    "description": "Nim build command (c, cpp, doc, etc)"
+                    "description": "Nim build command (c, cpp, doc, etc)",
+                    "scope": "resource"
                 },
                 "nim.runOutputDirectory": {
                     "type": "string",
                     "default": "",
-                    "description": "Output directory for run selected file command. The directory is relative to the workspace root."
+                    "description": "Output directory for run selected file command. The directory is relative to the workspace root.",
+                    "scope": "resource"
                 },
                 "nim.lintOnSave": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Check code by using 'nim check' on save."
+                    "description": "Check code by using 'nim check' on save.",
+                    "scope": "resource"
                 },
                 "nim.enableNimsuggest": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Enable calling nimsuggest process to provide completion suggestions, hover suggestions, etc.\nThis option requires restart to take effect."
+                    "description": "Enable calling nimsuggest process to provide completion suggestions, hover suggestions, etc.\nThis option requires restart to take effect.",
+                    "scope": "resource"
                 },
                 "nim.useNimsuggestCheck": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Use nimsuggest in order to run check, instead of the nim compiler."
+                    "description": "Use nimsuggest in order to run check, instead of the nim compiler.",
+                    "scope": "resource"
                 },
                 "nim.logNimsuggest": {
                     "type": "boolean",
@@ -237,7 +246,8 @@
                 "nim.licenseString": {
                     "type": "string",
                     "default": "",
-                    "description": "Optional license text that will be inserted on nim file creation."
+                    "description": "Optional license text that will be inserted on nim file creation.",
+                    "scope": "resource"
                 },
                 "nim.nimsuggestRestartTimeout": {
                     "type": "integer",
@@ -247,12 +257,14 @@
                 "nim.nimprettyIndent": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Nimpretty: set the number of spaces that is used for indentation\n--indent:0 means autodetection (default behaviour)."
+                    "description": "Nimpretty: set the number of spaces that is used for indentation\n--indent:0 means autodetection (default behaviour).",
+                    "scope": "resource"
                 },
                 "nim.nimprettyMaxLineLen": {
                     "type": "integer",
                     "default": 80,
-                    "description": "Nimpretty: set the desired maximum line length (default: 80)."
+                    "description": "Nimpretty: set the desired maximum line length (default: 80).",
+                    "scope": "resource"
                 }
             }
         },
