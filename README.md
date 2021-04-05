@@ -74,17 +74,17 @@ The following Visual Studio Code settings are available for the Nim extension.  
 
   ```json
   {
-     "taskName": "Run module.nim",
-     "command": "nim",
-     "args": ["c", "-o:bin/${fileBasenameNoExtension}", "-r", "${fileBasename}"],
-     "options": {
-        "cwd": "${workspaceRoot}"
-     },
-     "type": "shell",
-     "group": {
-        "kind": "build",
-        "isDefault": true
-     }
+      "taskName": "Run module.nim",
+      "command": "nim",
+      "args": ["c", "-o:bin/${fileBasenameNoExtension}", "-r", "$ {fileBasename}"],
+      "options": {
+          "cwd": "${workspaceRoot}"
+      },
+      "type": "shell",
+      "group": {
+          "kind": "build",
+          "isDefault": true
+      }
   }
   ```
 
@@ -96,11 +96,11 @@ The following Visual Studio Code settings are available for the Nim extension.  
 
 ```json
 {
-  "nim.buildOnSave": false,
-  "nim.buildCommand": "c",
-  "nim.lintOnSave": true,
-  "nim.project": ["project.nim", "project2.nim"],
-  "nim.licenseString": "# Copyright 2020.\n\n"
+    "nim.buildOnSave": false,
+    "nim.buildCommand": "c",
+    "nim.lintOnSave": true,
+    "nim.project": ["project.nim", "project2.nim"],
+    "nim.licenseString": "# Copyright 2020.\n\n"
 }
 ```
 
@@ -152,18 +152,18 @@ Then, you need to create a launch configuration in the project's launch.json fil
 ```jsonc
 // .vscode/launch.json
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "nim: debug current file",
-      "preLaunchTask": "nim: build current file (for debugging)",
-      "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "nim: debug current file",
+            "preLaunchTask": "nim: build current file (for debugging)",
+            "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+        }
+    ]
 }
 ```
 
