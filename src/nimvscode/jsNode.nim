@@ -23,6 +23,7 @@ type
   ProcessModuleObj {.importc.} = object of JsRoot
     env*: JsAssoc[cstring, cstring]
     platform*: cstring
+    pid*: cint
 
   GlobalModule = ref GlobalModuleObj
   GlobalModuleObj {.importc.} = object of JsRoot

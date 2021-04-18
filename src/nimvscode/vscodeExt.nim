@@ -22,7 +22,7 @@ from nimStatus import showHideStatus
 from nimIndexer import initWorkspace, clearCaches, onClose
 from nimImports import initImports, removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
-from nimUtils import ext, getDirtyFile, outputLine
+from nimUtils import ext, getDirtyFile, outputLine, getDirtyFileFolder, cleanupDirtyFileFolder
 from nimProjects import processConfig, configUpdate
 from nimMode import mode
 
@@ -313,6 +313,8 @@ proc activate*(ctx: VscodeExtensionContext): void =
         nimHoverProvider))
     ctx.subscriptions.add(vscode.languages.registerDocumentFormattingEditProvider(
         mode, nimFormattingProvider))
+    # XXX: hide this behind config based on IC usage
+    fs.mkdirSync(getDirtyFileFolder(process.pid))
 
   diagnosticCollection = vscode.languages.createDiagnosticCollection("nim")
   ctx.subscriptions.add(diagnosticCollection)
@@ -437,4 +439,5 @@ proc activate*(ctx: VscodeExtensionContext): void =
 proc deactivate*(): void =
   discard onClose()
   discard closeAllNimSuggestProcesses()
+  cleanupDirtyFileFolder(process.pid)
   fileWatcher.dispose()

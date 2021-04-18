@@ -59,7 +59,7 @@ proc getDirtyFile*(nimsuggestPid: cint, filepath, content: cstring): cstring =
   ## temporary file path of edited document
   ## for each nimsuggest instance each file has a unique dirty file
   var dirtyFilePath = path.normalize(
-      path.join(getDirtyFileFolder(nimsuggestPid), $int(hash(filepath)) & ".nim")
+      path.join(getDirtyFileFolder(nimsuggestPid), $cint(hash(filepath)) & ".nim")
   )
   fs.writeFileSync(dirtyFilePath, content)
   return dirtyFilePath

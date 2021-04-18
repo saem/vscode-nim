@@ -32,53 +32,56 @@ type
   ExecutorStatus = ref object
     initialized: bool
     process: ChildProcess
+  
+  Executors = JsAssoc[cstring, ExecutorStatus]
 
 var executors = newJsAssoc[cstring, ExecutorStatus]()
 
-proc nimExec(
-    project: ProjectFileInfo,
-    cmd: cstring,
-    args: seq[cstring],
-    useStdErr: bool,
-    cb: (proc(lines: seq[cstring]): seq[CheckResult])
-): Promise[seq[CheckResult]] =
+proc resetExecutor(execs: Executors, projectPath: cstring) =
+  ## have to reset these executors often enough, so made a template
+  execs[projectPath] = ExecutorStatus{
+        initialized: false,
+        process: jsUndefined.to(ChildProcess)
+    }
+
+proc nimExec*(project: ProjectFileInfo, cmd: cstring,
+              args: seq[cstring], useStdErr: bool): Future[cstring] =
   return newPromise(proc(
-        resolve: proc(results: seq[CheckResult]),
+        resolve: proc(results: cstring),
         reject: proc(reason: JsObject)
     ) =
-    var execPath = getNimExecPath()
+    console.log("nimExec - in proc")
+    let execPath = getNimExecPath()
     if execPath.isNil() or execPath.strip() == "":
-      resolve(@[])
+      resolve("")
+      console.log("nimExec - no nim executable found")
       return
 
-    var projectPath = toLocalFile(project)
-    var executorStatus = executors[projectPath]
-    if(not executorStatus.isNil() and executorStatus.initialized):
-      var ps = executorStatus.process
-      executors[projectPath] = ExecutorStatus{
-          initialized: false, process: jsUndefined.to(ChildProcess)
-      }
-      if not ps.isNil():
-        ps.kill("SIGKILL")
-    else:
-      executors[projectPath] = ExecutorStatus{
-          initialized: false, process: jsUndefined.to(ChildProcess)
-      }
+    let
+      projectPath = toLocalFile(project)
+      executorStatus = executors[projectPath]
+      isExecutorReady = not executorStatus.isNil and executorStatus.initialized
 
-    var executor = cp.spawn(
-            getNimExecPath(),
-            @[cmd] & args,
-            SpawnOptions{cwd: project.wsFolder.uri.fsPath}
-      )
+    if isExecutorReady:
+      let ps = executorStatus.process  
+      if not ps.isNil:
+        ps.kill("SIGKILL")
+    
+    executors.resetExecutor(projectPath)
+
+    let
+      spawnOptions = SpawnOptions{ cwd: project.wsFolder.uri.fsPath }
+      executor = cp.spawn(execPath, @[cmd] & args, spawnOptions)
     executors[projectPath].process = executor
     executors[projectPath].initialized = true
 
     executor.onError(proc(error: ChildError): void =
-      if not error.isNil() and error.code == "ENOENT":
+      console.log("nimExec - onError", error)
+      if not error.isNil and error.code == "ENOENT":
         vscode.window.showInformationMessage(
-            "No nim binary could be found in PATH: '" & process.env["PATH"] & "'"
+          "No nim binary could be found in PATH: '" & process.env["PATH"] & "'"
         )
-        resolve(@[])
+        resolve("")
         return
     )
 
@@ -91,36 +94,43 @@ proc nimExec(
       if signal == "SIGKILL":
         reject(jsNull)
       else:
-        executors[projectPath] = ExecutorStatus{
-            initialized: false,
-            process: jsUndefined.to(ChildProcess)
-        }
-
         try:
-          var split: seq[cstring] = output.split(nodeOs.eol)
-          if split.len == 1:
-            # TODO - is this a bug by not using os.eol??
-            var lfSplit = split[0].split("\n")
-            if lfSplit.len > split.len:
-              split = lfSplit
-
-          resolve(cb(split))
+          executors.resetExecutor(projectPath)
+          resolve(output)
         except:
+          console.log("nimExec - onExit - failed to get output", getCurrentException())
           reject(getCurrentException().toJs())
     )
 
+    let dataHandler = proc(data: Buffer) = output &= data.toString()
     if useStdErr:
-      executor.stderr.onData(proc(data: Buffer) =
-        output &= data.toString()
-      )
+      executor.stderr.onData(dataHandler)
     else:
-      executor.stdout.onData(proc(data: Buffer) =
-        output &= data.toString()
-      )
-  ).catch(proc(reason: JsObject): Promise[seq[CheckResult]] =
-    console.error("nim check failed", reason)
-    return promiseReject(reason).toJs().to(Promise[seq[CheckResult]])
+      executor.stdout.onData(dataHandler)
+  ).catch(proc(reason: JsObject): Promise[cstring] =
+    return promiseReject(reason).toJs().to(Promise[cstring])
   )
+
+proc nimCheckExec(
+    project: ProjectFileInfo,
+    args: seq[cstring],
+    useStdErr: bool,
+    cb: (proc(lines: seq[cstring]): seq[CheckResult])
+): Future[seq[CheckResult]] {.async.} =
+  try:
+    var
+      output = await nimExec(project, "check", args, useStdErr)
+      split: seq[cstring] = output.split(nodeOs.eol)
+    console.log("nimCheckExec - got some output: ", output, "split: ", split)
+    if split.len == 1:
+      # TODO - is this a bug by not using os.eol??
+      var lfSplit = split[0].split("\n")
+      if lfSplit.len > split.len:
+        split = lfSplit
+
+    return cb(split)
+  except:
+    console.error("nim check failed", getCurrentException())
 
 proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
   var
@@ -207,9 +217,8 @@ proc check*(filename: cstring, nimConfig: VscodeWorkspaceConfiguration): Promise
       else: getProjects()
 
     for project in projects:
-      runningToolsPromises.add(nimExec(
+      runningToolsPromises.add(nimCheckExec(
           project,
-          "check",
           @["--listFullPaths".cstring, project.filePath],
           true,
           parseErrors
