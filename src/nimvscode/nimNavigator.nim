@@ -67,12 +67,12 @@ proc execNavQuery*(queryType: NavQueryKind, filename: cstring, line: cint,
         if useDirtyFile:
           fmt"--trackDirty:{dirtyFile},{filename},{line},{column}"
         else:
-          fmt"--track:{dirtyFile},{line},{column}"
+          fmt"--track:{filename},{line},{column}"
       args: seq[cstring] = @[
           "--ic:on".cstring,
           fmt"--{navQueryArg}",
           trackSwitch, # XXX: remove the redundancy in composing this switch
-          filename
+          projectFile.filePath
         ]
     console.log("execNavQuery before run", filename, args.join(" "))
     var str = await nimExec(projectFile, "check", args, true)

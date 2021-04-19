@@ -1,40 +1,40 @@
 import vscodeApi
 import nimSuggestExec
 import jsNode
+import jsconsole
+from nimNavigator import execNavQuery, NavQueryKind
 
 proc provideDefinition*(
   doc: VscodeTextDocument,
   position: VscodePosition,
   token: VscodeCancellationToken
-): Promise[Array[VscodeLocation]] =
+): Future[Array[VscodeLocation]] {.async.} =
   ## TODO - the return type is a sub-set of what's in the TypeScript API
-  ## Since we're providing the result this isn't a practical problem
-  return newPromise(proc (
-    resolve: proc(val: Array[VscodeLocation]),
-    reject: proc(reason: JsObject)
-  ) =
-    let pos: cint = position.line + 1
-    execNimSuggest(
-      NimSuggestType.def,
-      doc.fileName,
-      pos,
-      position.character,
-      true,
-      doc.getText()
-    ).then(
-      proc(result: seq[NimSuggestResult]) =
-        if(not result.isNull() and not result.isUndefined() and result.len > 0):
-          let locations = newArray[VscodeLocation]()
-          for def in result:
-            if not(def.isUndefined() or def.isNull()):
-              locations.push def.location
+  ##        Since we're providing the result this isn't a practical problem
+  let
+    pos: cint = position.line + 1
+    col: cint = position.character
+  
+  # hacking in some NavQuery
+  try:
+    let s = await execNavQuery(NavQueryKind.def, doc.fileName, pos, col, true,
+                               doc.getText)
+    console.log("navQuery nimDeclaration hack", s)
+  except:
+    console.error("navQuery nimDeclaration broke", getCurrentException())
 
-          if locations.len > 0:
-            resolve(locations)
+  let suggestions = await execNimSuggest(NimSuggestType.def, doc.fileName, pos,
+                                         col, true, doc.getText)
+  if suggestions.toJs.to(bool):
+    let locations = newArray[VscodeLocation]()
+    for s in suggestions:
+      if s.toJs.to(bool):
+        locations.push s.location
 
-        resolve(jsNull.to(Array[VscodeLocation]))
-    ).catch(proc(reason: JsObject) = reject(reason))
-  )
+    if locations.len > 0:
+      return locations
+    else:
+      return jsNull.to(Array[VscodeLocation])
 
 var nimDefinitionProvider* {.exportc.} = block:
   var o = newJsObject()

@@ -57,8 +57,7 @@ proc getFileSymbols*(
     file: cstring,
     useDirtyFile: bool,
     dirtyFileContent: cstring = ""
-):
-    Future[seq[VscodeSymbolInformation]] {.async.} =
+): Future[seq[VscodeSymbolInformation]] {.async.} =
   console.log(
       "getFileSymbols - execnimsuggest - useDirtyFile",
       $(NimSuggestType.outline),
@@ -74,10 +73,10 @@ proc getFileSymbols*(
       dirtyFileContent
   )
 
-  var symbols: seq[VscodeSymbolInformation] = @[]
-  var exists: seq[cstring] = @[]
-
-  var res = if items.toJs().to(bool): items else: @[]
+  var
+    symbols: seq[VscodeSymbolInformation] = @[]
+    exists: seq[cstring] = @[]
+    res = if items.toJs().to(bool): items else: @[]
   try:
     for item in res:
       # skip let and var in proc and methods
@@ -256,8 +255,8 @@ proc initWorkspace*(extPath: cstring) {.async.} =
 proc findWorkspaceSymbols*(
   query: cstring
 ): Future[seq[VscodeSymbolInformation]] {.async.} =
-  var symbols: seq[VscodeSymbolInformation] = @[]
   var
+    symbols: seq[VscodeSymbolInformation] = @[]
     reg = newRegExp(query, r"i")
     folders = vscode.workspace.workspaceFolders
     folderPaths: seq[cstring] = @[]
