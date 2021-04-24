@@ -27,17 +27,41 @@ type
     line*: cint
     col*: cint
 
-  NavResult* = ref object
+  NavResult* = object
     ## this is what we parse the output lines into
     typ*: NavAnswerKind
     pos*: NavPosition
-  
-# this is from compiler/ic/navigator, see path separation
-# const navResultSep: cstring = "\t"
+
+const navResultSep: cstring = "\31"
+  ## this is from compiler/ic/navigator, see path separation
+const navFieldSep: cstring = "\t"
+  ## this is from compiler/ic/navigator, see path field
 
 proc parseNavResult(s: cstring): cstring =
-  ## XXX: meant to parse the results from a navigator query
-  return s
+  try:
+    let
+      parts = s.split(navFieldSep)
+    console.log("nimNavigator - parseNavResult - parts: ", parts)
+    # XXX: this is getting Hints, Warnings, etc... need to process it all :/
+    let
+      typPart = parts[0]
+      posParts = newRegExp(r"^(.*)\((\d+), (\d+)\)$").exec(parts[1])
+      file = posParts[1]
+      line = posParts[2].parseCint
+      column = posParts[3].parseCint
+      typ =
+        case $typPart
+        of "def": NavAnswerKind.def
+        of "usage": usage
+        else: raise newException(ValueError, fmt"Unknown result type: {typPart}")
+      res = NavResult(typ: typ, pos: NavPosition(path: file, line: line, col: column))
+      resStr = $res
+    
+    console.log("nimNavigator - parseNavResult - res: ", res)
+    ## XXX: meant to parse the results from a navigator query
+    return s
+  except:
+    console.log("nimNavigator - parseNavResult - failed: ", getCurrentException())
 
 proc execNavQuery*(queryType: NavQueryKind, filename: cstring, line: cint,
               column: cint, useDirtyFile: bool,
@@ -57,27 +81,23 @@ proc execNavQuery*(queryType: NavQueryKind, filename: cstring, line: cint,
     let
       projectFile = getProjectFileInfo(filename)
       normalizedFilename: cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
-      navQueryArg: cstring = $(queryType)
+      navQuerySwitchName: cstring = $(queryType)
       dirtyFile: cstring =
         if useDirtyFile:
-          getDirtyFile(process.pid, normalizedFilename, dirtyFileContent)
+          getDirtyFile(process.pid, normalizedFilename, dirtyFileContent) & cstring(",")
         else:
           ""
-      trackSwitch: cstring =
-        if useDirtyFile:
-          fmt"--trackDirty:{dirtyFile},{filename},{line},{column}"
-        else:
-          fmt"--track:{filename},{line},{column}"
+      querySwitch: cstring =
+        fmt"--{navQuerySwitchName}:{dirtyFile}{filename},{line},{column}"
       args: seq[cstring] = @[
           "--ic:on".cstring,
-          fmt"--{navQueryArg}",
-          trackSwitch, # XXX: remove the redundancy in composing this switch
+          querySwitch, # XXX: remove the redundancy in composing this switch
           projectFile.filePath
         ]
     console.log("execNavQuery before run", filename, args.join(" "))
     var str = await nimExec(projectFile, "check", args, true)
-    for i in str.split(nodeOs.eol):
-      ret.push(parseNavResult(i))
+    for i in str.split(navResultSep):
+      ret.push(parseNavResult(i.strip))
     return ret
   except:
     ret.push(cstring("fuuuuuudge: " & getCurrentExceptionMsg()))

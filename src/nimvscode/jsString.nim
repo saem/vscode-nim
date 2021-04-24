@@ -3,6 +3,9 @@
 ## If you are doing with a ton of JS string data, JS strings might be faster
 
 import jsre
+from jsffi import `&`
+
+export `&`
 
 when not defined(js) and not defined(Nimdoc):
   {.error: "This module only works on the JavaScript platform".}
