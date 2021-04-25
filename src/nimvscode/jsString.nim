@@ -68,6 +68,12 @@ proc split*(s: cstring; a: cstring): seq[cstring] {.importcpp: "#.split(@)".}
   ##
   ## Substrings are separated by the character `sep`.
 
+proc split*(s, a: cstring; lim: cint): seq[cstring] {.importcpp: "#.split(@)".}
+  ## Splits the string `s` into substrings using a single separator upto the
+  ## `lim` number of splits.
+  ##
+  ## Substrings are separated by the character `sep`.
+
 proc split*(s: cstring; a: RegExp): seq[cstring] {.importcpp: "#.split(@)".}
   ## Splits the string `s` into substrings using a regex separator.
   ##

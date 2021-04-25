@@ -138,15 +138,16 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
     stacktrace: seq[CheckStacktrace]
 
   # Progress indicator from nim CLI is just dots
-  var dots = newRegExp(r"^\.+$")
+  let
+    dots = newRegExp(r"^\.+$")
+    msgRegex = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
   for line in lines:
     let line = line.strip()
 
     if line.startsWith("Hint:") or line == "" or dots.test(line):
       continue
 
-    let match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
-      .exec(line)
+    let match = msgRegex.exec(line)
     if not match.toJs().to(bool):
       if messageText.len < 1024:
         messageText &= nodeOs.eol & line

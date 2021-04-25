@@ -25,6 +25,7 @@ from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestP
 from nimUtils import ext, getDirtyFile, outputLine, getDirtyFileFolder, cleanupDirtyFileFolder
 from nimProjects import processConfig, configUpdate
 from nimMode import mode
+from nimNavigator import forceOnNextRun
 
 from strformat import fmt
 
@@ -274,6 +275,10 @@ proc runFile(): void =
             true
         )
 
+proc clearAllCaches() {.async.} =
+  forceOnNextRun()
+  await clearCaches()
+
 proc activate*(ctx: VscodeExtensionContext): void =
   var config = vscode.workspace.getConfiguration("nim")
   state = ExtensionState(
@@ -289,7 +294,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
   vscode.commands.registerCommand("nim.run.file", runFile)
   vscode.commands.registerCommand("nim.check", runCheck)
   vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
-  vscode.commands.registerCommand("nim.clearCaches", clearCaches)
+  vscode.commands.registerCommand("nim.clearCaches", clearAllCaches)
   vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)
 
   processConfig(config)
