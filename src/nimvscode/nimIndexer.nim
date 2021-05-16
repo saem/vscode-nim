@@ -28,7 +28,7 @@ var
 type
   FileData = ref object of JsRoot
     file*: cstring
-    timestamp*: int
+    timestamp*: cint
 
   SymbolData = ref object
     ws*: cstring
@@ -163,11 +163,13 @@ proc indexFile(file: cstring) {.async.} =
     #   transient data anyways
     doc = dbFiles.queryOne(equal("file", file) and 
                            higherEqual("timestamp", timestamp)).to(FileData)
+    docNotFound = doc.isNil()
 
-  if doc.toJs().to(bool) == false:
+  if docNotFound:
     var infos = await getFileSymbols(file, false)
 
     if infos.isNull() or infos.len == 0:
+      console.log("indexFile - nothing found")
       return
 
     var folder = vscode.workspace.getWorkspaceFolder(vscode.uriFile(file))
@@ -175,14 +177,29 @@ proc indexFile(file: cstring) {.async.} =
       discard await (dbFiles.delete equal("file", file))
       if not folder.isNil():
         dbFiles.insert(FileData{file: file, timestamp: timestamp})
-      else:
-        console.log("indexFile - dbFiles - not in workspace")
     except:
       console.error("indexFile - dbFiles", getCurrentExceptionMsg(),
           getCurrentException())
 
     try:
       discard await dbTypes.delete equal("file", file)
+      
+      if folder != nil:
+        let moduleSymbol = SymbolData{
+            ws: folder.uri.fsPath,
+            file: vscode.uriFile(file).fsPath,
+            range_start: vscode.newPosition(0, 0),
+            range_end: vscode.newPosition(0, 0),
+            `type`: path.basename(file, ".nim"),
+            container: "",
+            kind: VscodeSymbolKind.module
+          }
+
+        console.log("indexFile - insertedModule", moduleSymbol)
+
+        # add the module itself
+        dbTypes.insert(moduleSymbol)
+
       for i in infos:
         var folder = vscode.workspace.getWorkspaceFolder(i.location.uri)
         if folder.isNil():
@@ -256,13 +273,14 @@ proc initWorkspace*(extPath: cstring) {.async.} =
 proc findWorkspaceSymbols*(
   query: cstring
 ): Future[seq[VscodeSymbolInformation]] {.async.} =
-  var symbols: seq[VscodeSymbolInformation] = @[]
   var
+    symbols: seq[VscodeSymbolInformation] = @[]
     reg = newRegExp(query, r"i")
     folders = vscode.workspace.workspaceFolders
     folderPaths: seq[cstring] = @[]
   
   if not folders.toJs.to(bool):
+    console.log("findWorkspaceSymbols - folder is empty:", folders)
     return symbols
 
   try:
