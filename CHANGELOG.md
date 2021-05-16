@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.1.21 (16 May 2021)
+
+* modules are now part of workspace symbol search
+
+
 ## 0.1.20 (04 Apr 2021)
 
 * config settings work better with multi-root workspaces -- resource scoped
