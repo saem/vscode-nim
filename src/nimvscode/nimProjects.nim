@@ -3,7 +3,7 @@
 
 from vscodeApi import VscodeWorkspaceFolder, VscodeWorkspaceConfiguration,
   vscode, getWorkspaceFolder, uriFile, asRelativePath, findFiles, get,
-  workspaceFolderLike, VscodeUri, VscodeUriChange, with, getConfiguration,
+  newWorkspaceFolderLike, VscodeUri, VscodeUriChange, with, getConfiguration,
   VscodeConfigurationChangeEvent, affectsConfiguration
 import jsffi, jsPromise, jsString, jsNode, jsre
 from jsNodePath import path, isAbsolute, parse, ParsedPath, dirname
@@ -54,7 +54,7 @@ proc toProjectInfo(filePath: cstring): ProjectFileInfo =
 
   var parsedPath = path.parse(filePath)
   return ProjectFileInfo{
-      wsFolder: vscode.workspaceFolderLike(
+      wsFolder: newWorkspaceFolderLike(
               vscode.uriFile(parsedPath.dir),
               cstring("root"),
               cint(0)
