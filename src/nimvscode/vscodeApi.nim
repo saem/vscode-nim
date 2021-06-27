@@ -582,7 +582,7 @@ proc newVscodeHover*(vscode: Vscode, contents: Array[VscodeMarkedString],
   `range`: VscodeRange): VscodeHover {.importcpp: "(new #.Hover(@))".}
 proc uriFile*(vscode: Vscode, file: cstring): VscodeUri {.
   importcpp: "(#.Uri.file(@))".}
-proc workspaceFolderLike*(vscode: Vscode, uri: VscodeUri, name: cstring,
+proc newWorkspaceFolderLike*(uri: VscodeUri, name: cstring,
   index: cint): VscodeWorkspaceFolder {.
   importcpp: "({uri:#, name:#, index:#})".}
 
