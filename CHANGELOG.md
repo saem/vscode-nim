@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.1.22 (27 Jun 2021)
+
+* fixed file indexing for non-project config scenarios @shunf4 (#43)
+
 ## 0.1.21 (16 May 2021)
 
 * modules are now part of workspace symbol search
