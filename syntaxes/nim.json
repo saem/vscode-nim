@@ -104,6 +104,9 @@
       "name": "comment.line.discarded.nim"
     },
     {
+      "include": "#custom_literal"
+    },
+    {
       "include": "#float_literal"
     },
     {
@@ -1473,12 +1476,16 @@
       },
       "name": "string.quoted.triple.raw.nim"
     },
-    "float_literal": {
+    "custom_literal": {
       "patterns": [
         {
-          "match": "\\b\\d[_\\d]*((\\.\\d[_\\d]*([eE][\\+\\-]?\\d[_\\d]*)?)|([eE][\\+\\-]?\\d[_\\d]*))('([fF](32|64|128)|[fFdD]))?",
-          "name": "constant.numeric.float.decimal.nim"
-        },
+          "match": "\\b(\\d[_\\d]*)'(\\w+)",
+          "name": "constant.numeric.custom.lit.nim"
+        }
+      ]
+    },
+    "float_literal": {
+      "patterns": [
         {
           "match": "\\b0[xX]\\h[_\\h]*'([fF](32|64|128)|[fFdD])",
           "name": "constant.numeric.float.hexadecimal.nim"
@@ -1510,10 +1517,6 @@
         {
           "match": "\\b(0(b|B)[01][_01]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.binary.nim"
-        },
-        {
-          "match": "\\b(\\d[_\\d]*)('(([iIuU](8|16|32|64))|[uU]))?",
-          "name": "constant.numeric.integer.decimal.nim"
         }
       ]
     }
