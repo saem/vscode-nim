@@ -53,6 +53,14 @@ type
   UserProvidedProject* = ref object
     name*: cstring
 
+let defaultIndexExcludeGlobs =
+  block:
+    let res = newJsAssoc[cstring, bool]()
+    res[cstring "**/.git/**"] = true
+    res[cstring "nimcache/**"] = true
+    res
+  ## exclude these by default as most people will not want them indexed
+
 proc listCandidateProjects() =
   ## Find all the "projects" in the workspace and folders
   ##
@@ -274,6 +282,11 @@ proc runFile(): void =
             true
         )
 
+proc clearCachesCmd(): void =
+  ## setup a command to clear file and type caches in case they're out of date
+  let config = vscode.workspace.getConfiguration("files")
+  discard clearCaches(config.getStrBoolMap("watcherExclude", defaultIndexExcludeGlobs))
+
 proc activate*(ctx: VscodeExtensionContext): void =
   var config = vscode.workspace.getConfiguration("nim")
   state = ExtensionState(
@@ -289,7 +302,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
   vscode.commands.registerCommand("nim.run.file", runFile)
   vscode.commands.registerCommand("nim.check", runCheck)
   vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
-  vscode.commands.registerCommand("nim.clearCaches", clearCaches)
+  vscode.commands.registerCommand("nim.clearCaches", clearCachesCmd)
   vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)
 
   processConfig(config)
@@ -395,7 +408,11 @@ proc activate*(ctx: VscodeExtensionContext): void =
   if not fs.existsSync(ctx.storagePath):
     fs.mkdirSync(ctx.storagePath)
 
-  discard initWorkspace(ctx.storagePath)
+  let cfgFiles = vscode.workspace.getConfiguration("files")
+  discard initWorkspace(
+            ctx.storagePath,
+            cfgFiles.getStrBoolMap("watcherExclude", defaultIndexExcludeGlobs)
+          )
 
   fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim")
   fileWatcher.onDidCreate(proc(uri: VscodeUri) =

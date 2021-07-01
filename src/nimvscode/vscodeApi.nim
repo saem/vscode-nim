@@ -681,6 +681,11 @@ proc getStr*(
   c: VscodeWorkspaceConfiguration,
   section: cstring
 ): cstring {.importcpp: "#.get(@)".}
+proc getStrBoolMap*(
+  c: VscodeWorkspaceConfiguration,
+  section: cstring,
+  default: JsAssoc[cstring, bool] = newJsAssoc[cstring, bool]()
+): JsAssoc[cstring, bool] {.importcpp: "#.get(@)".}
 
 # FileSystemWatcher
 proc dispose*(w: VscodeFileSystemWatcher): void {.importcpp.}

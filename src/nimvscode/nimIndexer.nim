@@ -13,6 +13,7 @@ import jsNodePath
 import jsPromise
 import asyncjs
 import jsre
+import jsString
 
 import jsconsole
 
@@ -39,6 +40,10 @@ type
     `type`*: cstring
     container*: cstring
     kind*: VscodeSymbolKind
+
+  IndexExcludeGlobs* = JsAssoc[cstring, bool]
+    ## glob string -> bool mapping, comes from the files watcherExclude config
+    ## we use this to avoid indexing things that we're not going to watch.
 
 proc vscodeKindFromNimSym(kind: cstring): VscodeSymbolKind =
   case $kind
@@ -240,12 +245,26 @@ proc cleanOldDb(basePath: cstring, name: cstring): void =
     if fs.existsSync(dbPath):
       fs.unlinkSync(dbPath)
 
-proc indexWorkspaceFiles() {.async.} =
-  var nimSuggestPath = nimSuggestExec.getNimSuggestPath()
-  if nimSuggestPath.isNil() or nimSuggestPath == "":
-    return;
+proc indexWorkspaceFiles(filters: IndexExcludeGlobs) {.async.} =
+  ## index the workspace files, exluding the ones in `filter`, this builds the
+  ## list of types and files so various searching works
+  let
+    nimSuggestPath = nimSuggestExec.getNimSuggestPath()
+    invalidNimSuggestPath = nimSuggestPath.isNil or nimSuggestPath == ""
+    excludeGlob = cstring("{") &
+      toSeq(filters.pairs).filterIt(it[1]).mapIt(it[0]).join(cstring(",")) &
+      cstring("}")
+    hasExcludes = excludeGlob != "{}"
+    urls =
+      if invalidNimSuggestPath:
+        await promiseResolve(newArray[VscodeUri]())
+      elif hasExcludes:
+        await vscode.workspace.findFiles("**/*.nim", excludeGlob)
+      else:
+        await vscode.workspace.findFiles("**/*.nim")
 
-  var urls = await vscode.workspace.findFiles("**/*.nim")
+  console.log("exclude globs: ", excludeGlob)
+
   showNimProgress("Indexing, file count: " & $(urls.len))
   for i, url in urls:
     var cnt = urls.len - 1
@@ -258,7 +277,9 @@ proc indexWorkspaceFiles() {.async.} =
 
   hideNimProgress()
 
-proc initWorkspace*(extPath: cstring) {.async.} =
+proc initWorkspace*(extPath: cstring, filters: IndexExcludeGlobs) {.async.} =
+  ## clear the caches and index all the files
+
   # remove old version of indcies
   cleanOldDb(extPath, "files")
   cleanOldDb(extPath, "types")
@@ -266,7 +287,7 @@ proc initWorkspace*(extPath: cstring) {.async.} =
   dbFiles = newFlatDb(path.join(extPath, getDbName("files", dbVersion)))
   dbTypes = newFlatDb(path.join(extPath, getDbName("types", dbVersion)))
 
-  await indexWorkspaceFiles()
+  await indexWorkspaceFiles(filters)
   discard dbFiles.processCommands()
   discard dbTypes.processCommands()
 
@@ -278,7 +299,7 @@ proc findWorkspaceSymbols*(
     reg = newRegExp(query, r"i")
     folders = vscode.workspace.workspaceFolders
     folderPaths: seq[cstring] = @[]
-  
+
   if not folders.toJs.to(bool):
     console.log("findWorkspaceSymbols - folder is empty:", folders)
     return symbols
@@ -309,10 +330,11 @@ proc findWorkspaceSymbols*(
   finally:
     return symbols
 
-proc clearCaches*() {.async.} =
+proc clearCaches*(filters: IndexExcludeGlobs) {.async.} =
+  ## clear file and type caches, and reindex while excluding `filter`ed files
   if dbTypes != nil: await dbTypes.drop()
   if dbFiles != nil: await dbFiles.drop()
-  await indexWorkspaceFiles()
+  await indexWorkspaceFiles(filters)
 
 proc onClose*() {.async.} =
   discard await allSettled(@[
