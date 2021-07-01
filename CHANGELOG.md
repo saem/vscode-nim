@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.1.23 (1 Jul 2021)
+
+* Support user-defined literals syntax highlighting by @DylanModesitt (#44)
+* don't index `files.watcherExcludes`, by default: `{.git/**, nimcache/**}`
+* Somber Canada Day. :/
+
 ## 0.1.22 (27 Jun 2021)
 
 * fixed file indexing for non-project config scenarios @shunf4 (#43)
