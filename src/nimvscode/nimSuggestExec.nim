@@ -29,7 +29,7 @@ type NimSuggestProcessDescription* = ref object
 
 var nimSuggestPath: cstring
 var nimSuggestVersion: cstring
-var nimSuggestProcessCache = newJsAssoc[cstring, Future[
+var nimSuggestProcessCache = newMap[cstring, Future[
     NimSuggestProcessDescription]]()
 var extensionContext*: VscodeExtensionContext
 
@@ -131,10 +131,10 @@ proc trace(pid: cint, projectFile: ProjectFileInfo, msg: JsObject): void =
 proc closeCachedProcess(desc: NimSuggestProcessDescription): void =
   if desc.toJs().to(bool):
     try:
-      if not desc.rpc.toJs().to(bool):
+      if desc.rpc.toJs().to(bool):
         desc.rpc.stop()
     finally:
-      if not desc.process.toJs().to(bool):
+      if desc.process.toJs().to(bool):
         desc.process.kill()
 
 proc closeNimsuggestProcess*(file: cstring) {.async.} =
