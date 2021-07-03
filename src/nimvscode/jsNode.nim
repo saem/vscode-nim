@@ -77,7 +77,7 @@ iterator pairs*[T](a: Array[T]): (cint, T) =
 proc `[]`*[K, V](m: Map[K, V], key: K): V {.importcpp: "#.get(@)".}
 proc `[]=`*[K, V](m: Map[K, V], key: K, value: V): void {.
     importcpp: "#.set(@)".}
-proc delete*[K, V](m: Map[K, V], key: K) {.importcpp.}
+proc delete*[K, V](m: Map[K, V], key: K): bool {.importcpp, discardable.}
 proc clear*[K, V](m: Map[K, V]) {.importcpp.}
 proc has*[K, V](m: Map[K, V], key: K): bool {.importcpp.}
 

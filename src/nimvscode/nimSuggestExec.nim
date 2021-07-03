@@ -29,7 +29,7 @@ type NimSuggestProcessDescription* = ref object
 
 var nimSuggestPath: cstring
 var nimSuggestVersion: cstring
-var nimSuggestProcessCache = newJsAssoc[cstring, Future[
+var nimSuggestProcessCache = newMap[cstring, Future[
     NimSuggestProcessDescription]]()
 var extensionContext*: VscodeExtensionContext
 
@@ -131,10 +131,10 @@ proc trace(pid: cint, projectFile: ProjectFileInfo, msg: JsObject): void =
 proc closeCachedProcess(desc: NimSuggestProcessDescription): void =
   if desc.toJs().to(bool):
     try:
-      if not desc.rpc.toJs().to(bool):
+      if desc.rpc.toJs().to(bool):
         desc.rpc.stop()
     finally:
-      if not desc.process.toJs().to(bool):
+      if desc.process.toJs().to(bool):
         desc.process.kill()
 
 proc closeNimsuggestProcess*(file: cstring) {.async.} =
@@ -154,7 +154,7 @@ proc closeNimsuggestProcess*(file: cstring) {.async.} =
       console.error("closeCachedProcess failed", getCurrentException())
     finally:
       nimSuggestProcessCache[file] = jsUndefined.to(Promise[NimSuggestProcessDescription])
-      discard jsDelete nimSuggestProcessCache[file]
+      discard nimSuggestProcessCache.delete(file)
 
 proc closeNimsuggestProcess*(project: ProjectFileInfo) {.async.} =
   await closeNimsuggestProcess(toLocalFile(project))
@@ -328,5 +328,6 @@ proc execNimSuggest*(
 
     return ret
   except:
-    console.error("Error in execNimSuggest: ", getCurrentException(), getCurrentExceptionMsg())
+    console.error("Error in execNimSuggest: ", getCurrentException(),
+        getCurrentExceptionMsg())
     await closeNimsuggestProcess(projectFile)
