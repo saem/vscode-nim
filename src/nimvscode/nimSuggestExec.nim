@@ -154,7 +154,7 @@ proc closeNimsuggestProcess*(file: cstring) {.async.} =
       console.error("closeCachedProcess failed", getCurrentException())
     finally:
       nimSuggestProcessCache[file] = jsUndefined.to(Promise[NimSuggestProcessDescription])
-      discard delete(nimSuggestProcessCache, file)
+      discard jsDelete nimSuggestProcessCache[file]
 
 proc closeNimsuggestProcess*(project: ProjectFileInfo) {.async.} =
   await closeNimsuggestProcess(toLocalFile(project))
@@ -328,6 +328,5 @@ proc execNimSuggest*(
 
     return ret
   except:
-    console.error("Error in execNimSuggest: ", getCurrentException(),
-        getCurrentExceptionMsg())
+    console.error("Error in execNimSuggest: ", getCurrentException(), getCurrentExceptionMsg())
     await closeNimsuggestProcess(projectFile)
