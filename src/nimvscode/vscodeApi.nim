@@ -701,6 +701,8 @@ proc onDidDelete*(
 # Languages
 proc match*(langs: VscodeLanguages, selector: VscodeDocumentFilter,
   doc: VscodeTextDocument): cint {.importcpp.}
+proc match*(langs: VscodeLanguages, selector: seq[VscodeDocumentFilter],
+  doc: VscodeTextDocument): cint {.importcpp.}
 proc createDiagnosticCollection*(
   langs: VscodeLanguages,
   selector: cstring

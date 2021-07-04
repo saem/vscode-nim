@@ -1,0 +1,88 @@
+{
+  "name": "Nim Comment",
+  "scopeName": "source.nim.comment",
+  "fileTypes": [],
+  "uuid": "fa6f2c1c-dd3f-4bcd-b2be-d05312be4081",
+  "patterns": [
+    {
+      "comment": "A multiline comment.",
+      "name": "comment.line.number-sign.multi-comment.nim",
+      "begin": "(?i)(\\#\\[)\\s*(todo\\b)?",
+      "end": "(?i)(\\]\\#)",
+      "patterns": [
+        {
+          "include": "$self"
+        }
+      ],
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.multi-comment.nim"
+        },
+        "2": {
+          "name": "invalid.illegal.TODO.nim"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.multi-comment.nim"
+        }
+      }
+    },
+    {
+      "comment": "A multiline documentation comment.",
+      "name": "comment.line.number-sign.multi-doc-comment.nim",
+      "begin": "(?i)(\\#\\#\\[)\\s*(todo\\b)?",
+      "end": "(?i)(\\]\\#\\#)",
+      "patterns": [
+        {
+          "include": "$self"
+        }
+      ],
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.multi-doc-comment.nim"
+        },
+        "2": {
+          "name": "invalid.illegal.TODO.nim"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.multi-doc-comment.nim"
+        }
+      }
+    },
+    {
+      "comment": "A documentation comment.",
+      "name": "comment.line.number-sign.doc-comment.nim",
+      "match": "(?i)(##\\s*)(todo\\b)?(.*$\\n?)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.doc-comment.nim"
+        },
+        "2": {
+          "name": "invalid.illegal.TODO.nim"
+        },
+        "3": {
+          "name": "comment.line.number-sign.doc-comment.body.nim"
+        }
+      }
+    },
+    {
+      "comment": "A regular comment",
+      "name": "comment.line.number-sign.comment.nim",
+      "match": "(?i)(#\\s*)(todo\\b)?(.*$\\n?)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.comment.nim"
+        },
+        "2": {
+          "name": "invalid.illegal.TODO.nim"
+        },
+        "3": {
+          "name": "comment.line.number-sign.comment.body.nim"
+        }
+      }
+    }
+  ]
+}

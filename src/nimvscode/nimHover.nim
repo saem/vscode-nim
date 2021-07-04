@@ -1,6 +1,5 @@
 import vscodeApi
 import nimSuggestExec
-import nimMode
 
 proc provideHover*(
   doc: VscodeTextDocument,
@@ -27,7 +26,7 @@ proc provideHover*(
         if definition.`type` != "":
           label &= ": " & definition.`type`
         var hoverLabel: VscodeMarkedString = VscodeHoverLabel{
-            language: mode.language, value: label}
+            language: doc.languageId, value: label}
 
         if definition.documentation != "":
           resolve(vscode.newVscodeHover(newArrayWith[VscodeMarkedString](hoverLabel, definition.documentation)))

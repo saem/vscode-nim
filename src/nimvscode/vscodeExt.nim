@@ -24,7 +24,7 @@ from nimImports import initImports, removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest, closeAllNimSuggestProcesses
 from nimUtils import ext, getDirtyFile, outputLine
 from nimProjects import processConfig, configUpdate
-from nimMode import mode
+from nimMode import modes, defaultMode
 
 from strformat import fmt
 
@@ -310,6 +310,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
 
   if config.getBool("enableNimsuggest"):
     initNimSuggest()
+    let mode = defaultMode
     ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode,
         nimCompletionItemProvider, ".", " "))
     ctx.subscriptions.add(vscode.languages.registerDefinitionProvider(mode,
@@ -377,16 +378,17 @@ proc activate*(ctx: VscodeExtensionContext): void =
       r"g"
     )
   }
-  try:
-    vscode.languages.setLanguageConfiguration(
-      mode.language,
-      languageConfig
-    )
-  except:
-    console.error("language configuration failed to set",
-      getCurrentException(),
-      getCurrentExceptionMsg()
-    )
+  for mode in modes:
+    try:
+      vscode.languages.setLanguageConfiguration(
+        mode.language,
+        languageConfig
+      )
+    except:
+      console.error("failed to set language configuration: ", mode.language,
+        getCurrentException(),
+        getCurrentExceptionMsg()
+      )
 
   vscode.window.onDidChangeActiveTextEditor(showHideStatus, nil,
     ctx.subscriptions)

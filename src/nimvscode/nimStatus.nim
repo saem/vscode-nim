@@ -1,6 +1,5 @@
 import vscodeApi
 import nimMode
-import jsffi
 import jsNode
 
 import jsconsole
@@ -16,7 +15,7 @@ proc showHideStatus*(): void =
     statusBarEntry.hide()
     return
 
-  if vscode.languages.match(mode, vscode.window.activeTextEditor.document) > 0:
+  if vscode.languages.match(modes, vscode.window.activeTextEditor.document) > 0:
     statusBarEntry.show()
     return
 

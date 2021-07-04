@@ -44,8 +44,10 @@
     },
     "activationEvents": [
         "onLanguage:nim",
+        "onLanguage:nims",
         "onLanguage:nimcfg",
         "onLanguage:nimble",
+        "onLanguage:nimf",
         "onCommand:nim.build",
         "onCommand:nim.run",
         "onCommand:nim.runTest",
@@ -56,27 +58,32 @@
         "languages": [
             {
                 "id": "nim",
-                "aliases": [
-                    "Nim",
-                    "nim"
-                ],
-                "extensions": [
-                    ".nim",
-                    ".nims",
-                    "nim.cfg",
-                    ".nim.cfg"
-                ],
+                "aliases": [ "Nim", "nim" ],
+                "extensions": [ ".nim" ],
+                "configuration": "./nimcfg.json"
+            },
+            {
+                "id": "nims",
+                "aliases": [ "Nim Script", "nims" ],
+                "extensions": [ ".nims" ],
+                "configuration": "./nimcfg.json"
+            },
+            {
+                "id": "nimcfg",
+                "aliases": [ "Nim Cfg", "nim cfg" ],
+                "extensions": [ "nim.cfg", ".nim.cfg" ],
                 "configuration": "./nimcfg.json"
             },
             {
                 "id": "nimble",
-                "aliases": [
-                    "Nimble",
-                    "nimble"
-                ],
-                "extensions": [
-                    ".nimble"
-                ],
+                "aliases": [ "Nimble", "nimble" ],
+                "extensions": [ ".nimble" ],
+                "configuration": "./nimcfg.json"
+            },
+            {
+                "id": "nimf",
+                "aliases": [ "Nim Filter", "nimf" ],
+                "extensions": [ ".nimf" ],
                 "configuration": "./nimcfg.json"
             }
         ],
@@ -87,9 +94,34 @@
                 "path": "./syntaxes/nim.json"
             },
             {
+                "language": "nims",
+                "scopeName": "source.nim",
+                "path": "./syntaxes/nim.json"
+            },
+            {
+                "language": "nimcfg",
+                "scopeName": "source.nimcfg",
+                "path": "./syntaxes/nim_cfg.json"
+            },
+            {
                 "language": "nimble",
                 "scopeName": "source.nimble",
                 "path": "./syntaxes/nimble.json"
+            },
+            {
+                "language": "nimf",
+                "scopeName": "source.nim_filter",
+                "path": "./syntaxes/nim_filter.json"
+            },
+            {
+                "path": "./syntaxes/nim_comments.json",
+                "scopeName": "source.nim.comment",
+                "injectTo": [
+                    "source.nim",
+                    "source.nimcfg",
+                    "source.nimble",
+                    "source.nim_filter"
+                ]
             }
         ],
         "problemMatchers": [

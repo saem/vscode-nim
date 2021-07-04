@@ -1,251 +1,36 @@
 {
-  "fileTypes": [
-    "nim"
-  ],
-  "keyEquivalent": "^~N",
   "name": "Nim",
+  "scopeName": "source.nim",
+  "uuid": "fa6f2c1c-dd3f-4bcd-b2be-d05312be4080",
+  "fileTypes": [
+    "nim",
+    "nims",
+    "nimble"
+  ],
   "patterns": [
     {
-      "begin": "[ \\t]*##\\[",
-      "contentName": "comment.block.doc-comment.content.nim",
-      "end": "\\]##",
-      "name": "comment.block.doc-comment.nim",
+      "include": "source.nim.comment"
+    },
+    {
+      "comment": "C",
+      "name": "source.c.embedded.nim",
       "patterns": [
         {
-          "include": "#multilinedoccomment",
-          "name": "comment.block.doc-comment.nested.nim"
-        }
-      ]
-    },
-    {
-      "begin": "[ \\t]*#\\[",
-      "contentName": "comment.block.content.nim",
-      "end": "\\]#",
-      "name": "comment.block.nim",
-      "patterns": [
-        {
-          "include": "#multilinecomment",
-          "name": "comment.block.nested.nim"
-        }
-      ]
-    },
-    {
-      "begin": "(^[ \\t]+)?(?=##)",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.whitespace.comment.leading.nim"
-        }
-      },
-      "end": "(?!\\G)",
-      "patterns": [
-        {
-          "begin": "##",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.nim"
-            }
-          },
-          "end": "\\n",
-          "name": "comment.line.number-sign.doc-comment.nim"
-        }
-      ]
-    },
-    {
-      "begin": "(^[ \\t]+)?(?=#[^\\[])",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.whitespace.comment.leading.nim"
-        }
-      },
-      "end": "(?!\\G)",
-      "patterns": [
-        {
-          "begin": "#",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.nim"
-            }
-          },
-          "end": "\\n",
-          "name": "comment.line.number-sign.nim"
-        }
-      ]
-    },
-    {
-      "comment": "A nim procedure or method",
-      "name": "meta.proc.nim",
-      "patterns": [
-        {
-          "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(?=\\(|\\=|:|\\[|\\n|\\{)",
-          "captures": {
-            "1": {
-              "name": "keyword.other"
-            },
-            "2": {
-              "name": "entity.name.function.nim"
-            },
-            "3": {
-              "name": "keyword.control.export"
-            }
-          },
-          "end": "\\)",
-          "patterns": [
-            {
-              "include": "source.nim"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "begin": "discard \"\"\"",
-      "comment": "A discarded triple string literal comment",
-      "end": "\"\"\"(?!\")",
-      "name": "comment.line.discarded.nim"
-    },
-    {
-      "include": "#custom_literal"
-    },
-    {
-      "include": "#float_literal"
-    },
-    {
-      "include": "#integer_literal"
-    },
-    {
-      "comment": "Operator as function name",
-      "match": "(?<=\\`)[^\\` ]+(?=\\`)",
-      "name": "entity.name.function.nim"
-    },
-    {
-      "captures": {
-        "1": {
-          "name": "keyword.control.export"
-        }
-      },
-      "comment": "Export qualifier.",
-      "match": "\\b\\s*(\\*)(?:\\s*(?=[,:])|\\s+(?=[=]))"
-    },
-    {
-      "comment": "Export qualifier following a type def.",
-      "match": "\\b([A-Z]\\w+)(\\*)",
-      "captures": {
-        "1": {
-          "name": "support.type.nim"
-        },
-        "2": {
-          "name": "keyword.control.export"
-        }
-      }
-    },
-    {
-      "include": "#string_literal"
-    },
-    {
-      "comment": "Language Constants.",
-      "match": "\\b(true|false|Inf|NegInf|NaN|nil)\\b",
-      "name": "constant.language.nim"
-    },
-    {
-      "comment": "Keywords that affect program control flow or scope.",
-      "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b",
-      "name": "keyword.control.nim"
-    },
-    {
-      "comment": "Keyword boolean operators for expressions.",
-      "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)",
-      "name": "keyword.boolean.nim"
-    },
-    {
-      "comment": "Generic operators for expressions.",
-      "match": "(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+",
-      "name": "keyword.operator.nim"
-    },
-    {
-      "comment": "Other keywords.",
-      "match": "(\\b(addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template)\\b)",
-      "name": "keyword.other.nim"
-    },
-    {
-      "comment": "Invalid and unused keywords.",
-      "match": "(\\b(generic|interface|lambda|out|shared)\\b)",
-      "name": "invalid.illegal.invalid-keyword.nim"
-    },
-    {
-      "comment": "Common functions",
-      "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low)\\b",
-      "name": "keyword.other.common.function.nim"
-    },
-    {
-      "comment": "Built-in, concrete types.",
-      "match": "\\b(((uint|int)(8|16|32|64)?)|cint|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
-      "name": "storage.type.concrete.nim"
-    },
-    {
-      "comment": "Built-in, generic types.",
-      "match": "\\b(range|array|seq|set|pointer)\\b",
-      "name": "storage.type.generic.nim"
-    },
-    {
-      "comment": "Special types.",
-      "match": "\\b(openArray|varargs|void)\\b",
-      "name": "storage.type.generic.nim"
-    },
-    {
-      "comment": "Other constants.",
-      "match": "\\b[A-Z][A-Z0-9_]+\\b",
-      "name": "support.constant.nim"
-    },
-    {
-      "comment": "Other types.",
-      "match": "\\b[A-Z]\\w+\\b",
-      "name": "support.type.nim"
-    },
-    {
-      "comment": "Function call.",
-      "match": "\\b\\w+\\b(?=(\\[([a-zA-Z0-9_,]|\\s)+\\])?\\()",
-      "name": "support.function.any-method.nim"
-    },
-    {
-      "comment": "Function call (no parenthesis).",
-      "match": "(?!(openArray|varargs|void|range|array|seq|set|pointer|new|await|assert|echo|defined|declared|newException|countup|countdown|high|low|((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed|addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template|and|in|is|isnot|not|notin|or|xor|proc|method|template|macro|iterator|converter|func|true|false|Inf|NegInf|NaN|nil|block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b)\\w+\\s+(?!(and|in|is|isnot|not|notin|or|xor|[^a-zA-Z0-9_\"'`(-+]+)\\b)(?=[a-zA-Z0-9_\"'`(-+])",
-      "name": "support.function.any-method.nim"
-    },
-    {
-      "begin": "(^\\s*)?(?=\\{\\.emit: ?\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
-      "patterns": [
-        {
-          "begin": "\\{\\.(emit:) ?(\"\"\")",
+          "begin": "\\{\\.(emit:) ?(\\\"\\\"\\\")",
           "captures": {
             "1": {
               "name": "keyword.other.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "source.c",
-          "end": "(\")\"\"(?!\")(\\.{0,1}\\})?",
+          "end": "(\\\"\\\"\\\")\\.?",
           "endCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
             "1": {
-              "name": "source.c"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.c",
           "patterns": [
             {
               "begin": "\\`",
@@ -260,146 +45,25 @@
       ]
     },
     {
-      "begin": "\\{\\.",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.pragma.start.nim"
-        }
-      },
-      "end": "\\.?\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.pragma.end.nim"
-        }
-      },
+      "comment": "assembly",
+      "name": "source.asm.embedded.nim",
       "patterns": [
         {
-          "begin": "\\b([[:alpha:]]\\w*)(?:\\s|\\s*:)",
-          "beginCaptures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            }
-          },
-          "end": "(?=\\.?\\}|,)",
-          "patterns": [
-            {
-              "include": "source.nim"
-            }
-          ]
-        },
-        {
-          "begin": "\\b([[:alpha:]]\\w*)\\(",
-          "beginCaptures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            }
-          },
-          "end": "\\)",
-          "patterns": [
-            {
-              "include": "source.nim"
-            }
-          ]
-        },
-        {
-          "match": "\\b([[:alpha:]]\\w*)(?=\\.?\\}|,)",
-          "captures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            }
-          }
-        },
-        {
-          "begin": "\\b([[:alpha:]]\\w*)(\"\"\")",
-          "beginCaptures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            },
-            "2": {
-              "name": "punctuation.definition.string.begin.nim"
-            }
-          },
-          "end": "\"\"\"(?!\")",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.end.nim"
-            }
-          },
-          "name": "string.quoted.triple.raw.nim"
-        },
-        {
-          "begin": "\\b([[:alpha:]]\\w*)(\")",
-          "beginCaptures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            },
-            "2": {
-              "name": "punctuation.definition.string.begin.nim"
-            }
-          },
-          "end": "\"",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.end.nim"
-            }
-          },
-          "name": "string.quoted.double.raw.nim"
-        },
-        {
-          "begin": "\\b(hint\\[\\w+\\]):",
-          "beginCaptures": {
-            "1": {
-              "name": "meta.preprocessor.pragma.nim"
-            }
-          },
-          "end": "(?=\\.?\\}|,)",
-          "patterns": [
-            {
-              "include": "source.nim"
-            }
-          ]
-        },
-        {
-          "match": ",",
-          "name": "punctuation.separator.comma.nim"
-        }
-      ]
-    },
-    {
-      "begin": "(^\\s*)?(?=asm \"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
-      "patterns": [
-        {
-          "begin": "(asm) (\"\"\")",
+          "begin": "(asm )(\\\"\\\"\\\")",
           "captures": {
             "1": {
               "name": "keyword.other.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "source.asm",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "source.asm"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.asm",
           "patterns": [
             {
               "begin": "\\`",
@@ -414,6 +78,397 @@
       ]
     },
     {
+      "comment": "A nim procedure or method declaration",
+      "name": "meta.proc.nim",
+      "patterns": [
+        {
+          "begin": "(?<![\\w\\x{80}-\\x{10FFFF}])(proc|func|method|template|macro|iterator|converter)\\s+((\\`[^\\s\\`]+\\`)|([\\w\\x{80}-\\x{10FFFF}]+))(\\*)?",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.proc.nim"
+            },
+            "2": {
+              "name": "entity.name.function.nim"
+            },
+            "5": {
+              "name": "keyword.operator.secondary.kw-public.nim"
+            }
+          },
+          "end": "(\\=)",
+          "endCaptures": {
+            "1": {
+              "name": "keyword.operator.nim"
+            }
+          },
+          "patterns": [
+            {
+              "comment": "Generic",
+              "match": "\\[[\\w\\x{80}-\\x{10FFFF}]+\\]"
+            },
+            {
+              "begin": "\\{",
+              "comment": "Pattern",
+              "end": "\\}",
+              "patterns": [
+                {
+                  "begin": "\\\"",
+                  "end": "\\\"",
+                  "name": "string.something.nim"
+                },
+                {
+                  "match": "([\\w\\x{80}-\\x{10FFFF}]+)",
+                  "name": "entity.other.attribute-name.pattern.nim"
+                }
+              ]
+            },
+            {
+              "begin": "\\(",
+              "comment": "Parameters",
+              "end": "\\)",
+              "patterns": [
+                {
+                  "begin": "\\{",
+                  "comment": "Pattern",
+                  "end": "\\}",
+                  "patterns": [
+                    {
+                      "begin": "\\\"",
+                      "end": "\\\"",
+                      "name": "string.something.nim"
+                    },
+                    {
+                      "match": "([\\[\\]\\w\\x{80}-\\x{10FFFF}]+)",
+                      "name": "entity.other.attribute-name.pattern.nim"
+                    }
+                  ]
+                },
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "include": "source.nim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "\\{\\.",
+      "comment": "Pragmas",
+      "end": "\\.?\\}",
+      "name": "pragma",
+      "patterns": [
+        {
+          "begin": "\\\"",
+          "end": "\\\"",
+          "name": "string.something.nim"
+        },
+        {
+          "match": "([\\w\\x{80}-\\x{10FFFF}]+)",
+          "name": "entity.other.attribute-name.pragma.nim"
+        }
+      ]
+    },
+    {
+      "begin": "discard \\\"\\\"\\\"",
+      "comment": "A discarded triple string literal comment",
+      "end": "\\\"\\\"\\\"",
+      "name": "comment.line.discarded.nim"
+    },
+    {
+      "comment": "A float literal",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(\\d[_\\d]*((\\.[_\\d]+([eE][\\+\\-]?\\d[_\\d]*)?)|([eE][\\+\\-]?\\d[_\\d]*)))('?([a-zA-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*)|[fFdD])?",
+      "name": "constant.numeric.float.decimal.nim"
+    },
+    {
+      "comment": "A hexadecimal literal",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(0[xX][0-9A-Fa-f][_0-9A-Fa-f]*)('?(([a-zA-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*)|[uUfFdD]))?",
+      "name": "constant.numeric.integer.hexadecimal.nim"
+    },
+    {
+      "comment": "A base-8 integer literal",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(0[ocC][0-7][_0-7]*)('?(([a-zA-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*)|[uUfFdD]))?",
+      "name": "constant.numeric.integer.octal.nim"
+    },
+    {
+      "comment": "A base-2 integer literal",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(0(b|B)[01][_01]*)('?(([a-zA-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*)|[uUfFdD]))?",
+      "name": "constant.numeric.integer.binary.nim"
+    },
+    {
+      "comment": "A base-10 integer literal",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(\\d[_\\d]*)('?(([a-zA-Z\\x{80}-\\x{10FFFF}][\\w\\x{80}-\\x{10FFFF}]*)|[uUfFdD]))?",
+      "name": "constant.numeric.integer.decimal.nim"
+    },
+    {
+      "comment": "Language Constants.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(true|false|inf|nil)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "constant.language.nim"
+    },
+    {
+      "begin": "(?:^|\\s+|=)(when|if)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.primary.nim"
+        }
+      },
+      "comment": "Primary branching keywords",
+      "end": "(?=:)",
+      "endCaptures": {
+        "1": {
+          "name": "control.variable.parameter.nim"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "begin": "(?:^|\\s+|=)(case)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.primary.nim"
+        }
+      },
+      "comment": "Primary branching keyword 'case'",
+      "end": "(?=\\bof\\b)",
+      "endCaptures": {
+        "1": {
+          "name": "control.variable.parameter.nim"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "begin": "(?:^|\\s+)(of|else|elif)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.secondary.nim"
+        }
+      },
+      "comment": "Secondary branching keywords and their conditions",
+      "end": "(?=:)",
+      "endCaptures": {
+        "1": {
+          "name": "control.variable.parameter.nim"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "comment": "Keywords that affect program control flow or scope.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(await|block|break|continue|do|end|except|finally|raise|return|try|while|yield)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "keyword.control.nim"
+    },
+    {
+      "comment": "Keyword boolean operators for expressions.",
+      "match": "((?<![\\w\\x{80}-\\x{10FFFF}])(and|in|is|isnot|not|notin|or|xor)(?![\\w\\x{80}-\\x{10FFFF}]))",
+      "name": "keyword.operator.boolean.nim"
+    },
+    {
+      "comment": "Other keywords.",
+      "match": "((?<![\\w\\x{80}-\\x{10FFFF}])(addr|as|bind|cast|concept|const|converter|defer|discard|distinct|div|enum|export|from|import|include|let|mixin|object|of|out|ptr|ref|shl|shr|static|type|using|var)(?![\\w\\x{80}-\\x{10FFFF}]))",
+      "name": "keyword.other.nim"
+    },
+    {
+      "comment": "Generic operators for expressions.",
+      "match": "(\\b()\\b|(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+)",
+      "name": "keyword.operator.nim"
+    },
+    {
+      "begin": "(for)\\s+",
+      "captures": {
+        "1": {
+          "name": "keyword.control.nim"
+        }
+      },
+      "comment": "in keyword in a 'for' loop",
+      "end": "(?=:)",
+      "name": "meta.forloop.nim",
+      "patterns": [
+        {
+          "captures": {
+            "1": {
+              "name": "keyword.control.nim"
+            }
+          },
+          "match": "\\ [\\w\\x{80}-\\x{10FFFF},]+\\s+(in)\\s+"
+        },
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "captures": {
+        "2": {
+          "name": "keyword.control.nim"
+        }
+      },
+      "comment": "Import syntax",
+      "match": "((import)\\s+[\\.|\\w|\\/]+,?)"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "keyword.control.nim"
+        }
+      },
+      "match": "(from)\\s+[\\/\\w]+(?:\\s+(?:as)\\s+[\\/\\w]+)?\\s+(?=import)"
+    },
+    {
+      "begin": "(var|let)\\s*\\(",
+      "captures": {
+        "1": {
+          "name": "keyword.other.nim"
+        }
+      },
+      "comment": "Destructure syntax",
+      "end": "\\)"
+    },
+    {
+      "comment": "Invalid and unused keywords.",
+      "match": "((?<![\\w\\x{80}-\\x{10FFFF}])(interface)(?![\\w\\x{80}-\\x{10FFFF}]))",
+      "name": "keyword.invalid.nim"
+    },
+    {
+      "comment": "Common functions",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(new|GC_ref|GC_unref|assert|echo|defined|declared|newException|countup|countdown|len|high|low)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "keyword.other.common.function.nim"
+    },
+    {
+      "comment": "Built-in, concrete types.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(((uint|int|float)(8|16|32|64)?)|clong|culong|cchar|cschar|cshort|cint|csize|clonglong|cfloat|cdouble|clongdouble|cuchar|cushort|cuint|culonglong|cstringArray|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "storage.type.concrete.nim"
+    },
+    {
+      "comment": "Built-in, generic types.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(range|array|seq|tuple|Natural|set|ref|ptr|pointer)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Function types",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(proc|func|iterator|method|template|macro)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "storage.type.function.nim"
+    },
+    {
+      "comment": "Special types.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(openarray|varargs|void)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Other constants.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])([A-Z][A-Z0-9_]+)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "support.constant.nim"
+    },
+    {
+      "comment": "Other types.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])([A-Z]\\w+)(?![\\w\\x{80}-\\x{10FFFF}])",
+      "name": "support.type.nim"
+    },
+    {
+      "comment": "Function call.",
+      "match": "(?<![\\w\\x{80}-\\x{10FFFF}])(\\w+)(?![\\w\\x{80}-\\x{10FFFF}])(?=\\()",
+      "name": "support.function.any-method.nim"
+    },
+    {
+      "begin": "\\w*\\\"\\\"\\\"",
+      "comment": "(Raw) Triple Quoted String",
+      "end": "\\\"\\\"\\\"[^\\\"]",
+      "name": "string.quoted.triple.nim"
+    },
+    {
+      "begin": "\\w+\\\"",
+      "comment": "Raw Double Quoted String",
+      "end": "\\\"",
+      "name": "string.quoted.double.raw.nim",
+      "patterns": [
+        {
+          "match": "\\\"\\\""
+        }
+      ]
+    },
+    {
+      "begin": "\\\"",
+      "comment": "Double Quoted String",
+      "end": "\\\"",
+      "name": "string.quoted.double.nim",
+      "patterns": [
+        {
+          "include": "#escaped_char"
+        }
+      ]
+    },
+    {
+      "comment": "Single quoted character literal",
+      "match": "\\'([^\\\\]|\\\\x[0-9A-Fa-f][0-9A-Fa-f]|\\\\\\d+|\\\\[abceflnrtv\\\\\\\"\\'])\\'",
+      "name": "string.quoted.single.nim"
+    },
+    {
+      "comment": "Flawed single quoted character literal escaped",
+      "match": "\\'\\\\[^abceflnrtv\\\\\\\"\\']\\'",
+      "name": "invalid.illegal.character.nim"
+    },
+    {
+      "comment": "Flawed single quoted character literal other adjacent",
+      "match": "\\'[A-Fa-f0-9\\x{80}-\\x{10FFFF}][A-Fa-f0-9\\x{80}-\\x{10FFFF}]+\\'",
+      "name": "invalid.illegal.character.nim"
+    },
+    {
+      "begin": "([\\w\\x{80}-\\x{10FFFF}\\`]+)\\s*(?=\\(|\\[.+?\\]\\s*\\()",
+      "captures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "comment": "Call syntax",
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "comment": "Command syntax",
+      "match": "([\\w\\x{80}-\\x{10FFFF}]+)(?=\\s+[\\w](?![\\w\\x{80}-\\x{10FFFF}]+((?!\\n)\\s)+))",
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "match": "([\\w\\x{80}-\\x{10FFFF}]+)(?=\\s+[\\\"\\'\\`])",
+      "patterns": [
+        {
+          "include": "source.nim"
+        }
+      ]
+    },
+    {
       "captures": {
         "1": {
           "name": "storage.type.function.nim"
@@ -423,43 +478,27 @@
         }
       },
       "comment": "tmpl specifier",
-      "match": "(tmpl(i)?)(?=( (html|xml|js|css|glsl|md))?\"\"\")"
+      "match": "(tmpl(i)?)(?=( (nim|html|xml|js|css|glsl|md))?\\\"\\\"\\\")"
     },
     {
-      "begin": "(^\\s*)?(?=html\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.nim.embedded.nim",
       "patterns": [
         {
-          "begin": "(html)(\"\"\")",
+          "begin": "(nim)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "text.html",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "text.html"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.html",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -499,7 +538,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -515,51 +554,35 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
-              "include": "text.html.basic"
+              "include": "source.nim"
             }
           ]
         }
       ]
     },
     {
-      "begin": "(^\\s*)?(?=xml\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.html.embedded.nim",
       "patterns": [
         {
-          "begin": "(xml)(\"\"\")",
+          "begin": "(html)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "text.xml",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "text.xml"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.xml",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -599,7 +622,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -615,7 +638,7 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
@@ -626,40 +649,24 @@
       ]
     },
     {
-      "begin": "(^\\s*)?(?=js\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.xml.embedded.nim",
       "patterns": [
         {
-          "begin": "(js)(\"\"\")",
+          "begin": "(xml)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "source.js",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "source.js"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.js",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -699,7 +706,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -715,7 +722,91 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "text.xml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source.js.embedded.nim",
+      "patterns": [
+        {
+          "begin": "(js)(\\\"\\\"\\\")",
+          "captures": {
+            "1": {
+              "name": "storage.type.function.nim"
+            },
+            "2": {
+              "name": "comment.syntax.nim"
+            }
+          },
+          "end": "\\\"\\\"\\\"",
+          "endCaptures": {
+            "0": {
+              "name": "comment.syntax.nim"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.control.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
@@ -726,40 +817,24 @@
       ]
     },
     {
-      "begin": "(^\\s*)?(?=css\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.css.embedded.nim",
       "patterns": [
         {
-          "begin": "(css)(\"\"\")",
+          "begin": "(css)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "source.css",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "source.css"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.css",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -799,7 +874,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -815,7 +890,7 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
@@ -826,40 +901,24 @@
       ]
     },
     {
-      "begin": "(^\\s*)?(?=glsl\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.glsl.embedded.nim",
       "patterns": [
         {
-          "begin": "(glsl)(\"\"\")",
+          "begin": "(glsl)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "source.glsl",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "source.glsl"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.glsl",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -899,7 +958,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -915,7 +974,7 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
@@ -926,40 +985,24 @@
       ]
     },
     {
-      "begin": "(^\\s*)?(?=md\"\"\")",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.leading.nim"
-        }
-      },
-      "end": "(?!\\G)(\\s*$\\n?)?",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.whitespace.embedded.trailing.nim"
-        }
-      },
+      "name": "source.markdown.embedded.nim",
       "patterns": [
         {
-          "begin": "(md)(\"\"\")",
+          "begin": "(md)(\\\"\\\"\\\")",
           "captures": {
             "1": {
-              "name": "keyword.other.nim"
+              "name": "storage.type.function.nim"
             },
             "2": {
-              "name": "punctuation.section.embedded.begin.nim"
+              "name": "comment.syntax.nim"
             }
           },
-          "contentName": "text.html.markdown",
-          "end": "(\")\"\"(?!\")",
+          "end": "\\\"\\\"\\\"",
           "endCaptures": {
             "0": {
-              "name": "punctuation.section.embedded.end.nim"
-            },
-            "1": {
-              "name": "text.html.markdown"
+              "name": "comment.syntax.nim"
             }
           },
-          "name": "meta.embedded.block.html.markdown",
           "patterns": [
             {
               "begin": "(?<!\\$)(\\$)\\(",
@@ -999,7 +1042,7 @@
                   "name": "keyword.operator.nim"
                 },
                 "2": {
-                  "name": "keyword.operator.nim"
+                  "name": "keyword.control.nim"
                 }
               },
               "end": "(\\{|\\n)",
@@ -1015,11 +1058,11 @@
               ]
             },
             {
-              "match": "(?<!\\$)(\\$\\w+)",
+              "match": "(?<!\\$)(\\$[a-zA-Z0-9_]+)",
               "name": "keyword.operator.nim"
             },
             {
-              "include": "text.html.markdown"
+              "include": "text.html.markdown.multimarkdown"
             }
           ]
         }
@@ -1027,32 +1070,18 @@
     }
   ],
   "repository": {
-    "multilinecomment": {
-      "begin": "#\\[",
-      "end": "\\]#",
+    "escaped_char": {
       "patterns": [
         {
-          "include": "#multilinecomment"
-        }
-      ]
-    },
-    "multilinedoccomment": {
-      "begin": "##\\[",
-      "end": "\\]##",
-      "patterns": [
-        {
-          "include": "#multilinedoccomment"
-        }
-      ]
-    },
-    "char_escapes": {
-      "patterns": [
+          "match": "\\\\[nN]",
+          "name": "constant.character.escape.newline.nim"
+        },
         {
           "match": "\\\\[cC]|\\\\[rR]",
           "name": "constant.character.escape.carriagereturn.nim"
         },
         {
-          "match": "\\\\[lL]|\\\\[nN]",
+          "match": "\\\\[lL]",
           "name": "constant.character.escape.linefeed.nim"
         },
         {
@@ -1092,7 +1121,7 @@
           "name": "constant.character.escape.escape.nim"
         },
         {
-          "match": "\\\\[xX]\\h\\h",
+          "match": "\\\\[xX][0-9A-Fa-f]{2}",
           "name": "constant.character.escape.hex.nim"
         },
         {
@@ -1100,427 +1129,6 @@
           "name": "constant.character.escape.backslash.nim"
         }
       ]
-    },
-    "string_escapes": {
-      "patterns": [
-        {
-          "match": "\\\\[pP]",
-          "name": "constant.character.escape.newline.nim"
-        },
-        {
-          "match": "\\\\[uU]\\h\\h\\h\\h",
-          "name": "constant.character.escape.hex.nim"
-        },
-        {
-          "match": "\\\\[uU]\\{\\h+\\}",
-          "name": "constant.character.escape.hex.nim"
-        },
-        {
-          "include": "#char_escapes"
-        }
-      ]
-    },
-    "raw_string_escapes": {
-      "match": "[^\"](\"\")",
-      "captures": {
-        "1": {
-          "name": "constant.character.escape.double-quote.nim"
-        }
-      }
-    },
-    "fmt_interpolation": {
-      "begin": "\\{",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.template-expression.begin.nim"
-        }
-      },
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.template-expression.end.nim"
-        }
-      },
-      "patterns": [
-        {
-          "begin": ":",
-          "end": "(?=\\})",
-          "name": "meta.template.format-specifier.nim"
-        },
-        {
-          "include": "source.nim"
-        }
-      ],
-      "name": "meta.template.expression.nim"
-    },
-    "string_literal": {
-      "patterns": [
-        {
-          "include": "#fmt_string_triple"
-        },
-        {
-          "include": "#fmt_string_triple_operator"
-        },
-        {
-          "include": "#extended_string_quoted_triple_raw"
-        },
-        {
-          "include": "#string_quoted_triple_raw"
-        },
-        {
-          "include": "#fmt_string_operator"
-        },
-        {
-          "include": "#fmt_string"
-        },
-        {
-          "include": "#fmt_string_call"
-        },
-        {
-          "include": "#string_quoted_double_raw"
-        },
-        {
-          "include": "#extended_string_quoted_double_raw"
-        },
-        {
-          "include": "#string_quoted_single"
-        },
-        {
-          "include": "#string_quoted_triple"
-        },
-        {
-          "include": "#string_quoted_double"
-        }
-      ]
-    },
-    "fmt_string": {
-      "begin": "\\b(fmt)(\")",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.double.raw.nim",
-      "patterns": [
-        {
-          "match": "(?<!\")\"(?!\")",
-          "name": "invalid.illegal.nim"
-        },
-        {
-          "include": "#raw_string_escapes"
-        },
-        {
-          "include": "#fmt_interpolation"
-        }
-      ]
-    },
-    "fmt_string_triple": {
-      "begin": "\\b(fmt)(\"\"\")",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"\"\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.triple.raw.nim",
-      "patterns": [
-        {
-          "include": "#fmt_interpolation"
-        }
-      ]
-    },
-    "fmt_string_operator": {
-      "begin": "(&)(\")",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.operator.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.double.nim",
-      "patterns": [
-        {
-          "match": "\"",
-          "name": "invalid.illegal.nim"
-        },
-        {
-          "include": "#string_escapes"
-        },
-        {
-          "include": "#fmt_interpolation"
-        }
-      ]
-    },
-    "fmt_string_triple_operator": {
-      "begin": "(&)(\"\"\")",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.operator.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"\"\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.triple.raw.nim",
-      "patterns": [
-        {
-          "include": "#fmt_interpolation"
-        }
-      ]
-    },
-    "fmt_string_call": {
-      "begin": "(fmt)\\((?=\")",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        }
-      },
-      "end": "\\)",
-      "patterns": [
-        {
-          "begin": "\"",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.begin.nim"
-            }
-          },
-          "end": "\"(?=\\))",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.end.nim"
-            }
-          },
-          "name": "string.quoted.double.nim",
-          "patterns": [
-            {
-              "match": "\"",
-              "name": "invalid.illegal.nim"
-            },
-            {
-              "include": "#string_escapes"
-            },
-            {
-              "include": "#fmt_interpolation"
-            }
-          ]
-        }
-      ]
-    },
-    "string_quoted_double": {
-      "begin": "\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "comment": "Double Quoted String",
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.double.nim",
-      "patterns": [
-        {
-          "include": "#string_escapes"
-        }
-      ]
-    },
-    "string_quoted_double_raw": {
-      "begin": "\\br\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.double.raw.nim",
-      "patterns": [
-        {
-          "include": "#raw_string_escapes"
-        }
-      ]
-    },
-    "extended_string_quoted_double_raw": {
-      "begin": "\\b(\\w+)(\")",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.double.raw.nim",
-      "patterns": [
-        {
-          "include": "#raw_string_escapes"
-        }
-      ]
-    },
-    "string_quoted_single": {
-      "begin": "'",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "comment": "Single quoted character literal",
-      "end": "'",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.single.nim",
-      "patterns": [
-        {
-          "include": "#char_escapes"
-        },
-        {
-          "match": "([^']{2,}?)",
-          "name": "invalid.illegal.character.nim"
-        }
-      ]
-    },
-    "string_quoted_triple": {
-      "begin": "\"\"\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "comment": "Triple Quoted String",
-      "end": "\"\"\"(?!\")",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.triple.nim"
-    },
-    "string_quoted_triple_raw": {
-      "begin": "r\"\"\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "comment": "Raw Triple Quoted String",
-      "end": "\"\"\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.triple.raw.nim"
-    },
-    "extended_string_quoted_triple_raw": {
-      "begin": "\\b(\\w+)(\"\"\")",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        }
-      },
-      "end": "\"\"\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.nim"
-        }
-      },
-      "name": "string.quoted.triple.raw.nim"
-    },
-    "custom_literal": {
-      "patterns": [
-        {
-          "match": "\\b(\\d[_\\d]*)'(\\w+)",
-          "name": "constant.numeric.custom.lit.nim"
-        }
-      ]
-    },
-    "float_literal": {
-      "patterns": [
-        {
-          "match": "\\b0[xX]\\h[_\\h]*'([fF](32|64|128)|[fFdD])",
-          "name": "constant.numeric.float.hexadecimal.nim"
-        },
-        {
-          "match": "\\b0o[0-7][_0-7]*'([fF](32|64|128)|[fFdD])",
-          "name": "constant.numeric.float.octal.nim"
-        },
-        {
-          "match": "\\b0(b|B)[01][_01]*'([fF](32|64|128)|[fFdD])",
-          "name": "constant.numeric.float.binary.nim"
-        },
-        {
-          "match": "\\b(\\d[_\\d]*)'([fF](32|64|128)|[fFdD])",
-          "name": "constant.numeric.float.decimal.nim"
-        }
-      ]
-    },
-    "integer_literal": {
-      "patterns": [
-        {
-          "match": "\\b(0[xX]\\h[_\\h]*)('(([iIuU](8|16|32|64))|[uU]))?",
-          "name": "constant.numeric.integer.hexadecimal.nim"
-        },
-        {
-          "match": "\\b(0o[0-7][_0-7]*)('(([iIuU](8|16|32|64))|[uU]))?",
-          "name": "constant.numeric.integer.octal.nim"
-        },
-        {
-          "match": "\\b(0(b|B)[01][_01]*)('(([iIuU](8|16|32|64))|[uU]))?",
-          "name": "constant.numeric.integer.binary.nim"
-        }
-      ]
     }
-  },
-  "scopeName": "source.nim",
-  "uuid": "6DD62CE8-B129-4554-BD8E-CE5DB490E5A4"
+  }
 }

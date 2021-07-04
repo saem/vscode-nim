@@ -1,0 +1,133 @@
+{
+  "name": "Nim Source Code Filter",
+  "scopeName": "source.nim_filter",
+  "fileTypes": [
+    "nimf"
+  ],
+  "uuid": "c6396a10-4bb4-4929-aee5-1d893828b098",
+  "patterns": [
+    {
+      "name": "meta.start.nim_filter",
+      "begin": "\\A(#!)",
+      "patterns": [
+        {
+          "name": "comment.line.nim_filter",
+          "begin": "^\\s*#",
+          "patterns": [
+            {
+              "name": "constant.numeric.float.decimal.nim_filter",
+              "match": "\\b((\\d[_\\d]*\\.[_\\d]+([eE][\\+\\-]?\\d[_\\d]*)?)|([eE][\\+\\-]?\\d[_\\d]*))('[fF](32|64))?"
+            },
+            {
+              "name": "constant.numeric.integer.hexadecimal.nim_filter",
+              "match": "\\b(0[xX][0-9A-Fa-f][_0-9A-Fa-f]*)('[iIuU](8|16|32|64))?"
+            },
+            {
+              "comment": "For simplicity's sake, we don't enforce floats only having 32 and 64 prefix types.",
+              "name": "constant.numeric.integer.octal.nim_filter",
+              "match": "\\b(0o[0-7][_0-7]*)('[iIuUfF](8|16|32|64))?"
+            },
+            {
+              "name": "constant.numeric.integer.binary.nim_filter",
+              "match": "\\b(0(b|B)[01][_01]*)('[iIuUfF](8|16|32|64))?"
+            },
+            {
+              "name": "constant.numeric.integer.decimal.nim_filter",
+              "match": "\\b(\\d[_\\d]*)('[iIuUfF](8|16|32|64))?"
+            },
+            {
+              "comment": "Language Constants.",
+              "name": "constant.language.nim_filter",
+              "match": "\\b(true|false|inf|nil)\\b"
+            },
+            {
+              "comment": "Keywords that affect program control flow or scope.",
+              "name": "keyword.control.nim_filter",
+              "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b"
+            },
+            {
+              "comment": "Keyword boolean operators for expressions.",
+              "name": "keyword.operator.boolean.nim_filter",
+              "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)"
+            },
+            {
+              "comment": "Generic operators for expressions.",
+              "name": "keyword.operator.nim_filter",
+              "match": "(\\b()\\b|(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+)"
+            },
+            {
+              "comment": "Other keywords.",
+              "name": "keyword.other.nim_filter",
+              "match": "(\\b(addr|as|asm|atomic|bind|cast|concept|const|discard|distinct|div|enum|export|from|import|include|let|mod|object|of|ptr|ref|shl|shr|static|tuple|type|var)\\b)"
+            },
+            {
+              "comment": "Invalid and unused keywords.",
+              "name": "keyword.invalid.nim_filter",
+              "match": "(\\b(converter|generic|interface|lambda|mixin|out|shared|with|without)\\b)"
+            },
+            {
+              "comment": "Built-in, concrete types.",
+              "name": "storage.type.concrete.nim_filter",
+              "match": "\\b(((uint|int|float)(8|16|32|64)?)|bool|string|cstring|char|tobject|typedesc)\\b"
+            },
+            {
+              "comment": "Built-in, generic types.",
+              "name": "storage.type.generic.nim_filter",
+              "match": "\\b(range|array|seq|natural|set|ref|ptr)\\b"
+            },
+            {
+              "comment": "Function types",
+              "name": "storage.type.function.nim_filter",
+              "match": "\\b(proc|iterator|method|template|macro)\\b"
+            },
+            {
+              "comment": "Common functions",
+              "name": "keyword.function.nim_filter",
+              "match": "\\b(echo|newException)\\b"
+            },
+            {
+              "comment": "Special types.",
+              "name": "storage.type.generic.nim_filter",
+              "match": "\\b(openarray|varargs|void)\\b"
+            },
+            {
+              "comment": "(Raw) Triple Quoted String",
+              "name": "string.quoted.triple.nim_filter",
+              "begin": "(\\w[_\\w]*)?\\\"\\\"\\\"",
+              "end": "\\\"\\\"\\\"[^\"]"
+            },
+            {
+              "comment": "Raw Double Quoted String",
+              "name": "string.quoted.double.raw.nim_filter",
+              "begin": "r\\\"",
+              "end": "\\\"",
+              "patterns": [
+                {
+                  "match": "\\\"\\\""
+                }
+              ]
+            },
+            {
+              "comment": "Double Quoted String",
+              "name": "string.quoted.double.nim_filter",
+              "begin": "(\\w[_\\w]*)?\\\"",
+              "end": "\\\"",
+              "patterns": [
+                {
+                  "match": "(\\\\([abenrclftv]|[\"']|[0-9])|x[0-9A-Fa-f]{2})"
+                }
+              ]
+            },
+            {
+              "comment": "Single quoted character literal",
+              "name": "string.quoted.single.nim_filter",
+              "match": "\\'(\\\\\\d{1,3}|\\\\?[^\\n]?)\\'"
+            }
+          ],
+          "end": "\\n"
+        }
+      ],
+      "end": "\\z(!?\\n)"
+    }
+  ]
+}

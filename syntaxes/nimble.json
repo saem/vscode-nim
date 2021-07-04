@@ -5,11 +5,9 @@
     "foldingStartMarker": "",
     "foldingStopMarker": "",
     "patterns": [
-        { "include": "#comments" },
-        { "include": "#strings" },
-        { "include": "#category" },
-        { "include": "#keywords" },
-        { "include": "#text" }
+        { "include": "#keywords"  },
+        { "include": "#category"  },
+        { "include": "source.nim" }
     ],
     "repository": {
         "category": {
@@ -17,14 +15,6 @@
                 {
                     "name": "keyword.control.nimble",
                     "match": "^\\[\\w+\\]$"
-                }
-            ]
-        },
-        "comments": {
-            "patterns": [
-                {
-                    "name": "comment.line.nimble",
-                    "match": "#.*$"
                 }
             ]
         },
@@ -41,47 +31,6 @@
                 {
                     "name": "meta.selector.nimble",
                     "match": "\\:"
-                }
-            ]
-        },
-        "strings": {
-            "patterns": [
-                {
-                    "name": "string.quoted.double.nimble",
-                    "begin": "(?=[^\\\\])(\")",
-                    "end": "(\")",
-                    "beginCaptures": {
-                        "1": {
-                            "name": "punctuation.definition.string.begin.nimble"
-                        }
-                    },
-                    "endCaptures": {
-                        "1": {
-                            "name": "punctuation.definition.string.end.nimble"
-                        }
-                    },
-                    "patterns": [
-                        {
-                            "name": "punctuation.separator.string.ignore-eol.nimble",
-                            "match": "\\\\$[ \\t]*"
-                        },
-                        {
-                            "name": "constant.character.string.escape.nimble",
-                            "match": "\\\\([\\\\''ntbr]|u[a-fA-F0-9]{4}|u[a-fA-F0-9]{8})"
-                        },
-                        {
-                            "name": "invalid.illeagal.character.string.nimble",
-                            "match": "\\\\(?![\\\\''ntbr]|u[a-fA-F0-9]{4}|u[a-fA-F0-9]{8})."
-                        }
-                    ]
-                }
-            ]
-        },
-        "text": {
-            "patterns": [
-                {
-                    "name": "text.nimble",
-                    "match": "\\\\"
                 }
             ]
         }
