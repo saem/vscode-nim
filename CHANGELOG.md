@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.1.24 (3 Jul 2021)
+
+* Fixed leaking nimsuggest processes thanks to @canelhasmateus #26 & #42
+
 ## 0.1.23 (1 Jul 2021)
 
 * Support user-defined literals syntax highlighting by @DylanModesitt (#44)
