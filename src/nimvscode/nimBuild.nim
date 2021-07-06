@@ -135,18 +135,18 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
     if line.startsWith("Hint:") or line == "" or dots.test(line):
       continue
 
-    let match = newRegExp(r"^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
+    let match = newRegExp(r"^(>+ )?([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)")
       .exec(line)
     if not match.toJs().to(bool):
       if messageText.len < 1024:
         messageText &= nodeOs.eol & line
     else:
       let
-        file = match[1]
-        lineStr = match[2]
-        charStr = match[4]
-        severity = match[6]
-        msg = match[7]
+        file = match[2]
+        lineStr = match[3]
+        charStr = match[5]
+        severity = match[7]
+        msg = match[8]
 
       if severity == nil:
         stacktrace.add(CheckStacktrace(
