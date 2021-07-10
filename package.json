@@ -99,12 +99,12 @@
                 "fileLocation": "absolute",
                 "severity": "error",
                 "pattern": {
-                    "regexp": "(?!^(\\.+|Hint|\\s+$))(.*)\\((\\d+),\\s(\\d+)\\)\\s+((Error|Warning|Hint):\\s(.*)|(template/generic instantiation from here.*))(\\s\\[.*\\])?",
-                    "file": 2,
-                    "line": 3,
-                    "column": 4,
-                    "severity": 6,
-                    "message": 7
+                    "regexp": "(?!^(\\.+|Hint|\\s+$))(>+ )?(.*)\\((\\d+),\\s(\\d+)\\)\\s+((Error|Warning|Hint):\\s(.*)|(template/generic instantiation from here.*))(\\s\\[.*\\])?",
+                    "file": 3,
+                    "line": 4,
+                    "column": 5,
+                    "severity": 7,
+                    "message": 8
                 }
             },
             {
