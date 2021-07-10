@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.1.25 (10 Jul 2021)
+
+* Improved diagnostic and log parsing of nim tool output thanks to @quantimnot
+* Big internal refactor, hopefully the code is more approachable now
+
 ## 0.1.24 (3 Jul 2021)
 
 * Fixed leaking nimsuggest processes thanks to @canelhasmateus #26 & #42
