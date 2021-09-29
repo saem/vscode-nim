@@ -76,7 +76,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
   {
       "taskName": "Run module.nim",
       "command": "nim",
-      "args": ["c", "-o:bin/${fileBasenameNoExtension}", "-r", "$ {fileBasename}"],
+      "args": ["c", "-o:bin/${fileBasenameNoExtension}", "-r", "${fileBasename}"],
       "options": {
           "cwd": "${workspaceRoot}"
       },
