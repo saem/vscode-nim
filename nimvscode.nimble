@@ -21,6 +21,12 @@ task main, "This compiles the vscode Nim extension":
 task release, "This compiles a release version":
   exec "nim js -d:release -d:danger --outdir:out --checks:off --sourceMap src/nimvscode.nim"
 
+task vsix, "Build VSIX package":
+  exec "./node_modules/.bin/vsce package --out out"
+
+task install_vsix, "Install the VSIX package":
+  exec "code --install-extension out/nimvscode-" & version & ".vsix"
+
 # Tasks for maintenance
 task audit_node_deps, "Audit Node.js dependencies":
   exec "npm audit"
