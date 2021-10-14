@@ -21,6 +21,16 @@ task main, "This compiles the vscode Nim extension":
 task release, "This compiles a release version":
   exec "nim js -d:release -d:danger --outdir:out --checks:off --sourceMap src/nimvscode.nim"
 
+# Tasks for maintenance
+task audit_node_deps, "Audit Node.js dependencies":
+  exec "npm audit"
+  echo "NOTE: 'engines' versions in 'package.json' need manually audited"
+
+task upgrade_node_deps, "Upgrade Node.js dependencies":
+  exec "./node_modules/.bin/ncu -ui"
+  exec "npm install"
+  echo "NOTE: 'engines' versions in 'package.json' need manually upgraded"
+
 # Tasks for publishing the extension
 task extReleasePatch, "Patch release on vscode marketplace and openvsx registry":
   exec "./node_modules/.bin/vsce publish patch" # this bumps the version number
