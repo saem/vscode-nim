@@ -1479,7 +1479,7 @@
     "custom_literal": {
       "patterns": [
         {
-          "match": "\\b(\\d[_\\d]*)'(\\w+)",
+          "match": "\\b(\\d[_\\d]*)(\\.[_\\d]+)?'(\\w+)",
           "name": "constant.numeric.custom.lit.nim"
         }
       ]
