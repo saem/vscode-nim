@@ -188,7 +188,12 @@ This extension relies on nimsuggest for code completion. Nimsuggest is basically
 * You can open a Nim code base to try it out
   * If you want to try it out on the extension source itself, create a new workspace and add the source as a folder to the workspace so VS Code doesn't take you back to the development window
 
-Alternatively, feel free to give side-loading a shot by building the extension first via npm.
+Alternatively, feel free to give side-loading a shot.
+
+### Side-loading the Extension
+
+* Run `nimble vsix` to build the extension package to `out/nimvscode-<version>.vsix`
+* Run `nimble install_vsix` if you have VS Code on `PATH`, otherwise select `Install from VSIX` from the command palette (`cmd-shift-p`) and choose `out/nimvscode-<version>.vsix`.
 
 ---
 
