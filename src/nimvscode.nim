@@ -258,7 +258,7 @@ proc runFile(): void =
               rootPath = folder.uri.fsPath
               break
           if rootPath != "":
-            if fs.existsSync(path.join(rootPath, outputDirConfig)):
+            if not fs.existsSync(path.join(rootPath, outputDirConfig)):
               fs.mkdirSync(path.join(rootPath, outputDirConfig))
             outputParams = " --out:\"" & path.join(
                     outputDirConfig,
