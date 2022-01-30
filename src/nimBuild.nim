@@ -125,6 +125,7 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
   var
     messageText = ""
     stacktrace: seq[CheckStacktrace]
+    lastFile, lastLineStr, lastCharStr: cstring
 
   # Progress indicator from nim CLI is just dots
   var dots = newRegExp(r"^\.+$")
@@ -141,11 +142,21 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
         messageText &= nodeOs.eol & line
     else:
       let
-        file = match[2]
-        lineStr = match[3]
-        charStr = match[5]
         severity = match[7]
         msg = match[8]
+      # file may be undefined when there's an error in code
+      # created with parseExpr/parseStmt
+      # as a workaround we duplicate the last location in the stacktrace
+      # There always has to be atleast the location where the macro
+      # called which contains the faulty parseExpr/parseStmt
+        (file, lineStr, charStr) =
+          if match[2].toJs() == jsUndefined:
+            (lastfile, lastLineStr, lastCharStr)
+          else:
+            lastFile = match[2]
+            lastLineStr = match[3]
+            lastCharStr = match[5]
+            (match[2], match[3], match[5])
 
       if severity == nil:
         stacktrace.add(CheckStacktrace(
