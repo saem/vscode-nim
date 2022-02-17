@@ -1517,6 +1517,10 @@
         {
           "match": "\\b(0(b|B)[01][_01]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.binary.nim"
+        },
+        {
+          "match": "\\b(\\d[_\\d]*)",
+          "name": "constant.numeric.integer.binary.nim"
         }
       ]
     }
