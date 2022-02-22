@@ -204,8 +204,10 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
       )
       process.onClose(proc(code: cint, signal: cstring): void =
         cleanupDirtyFileFolder(process.pid)
-        var codeStr = if code.toJs().isNull(): "unknown" else: $(code)
-        var msg = fmt"nimsuggest {process.pid} (args: {args.join("" "")}) closed with code: {codeStr} and signal: {signal}"
+        let
+          codeStr = if code.toJs().isNull(): "unknown" else: $(code)
+          signalStr = if signal == nil: "null" else: $signal
+          msg = fmt"nimsuggest {process.pid} (args: {args.join("" "")}) closed with code: {codeStr} and signal: {signalStr}"
         if code != 0:
           console.error(msg)
         else:
