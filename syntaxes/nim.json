@@ -1479,7 +1479,7 @@
     "custom_literal": {
       "patterns": [
         {
-          "match": "(\\b(\\d[_\\d]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
+          "match": "-?(\\b(\\d[_\\d]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
           "name": "constant.numeric.custom.lit.nim"
         }
       ]
@@ -1487,15 +1487,15 @@
     "float_literal": {
       "patterns": [
         {
-          "match": "\\b0[xX]\\h[_\\h]*'([fF](32|64|128)|[fFdD])",
+          "match": "-?\\b0[xX]\\h[_\\h]*'([fF](32|64|128)|[fFdD])",
           "name": "constant.numeric.float.hexadecimal.nim"
         },
         {
-          "match": "\\b0o[0-7][_0-7]*'([fF](32|64|128)|[fFdD])",
+          "match": "-?\\b0o[0-7][_0-7]*'([fF](32|64|128)|[fFdD])",
           "name": "constant.numeric.float.octal.nim"
         },
         {
-          "match": "\\b0(b|B)[01][_01]*'([fF](32|64|128)|[fFdD])",
+          "match": "-?\\b0(b|B)[01][_01]*'([fF](32|64|128)|[fFdD])",
           "name": "constant.numeric.float.binary.nim"
         },
         {
@@ -1507,19 +1507,19 @@
     "integer_literal": {
       "patterns": [
         {
-          "match": "\\b(0[xX]\\h[_\\h]*)('(([iIuU](8|16|32|64))|[uU]))?",
+          "match": "-?\\b(0[xX]\\h[_\\h]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.hexadecimal.nim"
         },
         {
-          "match": "\\b(0o[0-7][_0-7]*)('(([iIuU](8|16|32|64))|[uU]))?",
+          "match": "-?\\b(0o[0-7][_0-7]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.octal.nim"
         },
         {
-          "match": "\\b(0(b|B)[01][_01]*)('(([iIuU](8|16|32|64))|[uU]))?",
+          "match": "-?\\b(0(b|B)[01][_01]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.binary.nim"
         },
         {
-          "match": "\\b(\\d[_\\d]*)",
+          "match": "-?\\b(?<!\\.)(\\d[_\\d]*)('(([iIuU](8|16|32|64))|[uU]))?",
           "name": "constant.numeric.integer.binary.nim"
         }
       ]
