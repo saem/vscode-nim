@@ -1520,7 +1520,7 @@
         },
         {
           "match": "-?\\b(?<!\\.)(\\d[_\\d]*)('(([iIuU](8|16|32|64))|[uU]))?",
-          "name": "constant.numeric.integer.binary.nim"
+          "name": "constant.numeric.integer.decimal.nim"
         }
       ]
     }
