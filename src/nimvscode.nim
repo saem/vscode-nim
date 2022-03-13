@@ -32,6 +32,8 @@ from nimSuggestExec import extensionContext, initNimSuggest,
 from nimUtils import ext, getDirtyFile, outputLine
 from nimProjects import processConfig, configUpdate
 from nimMode import mode
+from tools/nimBinTools import getBinPath
+from nimLsp import startLanguageServer
 
 var state: ExtensionState
 var diagnosticCollection {.threadvar.}: VscodeDiagnosticCollection
@@ -313,7 +315,11 @@ proc activate*(ctx: VscodeExtensionContext): void =
   processConfig(config)
   discard vscode.workspace.onDidChangeConfiguration(configUpdate)
 
-  if config.getBool("enableNimsuggest"):
+  let provider = config.getStr("provider")
+
+  if provider == "lsp":
+    startLanguageServer(true, state)
+  elif provider == "nimsuggest" and config.getBool("enableNimsuggest"):
     initNimSuggest()
     ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode,
         nimCompletionItemProvider, ".", " "))
@@ -331,6 +337,8 @@ proc activate*(ctx: VscodeExtensionContext): void =
         nimHoverProvider))
     ctx.subscriptions.add(vscode.languages.registerDocumentFormattingEditProvider(
         mode, nimFormattingProvider))
+  else:
+    console.log("No backend selected.")
 
   diagnosticCollection = vscode.languages.createDiagnosticCollection("nim")
   ctx.subscriptions.add(diagnosticCollection)

@@ -87,10 +87,11 @@ The following Visual Studio Code settings are available for the Nim extension.  
       }
   }
   ```
-
 * `nim.lintOnSave` - perform the project check for errors on save
 * `nim.project` - optional array of projects file, if nim.project is not defined then all nim files will be used as separate project
 * `nim.licenseString` - optional license text that will be inserted on nim file creation
+* `nim.provider` - specifies the backend to use for language features. It can be
+  `nimsuggest`, `lsp` or `none`
 
 #### Example
 
@@ -103,6 +104,41 @@ The following Visual Studio Code settings are available for the Nim extension.  
     "nim.licenseString": "# Copyright 2020.\n\n"
 }
 ```
+
+#### Nim Lanugage Server integration (experimental)
+
+`vscode-nim` provides optional integration with [Nim Language Server](https://github.com/Nim-lang/langserver) as an
+alternative of using `nimsuggest`. In order to activate it, put the following
+lines in your config:
+
+```json
+{
+    "nim.provider": "lsp"
+}
+```
+
+Similar to `vscode-nim` [Nim Language Server](https://github.com/Nim-lang/langserver) uses `nimsuggest` under the
+hood and to control the way `nimsuggest` is created you can use
+`nim.projectMapping`. Here it is a sample config:
+
+``` json
+{
+    "nim.provider": "lsp",
+    "nim.projectMapping": [{
+        // open files under tests using one nimsuggest instance started with root = test/all.nim
+        "projectFile": "tests/all.nim",
+        "fileRegex": "tests/.*\\.nim"
+    }, {
+        // everything else - use main.nim as root.
+        "projectFile": "main.nim",
+        "fileRegex": ".*\\.nim"
+    }]
+}
+```
+
+* (Re)starting `nimsuggest` subprocess
+
+Use `Command palette...`  -> `Source actions` -> `Restart nimsuggest`
 
 ### Commands
 
