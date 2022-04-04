@@ -168,7 +168,7 @@
     },
     {
       "comment": "Invalid and unused keywords.",
-      "match": "(\\b(generic|interface|lambda|out|shared)\\b)",
+      "match": "(\\b(interface|out)\\b)",
       "name": "invalid.illegal.invalid-keyword.nim"
     },
     {
