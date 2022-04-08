@@ -10,6 +10,7 @@ import std/jsconsole
 from std/strformat import fmt
 
 from spec import ExtensionState
+from nimSuggestExec import restartNimsuggest
 
 import nimRename,
   nimSuggest,
@@ -308,6 +309,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
 
   vscode.commands.registerCommand("nim.run.file", runFile)
   vscode.commands.registerCommand("nim.check", runCheck)
+  vscode.commands.registerCommand("nim.restartNimsuggest", restartNimsuggest)
   vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
   vscode.commands.registerCommand("nim.clearCaches", clearCachesCmd)
   vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)

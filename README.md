@@ -136,9 +136,8 @@ hood and to control the way `nimsuggest` is created you can use
 }
 ```
 
-* (Re)starting `nimsuggest` subprocess
-
-Use `Command palette...`  -> `Source actions` -> `Restart nimsuggest`
+For the full set of properties supported by the language server you can check [Configuration options section.](https://github.com/Nim-lang/langserver#configuration-options)
+To access the server commands(e. g. (Re)starting nimsuggest) use `Command palette...`  -> `Source actions`
 
 ### Commands
 
@@ -147,6 +146,7 @@ The following commands are provided by the extension:
 * `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter.
 This command available from file context menu or by `F6` keyboard shortcut.
 
+* `Nim: Restart nimsuggest` - restart `nimsuggest` process when using `nimsuggest`.
 ---
 
 ### Debugging

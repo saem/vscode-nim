@@ -155,6 +155,11 @@
                 "command": "nim.listCandidateProjects",
                 "title": "List candidate nim projects",
                 "category": "Nim"
+            },
+            {
+                "command": "nim.restartNimsuggest",
+                "title": "Restarts nimsuggest",
+                "category": "Nim"
             }
         ],
         "menus": {
