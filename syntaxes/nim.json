@@ -148,7 +148,7 @@
     },
     {
       "comment": "Keywords that affect program control flow or scope.",
-      "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield|static)\\b",
+      "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield|(static(?= *:)))\\b",
       "name": "keyword.control.nim"
     },
     {
