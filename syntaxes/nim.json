@@ -173,7 +173,7 @@
     },
     {
       "comment": "Common functions",
-      "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low)\\b",
+      "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low|ord|chr|inc|dec|succ|pred)\\b",
       "name": "keyword.other.common.function.nim"
     },
     {
