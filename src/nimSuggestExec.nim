@@ -225,6 +225,17 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
     )
   return nimSuggestProcessCache[projectPath]
 
+proc restartNimsuggest(project: ProjectFileInfo): Future[void] {.async.} =
+  await closeNimsuggestProcess(project)
+  discard getNimSuggestProcess(project)
+
+proc restartNimsuggest*(): void =
+  let doc = vscode.window.activeTextEditor.document
+  if not doc.isNil():
+    let provider = vscode.workspace.getConfiguration("nim").getStr("provider")
+    if provider == "nimsuggest":
+      discard restartNimsuggest(getProjectFileInfo(doc.fileName))
+
 proc execNimSuggest*(
     suggestType: NimSuggestType,
     filename: cstring,

@@ -10,6 +10,7 @@ import std/jsconsole
 from std/strformat import fmt
 
 from spec import ExtensionState
+from nimSuggestExec import restartNimsuggest
 
 import nimRename,
   nimSuggest,
@@ -32,6 +33,8 @@ from nimSuggestExec import extensionContext, initNimSuggest,
 from nimUtils import ext, getDirtyFile, outputLine
 from nimProjects import processConfig, configUpdate
 from nimMode import mode
+from tools/nimBinTools import getBinPath
+from nimLsp import startLanguageServer
 
 var state: ExtensionState
 var diagnosticCollection {.threadvar.}: VscodeDiagnosticCollection
@@ -306,6 +309,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
 
   vscode.commands.registerCommand("nim.run.file", runFile)
   vscode.commands.registerCommand("nim.check", runCheck)
+  vscode.commands.registerCommand("nim.restartNimsuggest", restartNimsuggest)
   vscode.commands.registerCommand("nim.execSelectionInTerminal", execSelectionInTerminal)
   vscode.commands.registerCommand("nim.clearCaches", clearCachesCmd)
   vscode.commands.registerCommand("nim.listCandidateProjects", listCandidateProjects)
@@ -313,7 +317,11 @@ proc activate*(ctx: VscodeExtensionContext): void =
   processConfig(config)
   discard vscode.workspace.onDidChangeConfiguration(configUpdate)
 
-  if config.getBool("enableNimsuggest"):
+  let provider = config.getStr("provider")
+
+  if provider == "lsp":
+    startLanguageServer(true, state)
+  elif provider == "nimsuggest" and config.getBool("enableNimsuggest"):
     initNimSuggest()
     ctx.subscriptions.add(vscode.languages.registerCompletionItemProvider(mode,
         nimCompletionItemProvider, ".", " "))
@@ -331,6 +339,8 @@ proc activate*(ctx: VscodeExtensionContext): void =
         nimHoverProvider))
     ctx.subscriptions.add(vscode.languages.registerDocumentFormattingEditProvider(
         mode, nimFormattingProvider))
+  else:
+    console.log("No backend selected.")
 
   diagnosticCollection = vscode.languages.createDiagnosticCollection("nim")
   ctx.subscriptions.add(diagnosticCollection)

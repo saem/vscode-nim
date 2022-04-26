@@ -28,7 +28,9 @@
     "scripts": {
         "vscode:prepublish": "nimble release"
     },
-    "dependencies": {},
+    "dependencies": {
+        "vscode-languageclient": "7.0.0"
+    },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
@@ -153,6 +155,11 @@
                 "command": "nim.listCandidateProjects",
                 "title": "List candidate nim projects",
                 "category": "Nim"
+            },
+            {
+                "command": "nim.restartNimsuggest",
+                "title": "Restarts nimsuggest",
+                "category": "Nim"
             }
         ],
         "menus": {
@@ -231,6 +238,17 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable calling nimsuggest process to provide completion suggestions, hover suggestions, etc.\nThis option requires restart to take effect.",
+                    "scope": "resource"
+                },
+                "nim.provider": {
+                    "type": "string",
+                    "default": "nimsuggest",
+                    "description": "The backend to use for language features.",
+                    "enum": [
+                        "nimsuggest",
+                        "lsp",
+                        "none"
+                    ],
                     "scope": "resource"
                 },
                 "nim.useNimsuggestCheck": {

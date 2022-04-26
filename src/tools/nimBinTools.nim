@@ -25,13 +25,17 @@ proc getBinPath*(tool: cstring): cstring =
     var endings = if process.platform == "win32": @[".exe", ".cmd", ""]
                   else: @[""]
 
-    binPathsCache[tool] = pathParts.mapIt(
+    let paths = pathParts.mapIt(
         block:
           var dir = it
           endings.mapIt(path.join(dir, tool & it)))
       .foldl(a & b)# flatten nested arays
-      .filterIt(fs.existsSync(it))[0]
+      .filterIt(fs.existsSync(it))
 
+    if paths.len == 0:
+      return nil
+
+    binPathsCache[tool] = paths[0]
     if process.platform != "win32":
       try:
         var nimPath: cstring
