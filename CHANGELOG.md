@@ -1,5 +1,34 @@
 # ChangeLog
 
+## 0.1.26 (07 May 2022)
+
+Major Update:
+* add initial support for nimls (nim-lang/langserver#3), thanks @yyoncho (#81)
+
+Syntax Highlighting:
+* common functions: `ord`, `chr`, `inc`, `dec`, `succ`, `pred`, thanks @morganholly (#88)
+* `tuple` is treated the same as `array`, `seq`, etc, thanks @morganholly (#88)
+* `generic`, `lambda`, and `shared` are not invalid, thanks @morganholly (#83)
+* numeric literals:
+  * highlight unary minus, thanks @morganholly (#77)
+  * differentiate custom and standard suffix, thanks @morganholly (#77)
+  * match scientific notation, thanks @morganholly (#77)
+  * fix decimal literals without explicit types, thanks @rsduck (#74)
+  * allow period in custom numeric literals, thanks @exelotl (#58)
+* command call highlighting improvements, thanks @rsduck (#74)
+
+Analysis & Diagnostics Changes:
+* heuristic to handle missing location info, thanks @rsduck (#71)
+
+Other Features:
+* fix run file, compiled output dir creation, thanks @dylanmcdiarmid (#62)
+
+Internals:
+* fix nimsuggest exit signal being null, thanks @rsduck (#76)
+
+Extension Development:
+* Add nimble tasks to build and install VSIX #57 thanks to @quantimnot
+
 ## 0.1.25 (10 Jul 2021)
 
 * Improved diagnostic and log parsing of nim tool output thanks to @quantimnot
