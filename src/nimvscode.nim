@@ -8,9 +8,9 @@ import platform/js/[jsre, jsString, jsNodeFs, jsNodePath]
 
 import std/jsconsole
 from std/strformat import fmt
+from std/os import `/`
 
 from spec import ExtensionState
-from nimSuggestExec import restartNimsuggest
 
 import nimRename,
   nimSuggest,
@@ -29,11 +29,10 @@ from nimStatus import showHideStatus
 from nimIndexer import initWorkspace, clearCaches, onClose
 from nimImports import initImports, removeFileFromImports, addFileToImports
 from nimSuggestExec import extensionContext, initNimSuggest,
-                           closeAllNimSuggestProcesses
+                           closeAllNimSuggestProcesses, restartNimsuggest
 from nimUtils import ext, getDirtyFile, outputLine
 from nimProjects import processConfig, configUpdate
 from nimMode import mode
-from tools/nimBinTools import getBinPath
 from nimLsp import startLanguageServer
 
 var state: ExtensionState
@@ -64,8 +63,8 @@ type
 let defaultIndexExcludeGlobs =
   block:
     let res = newJsAssoc[cstring, bool]()
-    res[cstring "**/.git/**"] = true
-    res[cstring "nimcache/**"] = true
+    res[cstring "**"/".git"/"**"] = true
+    res[cstring "nimcache"/"**"] = true
     res
   ## exclude these by default as most people will not want them indexed
 
@@ -134,7 +133,7 @@ proc listCandidateProjects() =
           # TODO check dir entries if nothing found
       for n, cs in map.entries():
         for c in cs:
-          outputLine(fmt"[info] workspaceFolder: {n}, name: {c.name}, kind: {$(c.kinds)}")
+          outputLine(fmt"[info] workspaceFolder: {n}, name: {c.name}, kind: {$(c.kinds)}".cstring)
     ).catch do(r: JsObject):
       console.error(r)
 
@@ -184,7 +183,7 @@ proc runCheck(doc: VscodeTextDocument = nil): void =
     var diagnosticMap = newMap[cstring, Array[VscodeDiagnostic]]()
     var err = newMap[cstring, bool]()
     for error in errors:
-      var errorId = error.file & $error.line & $error.column & error.msg
+      var errorId = error.file & cstring($error.line) & cstring($error.column) & error.msg
       if not err[errorId]:
         var targetUri = error.file
 
@@ -212,7 +211,8 @@ proc runCheck(doc: VscodeTextDocument = nil): void =
     for uri, diags in diagnosticMap.entries:
       entries.add([vscode.uriFile(uri).toJs(), diags.toJs()])
     diagnosticCollection.set(entries)
-  )
+  ).catch(proc(reason: JsObject) =
+    console.error("nimvscode - runCheck Failed", reason))
 
 proc startBuildOnSaveWatcher(subscriptions: Array[VscodeDisposable]) =
   vscode.workspace.onDidSaveTextDocument(
@@ -400,7 +400,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
   except:
     console.error("language configuration failed to set",
       getCurrentException(),
-      getCurrentExceptionMsg()
+      getCurrentExceptionMsg().cstring
     )
 
   vscode.window.onDidChangeActiveTextEditor(showHideStatus, nil,
@@ -417,7 +417,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
         extensionPath:{ctx.extensionPath}
         storagePath:{ctx.storagePath}
         logPath:{ctx.logPath}
-      """.strip()
+      """.cstring.strip()
   )
   activateEvalConsole()
   if not fs.existsSync(ctx.storagePath):
@@ -429,7 +429,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
             cfgFiles.getStrBoolMap("watcherExclude", defaultIndexExcludeGlobs)
           )
 
-  fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim")
+  fileWatcher = vscode.workspace.createFileSystemWatcher(cstring("**"/"*.nim"))
   fileWatcher.onDidCreate(proc(uri: VscodeUri) =
     var licenseString = config.getStr("licenseString")
     if not licenseString.isNil() and licenseString != "":
@@ -457,7 +457,7 @@ proc activate*(ctx: VscodeExtensionContext): void =
   if config.getBool("enableNimsuggest") and
       config.getInt("nimsuggestRestartTimeout") > 0:
     var timeout = config.getInt("nimsuggestRestartTimeout")
-    console.log(fmt"Reset nimsuggest process each {timeout} minutes")
+    console.log(fmt"Reset nimsuggest process each {timeout} minutes".cstring)
     global.setInterval(
       proc() = discard closeAllNimsuggestProcesses(),
       timeout * 60000

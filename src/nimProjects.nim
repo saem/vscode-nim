@@ -6,7 +6,7 @@ from platform/vscodeApi import VscodeWorkspaceFolder,
   asRelativePath, findFiles, get, newWorkspaceFolderLike, VscodeUri,
   VscodeUriChange, with, getConfiguration, VscodeConfigurationChangeEvent,
   affectsConfiguration
-import std/jsffi
+import std/[jsconsole, jsffi]
 import platform/js/[jsPromise, jsString, jsNode, jsre]
 from platform/js/jsNodePath import path, isAbsolute, parse, ParsedPath, dirname
 
@@ -104,7 +104,8 @@ proc processConfigProjects(conf: JsObject): void =
         .then(proc(res: Array[VscodeUri]) =
           if res.toJs.to(bool) and res.len > 0:
             projects.add(toProjectInfo(res[0].fsPath))
-        )
+        ).catch(proc(reason: JsObject) =
+          console.error("nimProjects - processConfigProjects Failed", reason))
 
 proc processConfigProjectMapping(conf: JsObject): void =
   ## updates `projectMapping` from config `nim.projectMapping`, if

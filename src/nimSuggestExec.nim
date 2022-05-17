@@ -111,7 +111,7 @@ proc trace(pid: cint, projectFile: cstring, msg: JsObject): void =
   var log = vscode.workspace.getConfiguration("nim").get("logNimsuggest").toJs().to(bool)
   if log:
     if projectFile.toJs().jsTypeOf() == "string":
-      console.log("[" & $(pid) & ":" & projectFile & "]")
+      console.log("[" & cstring($pid) & ":" & projectFile & "]")
     console.log(msg)
 
 proc trace(pid: cint, projectFile: ProjectFileInfo, msg: JsObject): void =
@@ -183,7 +183,7 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
                   cwd: cwd
         }
       )
-      console.log(fmt"started nimsuggest process ({process.pid})) args: ({args.join("" "")}) cwd: {cwd} nim project:", nimProject)
+      console.log(fmt"started nimsuggest process ({process.pid})) args: ({args.join("" "")}) cwd: {cwd} nim project:".cstring, nimProject)
       process.stdout.onceData(proc(data: Buffer) =
         var dataStr = data.toString()
         var portNumber = parseCint(dataStr)
@@ -209,14 +209,16 @@ proc getNimSuggestProcess(nimProject: ProjectFileInfo): Future[
           signalStr = if signal == nil: "null" else: $signal
           msg = fmt"nimsuggest {process.pid} (args: {args.join("" "")}) closed with code: {codeStr} and signal: {signalStr}"
         if code != 0:
-          console.error(msg)
+          console.error(msg.cstring)
         else:
-          console.log(msg)
+          console.log(msg.cstring)
         if nimSuggestProcessCache[projectPath].toJs().to(bool):
           nimSuggestProcessCache[projectPath].then(proc(
               desc: NimSuggestProcessDescription) =
             if desc.toJs().to(bool) and desc.rpc.toJs().to(bool):
               desc.rpc.stop()
+          ).catch(proc(reason: JsObject) =
+            console.error("nimSuggestExec - getNimSuggestProcess Failed", reason)
           )
         reject(msg.toJs())
       )
@@ -263,7 +265,7 @@ proc execNimSuggest*(
   try:
     var normalizedFilename: cstring = filename.replace(newRegExp(r"\\+", r"g"), "/")
     var desc = await getNimSuggestProcess(projectFile)
-    var suggestCmd: cstring = $(suggestType)
+    var suggestCmd: cstring = cstring($suggestType)
     var isValidDesc = desc.toJs().to(bool)
     var dirtyFile = cstring ""
 
@@ -274,8 +276,8 @@ proc execNimSuggest*(
       trace(
           desc.process.pid,
           projectFile,
-          (suggestCmd & " " & normalizedFilename & ":" & $(line) & ":" & $(
-              column)).toJs()
+          (suggestCmd & " " & normalizedFilename & ":" & cstring($line) & ":" &
+            cstring($column)).toJs()
       )
 
     if isValidDesc and desc.rpc.toJs().to(bool):
@@ -334,5 +336,5 @@ proc execNimSuggest*(
     return ret
   except:
     console.error("Error in execNimSuggest: ", getCurrentException(),
-        getCurrentExceptionMsg())
+        getCurrentExceptionMsg().cstring)
     await closeNimsuggestProcess(projectFile)

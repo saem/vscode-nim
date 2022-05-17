@@ -92,7 +92,7 @@ proc provideCompletionItems*(
                   vscodeKindFromNimSym(item.suggest)
                 )
               suggestion.detail = nimSymDetails(item)
-              suggestion.sortText = (cstring"0000" & $(suggestions.len))[^4 .. ^1]
+              suggestion.sortText = (cstring("0000" & $suggestions.len))[^4 .. ^1]
               # use predefined text to disable suggest sorting
               suggestion.documentationMD = vscode.newMarkdownString(
                   item.documentation)

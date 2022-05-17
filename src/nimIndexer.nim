@@ -7,7 +7,7 @@ import platform/vscodeApi
 import platform/js/[jsNodeFs, jsNodePath, jsString, jsre]
 import store/flatdbnode
 
-import std/[jsconsole, sequtils, asyncjs]
+import std/[jsconsole, sequtils, asyncjs, os]
 from std/jscore import Math, max
 
 import nimStatus, nimSuggestExec
@@ -84,8 +84,8 @@ proc getFileSymbols*(
            continue
 
       var toAdd = $(item.column) & ":" & $(item.line)
-      if not any(exists, proc(x: cstring): bool = x == toAdd):
-        exists.add(toAdd)
+      if not any(exists, proc(x: cstring): bool = x == toAdd.cstring):
+        exists.add(toAdd.cstring)
         var symbolInfo = vscode.newSymbolInformation(
             item.symbolname,
             vscodeKindFromNimSym(item.suggest),
@@ -176,7 +176,7 @@ proc indexFile(file: cstring) {.async.} =
       if not folder.isNil():
         dbFiles.insert(FileData{file: file, timestamp: timestamp})
     except:
-      console.error("indexFile - dbFiles", getCurrentExceptionMsg(),
+      console.error("indexFile - dbFiles", getCurrentExceptionMsg().cstring,
           getCurrentException())
 
     try:
@@ -215,7 +215,7 @@ proc indexFile(file: cstring) {.async.} =
           kind: i.kind
         })
     except:
-      console.error("indexFile - dbTypes", getCurrentExceptionMsg(),
+      console.error("indexFile - dbTypes", getCurrentExceptionMsg().cstring,
           getCurrentException())
 
 proc removeFromIndex(file: cstring): void =
@@ -226,7 +226,7 @@ proc removeWorkspaceFile*(file: cstring): void = removeFromIndex(file)
 proc changeWorkspaceFile*(file: cstring): void = discard indexFile(file)
 
 proc getDbName(name: cstring, version: cint): cstring =
-  return name & "_" & $(version) & ".db"
+  return name & "_" & cstring($version) & ".db"
 
 proc cleanOldDb(basePath: cstring, name: cstring): void =
   var dbPath: cstring = path.join(basePath, (name & ".db"))
@@ -252,18 +252,18 @@ proc indexWorkspaceFiles(filters: IndexExcludeGlobs) {.async.} =
       if invalidNimSuggestPath:
         await promiseResolve(newArray[VscodeUri]())
       elif hasExcludes:
-        await vscode.workspace.findFiles("**/*.nim", excludeGlob)
+        await vscode.workspace.findFiles(cstring("**"/"*.nim"), excludeGlob)
       else:
-        await vscode.workspace.findFiles("**/*.nim")
+        await vscode.workspace.findFiles(cstring("**"/"*.nim"))
 
   console.log("exclude globs: ", excludeGlob)
 
-  showNimProgress("Indexing, file count: " & $(urls.len))
+  showNimProgress("Indexing, file count: " & cstring($urls.len))
   for i, url in urls:
     var cnt = urls.len - 1
 
     if cnt mod 20 == 0:
-      updateNimProgress("Indexing: " & $(cnt) & " of " & $(urls.len))
+      updateNimProgress("Indexing: " & cstring($cnt) & " of " & cstring($urls.len))
 
     console.log("indexing: ", i, url)
     await indexFile(url.fsPath)
@@ -334,4 +334,3 @@ proc onClose*() {.async.} =
     dbFiles.processCommands(),
     dbTypes.processCommands()
   ])
-
