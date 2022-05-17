@@ -26,7 +26,7 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
       vscode.window.showInformationMessage("Unable to find/install `nimlangserver`.")
   else:
     let nimlangserver = path.resolve(rawPath);
-    console.log(fmt"nimlangserver found: {nimlangserver}")
+    console.log(fmt"nimlangserver found: {nimlangserver}".cstring)
     console.log("Starting nimlangserver.")
     let
       serverOptions = ServerOptions{

@@ -1,5 +1,5 @@
 import std/jsffi
-import js/[jsPromise, asyncjs, jsre, jsNode]
+import js/[jsPromise, jsNode]
 
 export jsffi, jsPromise, jsNode
 

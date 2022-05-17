@@ -136,8 +136,8 @@ proc initNimbleModules(rootDir: cstring): Promise[seq[cstring]] =
             of "desc": nimbleModule.description = value
         nimbleModules.add(nimbleModule)
       except:
-        console.log("Module incorrect " & moduleName, getCurrentExceptionMsg())
-  )
+        console.log("Module incorrect " & moduleName, getCurrentExceptionMsg().cstring)
+  ).toJs().to(Promise[seq[cstring]])
 
 proc getImports*(prefix: cstring, projectDir: cstring): seq[
     VscodeCompletionItem] =

@@ -153,7 +153,7 @@ proc processCommands*(db: FlatDb) {.async.} =
         await fh.writeFile(content)
       except:
         console.error(
-            getCurrentExceptionMsg(),
+            getCurrentExceptionMsg().cstring,
             getCurrentException(),
             op
         )
@@ -166,7 +166,7 @@ proc processCommands*(db: FlatDb) {.async.} =
       except:
         console.error(
             getCurrentException(),
-            getCurrentExceptionMsg()
+            getCurrentExceptionMsg().cstring
         )
         cmd.afterCallback(CmdResult.failure)
     of DbCmdKind.backup:
@@ -185,7 +185,7 @@ proc processCommands*(db: FlatDb) {.async.} =
       except:
         console.error(
             getCurrentException(),
-            getCurrentExceptionMsg()
+            getCurrentExceptionMsg().cstring
         )
         cmd.afterCallback(CmdResult.failure)
     of DbCmdKind.close:
@@ -196,7 +196,7 @@ proc processCommands*(db: FlatDb) {.async.} =
       except:
         console.error(
             getCurrentException(),
-            getCurrentExceptionMsg()
+            getCurrentExceptionMsg().cstring
         )
         cmd.afterCallback(CmdResult.failure)
 

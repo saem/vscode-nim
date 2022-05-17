@@ -166,7 +166,7 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
           msg: msg))
       else:
         if messageText.len > 0 and result.len > 0:
-          result[^1].msg &= nodeOs.eol & messageText
+          result[^1].msg &= nodeOs.eol & messageText.cstring
 
         messageText = ""
         result.add(CheckResult(
@@ -179,7 +179,7 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
         ))
         stacktrace.setLen(0)
   if messageText.len > 0 and result.len > 0:
-    result[^1].msg &= nodeOs.eol & messageText
+    result[^1].msg &= nodeOs.eol & messageText.cstring
 
 proc parseNimsuggestErrors(items: seq[NimSuggestResult]): seq[CheckResult] =
   var ret: seq[CheckResult] = @[]
@@ -309,7 +309,7 @@ proc execSelectionInTerminal*(#[ doc:VscodeTextDocument ]#) {.async.} =
       var execPath = getNimExecPath(executable)
       if execPath.isNil() or execPath.strip() == "":
         vscode.window.showInformationMessage(
-          fmt"Binary named '{executable}' not found in PATH environment variable"
+          fmt"Binary named '{executable}' not found in PATH environment variable".cstring
         )
         return
       evalTerminal = vscode.window.createTerminal("Nim Console")

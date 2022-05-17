@@ -14,30 +14,41 @@ bin         = @["nimvscode"]
 requires "nim >= 1.3.7"
 requires "compiler >= 1.3.7"
 
+import std/os
+
+proc initialNpmInstall =
+  if not dirExists "node_modules":
+    exec "npm install"
+
 # Tasks
 task main, "This compiles the vscode Nim extension":
-  exec "nim js --outdir:out --checks:on --sourceMap src/nimvscode.nim"
+  exec "nim js --outdir:out --checks:on --sourceMap src"/"nimvscode.nim"
 
 task release, "This compiles a release version":
-  exec "nim js -d:release -d:danger --outdir:out --checks:off --sourceMap src/nimvscode.nim"
+  exec "nim js -d:release -d:danger --outdir:out --checks:off --sourceMap src"/"nimvscode.nim"
 
 task vsix, "Build VSIX package":
-  exec "./node_modules/.bin/vsce package --out out"
+  initialNpmInstall()
+  exec "npm exec -c 'vsce package --out out"/"nimvscode-" & version & ".vsix'"
 
 task install_vsix, "Install the VSIX package":
-  exec "code --install-extension out/nimvscode-" & version & ".vsix"
+  initialNpmInstall()
+  exec "code --install-extension out"/"nimvscode-" & version & ".vsix"
 
 # Tasks for maintenance
 task audit_node_deps, "Audit Node.js dependencies":
+  initialNpmInstall()
   exec "npm audit"
   echo "NOTE: 'engines' versions in 'package.json' need manually audited"
 
 task upgrade_node_deps, "Upgrade Node.js dependencies":
-  exec "./node_modules/.bin/ncu -ui"
+  initialNpmInstall()
+  exec "npm exec -c 'ncu -ui'"
   exec "npm install"
   echo "NOTE: 'engines' versions in 'package.json' need manually upgraded"
 
 # Tasks for publishing the extension
 task extReleasePatch, "Patch release on vscode marketplace and openvsx registry":
-  exec "./node_modules/.bin/vsce publish patch" # this bumps the version number
-  exec "./node_modules/.bin/ovsx publish -p $OVSX_PAT"
+  initialNpmInstall()
+  exec "npm exec -c 'vsce publish patch'" # this bumps the version number
+  exec "npm exec -c 'ovsx publish " & out"/"nimvscode-" & version & ".vsix & "'"

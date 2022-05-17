@@ -28,8 +28,8 @@ proc provideDocumentFormattingEdits*(
       getNimPrettyExecPath(),
       @[
           cstring "--backup:OFF",
-          "--indent:" & $(config.getInt("nimprettyIndent")),
-          "--maxLineLen:" & $(config.getInt("nimprettyMaxLineLen")),
+          "--indent:" & cstring($(config.getInt("nimprettyIndent"))),
+          "--maxLineLen:" & cstring($(config.getInt("nimprettyMaxLineLen"))),
           file
     ],
     SpawnSyncOptions{cwd: extensionContext.extensionPath}
@@ -39,7 +39,7 @@ proc provideDocumentFormattingEdits*(
     console.error("Formatting failed:", res.error)
     {.emit: "throw `res`.error;".}
   elif not fs.existsSync(file):
-    var msg: cstring = fmt"Formatting failed - file not found: {file}"
+    var msg: cstring = fmt"Formatting failed - file not found: {file}".cstring
     console.error(msg)
     {.emit: "throw { message: `msg` }".}
     return ret

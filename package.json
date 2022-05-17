@@ -36,6 +36,7 @@
         "@types/node": "^10.17.17",
         "@types/vscode": "^1.27.0",
         "js-yaml": "^4.1.0",
+        "npm-check-updates": "^13.0.0",
         "ovsx": "^0.2.1",
         "typescript": "^2.6.1",
         "vsce": "^1.95.0",

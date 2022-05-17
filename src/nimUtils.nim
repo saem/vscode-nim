@@ -43,7 +43,7 @@ proc removeDirSync(p: cstring): void =
     fs.rmdirSync(p)
 
 proc getDirtyFileFolder*(nimsuggestPid: cint): cstring =
-  path.join(extensionContext.storagePath, "vscodenimdirty_" & $nimsuggestPid)
+  path.join(extensionContext.storagePath, "vscodenimdirty_" & cstring($nimsuggestPid))
 
 proc cleanupDirtyFileFolder*(nimsuggestPid: cint) =
   removeDirSync(getDirtyFileFolder(nimsuggestPid))
@@ -52,7 +52,7 @@ proc getDirtyFile*(nimsuggestPid: cint, filepath, content: cstring): cstring =
   ## temporary file path of edited document
   ## for each nimsuggest instance each file has a unique dirty file
   var dirtyFilePath = path.normalize(
-      path.join(getDirtyFileFolder(nimsuggestPid), $int(hash(filepath)) & ".nim")
+      path.join(getDirtyFileFolder(nimsuggestPid), cstring($int(hash(filepath))) & ".nim")
   )
   fs.writeFileSync(dirtyFilePath, content)
   return dirtyFilePath
@@ -72,14 +72,14 @@ proc padStart(len: cint, input: cstring): cstring =
   return output & input
 proc cleanDateString(date: DateTime): cstring =
   var year = date.getFullYear()
-  var month = padStart(2, $(date.getMonth()))
-  var dd = padStart(2, $(date.getDay()))
-  var hour = padStart(2, $(date.getHours()))
-  var minute = padStart(2, $(date.getMinutes()))
-  var second = padStart(2, $(date.getSeconds()))
-  var milliseconds = padStart(3, $(date.getMilliseconds()))
+  var month = padStart(2, cstring($(date.getMonth())))
+  var dd = padStart(2, cstring($(date.getDay())))
+  var hour = padStart(2, cstring($(date.getHours())))
+  var minute = padStart(2, cstring($(date.getMinutes())))
+  var second = padStart(2, cstring($(date.getSeconds())))
+  var milliseconds = padStart(3, cstring($(date.getMilliseconds())))
   return cstring(fmt"{year}-{month}-{dd} {hour}:{minute}:{second}.{milliseconds}")
 
 proc outputLine*(message: cstring): void =
   ## Prints message in Nim's output channel
-  channel.appendLine(fmt"{cleanDateString(newDate())} - {message}")
+  channel.appendLine(fmt"{cleanDateString(newDate())} - {message}".cstring)

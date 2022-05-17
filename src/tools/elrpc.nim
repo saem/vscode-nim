@@ -27,7 +27,7 @@ proc envelop(content: cstring): cstring =
     strLen = content.len
     length = util.newTextEncoder().encode(content).len
     hexLength = ("000000" & length.toString(16))[^6..^1]
-  console.log(fmt"strLen:{strLen}, length:{length}, hexLength:{hexLength}, content:{content}")
+  console.log(fmt"strLen:{strLen}, length:{length}, hexLength:{hexLength}, content:{content}".cstring)
   return hexLength & content
 
 proc generateUid(epc: EPCPeer): cint =
@@ -42,10 +42,10 @@ proc write(epc: EPCPeer, msg: cstring): void =
     epc.queue.add(msg)
   of flowing:
     var expectedBytes = epc.socket.bytesWritten + msg.len
-    console.log(epc.id, fmt"flowing write {expectedBytes} msg:", msg)
+    console.log(epc.id, fmt"flowing write {expectedBytes} msg:".cstring, msg)
     var flushed = epc.socket.write(msg)
     if expectedBytes != epc.socket.bytesWritten:
-      console.error(epc.id, fmt"Bytes written expected {expectedBytes}, actual {epc.socket.bytesWritten}")
+      console.error(epc.id, fmt"Bytes written expected {expectedBytes}, actual {epc.socket.bytesWritten}".cstring)
     if not flushed:
       console.log(epc.id, "write blocked")
       epc.queueState = QueueState.blocked
@@ -88,7 +88,7 @@ proc newEPCPeer(id: cint, socket: NetSocket): EPCPeer =
               var contentSexp: seq[SExpNode] = content.getElems()
               var guid = cint(contentSexp[1].getNum())
               var handle = epc.sessions[guid]
-              console.log(fmt"{epc.id} onData - handling:{guid} length:{length}")
+              console.log(fmt"{epc.id} onData - handling:{guid} length:{length}".cstring)
               handle(contentSexp)
               epc.sessions.delete(guid)
           except:
@@ -158,7 +158,7 @@ proc callMethod*(epc: EPCPeer, meth: cstring, params: seq[SExpNode]): Promise[
           of "return-error", "epc-error": reject(data[2].toJs())
           else: console.error("Unknown error handling sexp")
 
-      epc.write(envelop(payload))
+      epc.write(envelop(payload.cstring))
   )
 
 proc stop*(epc: EPCPeer): void =
@@ -179,7 +179,7 @@ proc startClient*(id, port: cint): Promise[EPCPeer] =
       except:
         console.error(
             "Failed to start client with message: '",
-            getCurrentExceptionMsg(),
+            getCurrentExceptionMsg().cstring,
             "' see exception:",
             getCurrentException()
         )

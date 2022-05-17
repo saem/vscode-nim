@@ -28,7 +28,7 @@ proc getBinPath*(tool: cstring): cstring =
     let paths = pathParts.mapIt(
         block:
           var dir = it
-          endings.mapIt(path.join(dir, tool & it)))
+          endings.mapIt(path.join(dir, tool & it).cstring))
       .foldl(a & b)# flatten nested arays
       .filterIt(fs.existsSync(it))
 
