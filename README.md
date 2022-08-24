@@ -33,7 +33,7 @@ This extension started out as a [Nim port](https://github.com/pragmagic/vscode-n
 
 Since then community members (notably: @RSDuck, @dscottboggs, and yours truly) have made various contributions directly to this version. From bug fixes to small enhancements.
 
-Presently (2020-12-13) the difference between the two extensions is likely not particularly noticeable to the casual user, arguably it's seen more active maintenance. Some differences you might notice:
+Some differences to the old extension you might notice:
 
 * diagnostics for macro based errors
 * log highlighting and problem detection with links to source code
