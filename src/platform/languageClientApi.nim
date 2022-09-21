@@ -19,9 +19,14 @@ type
     run*: Executable
     debug*: Executable
 
+  DocumentFilter* = ref DocumentFilterObj
+  DocumentFilterObj* {.importc.} = object of JsObject
+    language*: cstring
+    scheme*: cstring
+
   LanguageClientOptions* {.importc.} = ref LanguageClientOptionsObj
   LanguageClientOptionsObj* {.importc.} = object of JsObject
-    documentSelector*: seq[cstring]
+    documentSelector*: seq[DocumentFilter]
 
 proc newLanguageClient*(
   cl: VscodeLanguageClient,
