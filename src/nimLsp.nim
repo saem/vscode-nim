@@ -34,7 +34,8 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
         debug: Executable{command: nimlangserver, transport: "stdio" }
       }
       clientOptions = LanguageClientOptions{
-        documentSelector: @[cstring("nim")]
+        documentSelector: @[DocumentFilter(scheme: cstring("file"),
+                                           language: cstring("nim"))]
       }
 
     state.client = vscodeLanguageClient.newLanguageClient(
