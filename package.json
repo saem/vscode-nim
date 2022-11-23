@@ -200,9 +200,19 @@
                     "scope": "resource"
                 },
                 "nim.projectMapping": {
-                    "type": "object",
-                    "default": {},
-                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"(.*).inim\": \"$1.nim\"}```",
+                    "type": "array",
+                    "default": [],
+                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"fileRegex\": \"(.*).inim\", \"projectFile\": \"$1.nim\"}```",
+                    "properties": {
+                        "fileRegex": {
+                            "type": "string",
+                            "description": "Source file regex"
+                        },
+                        "projectFile": {
+                            "type": "string",
+                            "description": "Project file path"
+                        }
+                    },
                     "scope": "resource"
                 },
                 "nim.test-project": {
