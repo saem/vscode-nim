@@ -51,4 +51,4 @@ task upgrade_node_deps, "Upgrade Node.js dependencies":
 task extReleasePatch, "Patch release on vscode marketplace and openvsx registry":
   initialNpmInstall()
   exec "npm exec -c 'vsce publish patch'" # this bumps the version number
-  exec "npm exec -c 'ovsx publish " & out"/"nimvscode-" & version & ".vsix & "'"
+  exec "npm exec -c 'ovsx publish out"/"nimvscode-" & version & ".vsix'"
