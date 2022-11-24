@@ -37,9 +37,9 @@
         "@types/vscode": "^1.27.0",
         "js-yaml": "^4.1.0",
         "npm-check-updates": "^13.0.0",
-        "ovsx": "^0.2.1",
+        "ovsx": "^0.5.2",
         "typescript": "^2.6.1",
-        "vsce": "^1.95.0",
+        "vsce": "^2.14.0",
         "vscode-test": "^1.4.0"
     },
     "engines": {
