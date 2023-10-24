@@ -9,10 +9,16 @@ type
   VscodeLanguageClient* = ref VscodeLanguageClientObj
   VscodeLanguageClientObj {.importc.} = object of JsRoot
 
+  TransportKind* {.pure.} = enum
+    stdio = 0,
+    ipc = 1,
+    pipe = 2,
+    socket = 3
+
   Executable* = ref ExecutableObj
   ExecutableObj {.importc.} = object of JsObject
     command*: cstring
-    transport*: cstring
+    transport*: TransportKind
 
   ServerOptions* = ref ServerOptionsObj
   ServerOptionsObj* {.importc.} = object of JsObject
