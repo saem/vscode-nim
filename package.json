@@ -29,17 +29,17 @@
         "vscode:prepublish": "nimble release"
     },
     "dependencies": {
-        "vscode-languageclient": "7.0.0"
+        "vscode-languageclient": "^9.0.1"
     },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
         "@types/vscode": "^1.27.0",
+        "@vscode/vsce": "^2.21.1",
         "js-yaml": "^4.1.0",
         "npm-check-updates": "^16.10.15",
         "ovsx": "^0.8.3",
         "typescript": "^2.6.1",
-        "@vscode/vsce": "^2.21.1",
         "vscode-test": "^1.4.0"
     },
     "engines": {
