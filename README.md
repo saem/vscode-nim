@@ -218,6 +218,7 @@ This extension relies on nimsuggest for code completion. Nimsuggest is basically
 ## Developing the Extension
 
 * If this is the first time you're building the extension on your machine, do an npm install to get the dependencies
+* You should also copy (or create a symlink to) the `nimsuggest` directory from the Nim compiler sources into `src/nimsuggest`
 * Press `F5` or whatever your `Run -> Start Debugging` command short cut is
 * If prompted choose launch `Extension`
 * This launches a new VS Code Window which is running your patched extension
