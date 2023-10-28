@@ -1174,6 +1174,9 @@
           "include": "#fmt_string"
         },
         {
+          "include": "#fmt_string_call_triple"
+        },
+        {
           "include": "#fmt_string_call"
         },
         {
@@ -1327,6 +1330,40 @@
               "match": "\"",
               "name": "invalid.illegal.nim"
             },
+            {
+              "include": "#string_escapes"
+            },
+            {
+              "include": "#fmt_interpolation"
+            }
+          ]
+        }
+      ]
+    },
+    "fmt_string_call_triple": {
+      "begin": "(fmt)\\((?=\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "end": "\\)",
+      "patterns": [
+        {
+          "begin": "\"\"\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"\"\"(?=\\))",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nim"
+            }
+          },
+          "name": "string.quoted.triple.nim",
+          "patterns": [
             {
               "include": "#string_escapes"
             },
