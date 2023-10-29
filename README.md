@@ -1,9 +1,9 @@
 # Nim Extension
 
 Visual Studio:
-[![Version](https://vsmarketplacebadge.apphb.com/version/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
-[![Installs](https://vsmarketplacebadge.apphb.com/installs/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
-[![Ratings](https://vsmarketplacebadge.apphb.com/rating/nimsaem.nimvscode.svg)](https://vsmarketplacebadge.apphb.com/rating/nimsaem.nimvscode.svg)
+[![Version](https://vsmarketplacebadges.dev/version/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
+[![Installs](https://vsmarketplacebadges.dev/installs/nimsaem.nimvscode.svg)](https://marketplace.visualstudio.com/items?itemName=nimsaem.nimvscode)
+[![Ratings](https://vsmarketplacebadges.dev/rating/nimsaem.nimvscode.svg)](https://vsmarketplacebadge.apphb.com/rating/nimsaem.nimvscode.svg)
 
 Open-VSX:
 [![Version](https://img.shields.io/open-vsx/v/nimsaem/nimvscode)](https://open-vsx.org/extension/nimsaem/nimvscode)
@@ -218,6 +218,7 @@ This extension relies on nimsuggest for code completion. Nimsuggest is basically
 ## Developing the Extension
 
 * If this is the first time you're building the extension on your machine, do an npm install to get the dependencies
+* You should also copy (or create a symlink to) the `nimsuggest` directory from the Nim compiler sources into `src/nimsuggest`
 * Press `F5` or whatever your `Run -> Start Debugging` command short cut is
 * If prompted choose launch `Extension`
 * This launches a new VS Code Window which is running your patched extension

@@ -30,8 +30,8 @@ proc startLanguageServer(tryInstall: bool, state: ExtensionState) =
     console.log("Starting nimlangserver.")
     let
       serverOptions = ServerOptions{
-        run: Executable{command: nimlangserver, transport: "stdio" },
-        debug: Executable{command: nimlangserver, transport: "stdio" }
+        run: Executable{command: nimlangserver, transport: TransportKind.stdio },
+        debug: Executable{command: nimlangserver, transport: TransportKind.stdio }
       }
       clientOptions = LanguageClientOptions{
         documentSelector: @[DocumentFilter(scheme: cstring("file"),
