@@ -2,7 +2,7 @@
     "name": "nimvscode",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code written in Nim",
-    "version": "0.1.26",
+    "version": "0.1.27",
     "publisher": "nimsaem",
     "author": {
         "name": "Saem"
@@ -202,15 +202,19 @@
                 "nim.projectMapping": {
                     "type": "array",
                     "default": [],
-                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"fileRegex\": \"(.*).inim\", \"projectFile\": \"$1.nim\"}```",
-                    "properties": {
-                        "fileRegex": {
-                            "type": "string",
-                            "description": "Source file regex"
-                        },
-                        "projectFile": {
-                            "type": "string",
-                            "description": "Project file path"
+                    "description": "For non project mode list of per file project mapping using regex, for example ```[{\"fileRegex\": \"(.*).inim\", \"projectFile\": \"$1.nim\"}]```",
+                    "items": {
+                        "type": "object",
+                        "title": "mapping",
+                        "properties": {
+                            "fileRegex": {
+                                "type": "string",
+                                "description": "Source file regex"
+                            },
+                            "projectFile": {
+                                "type": "string",
+                                "description": "Project file path"
+                            }
                         }
                     },
                     "scope": "resource"
