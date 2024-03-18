@@ -1174,6 +1174,9 @@
           "include": "#fmt_string"
         },
         {
+          "include": "#fmt_string_call_triple"
+        },
+        {
           "include": "#fmt_string_call"
         },
         {
@@ -1337,6 +1340,40 @@
         }
       ]
     },
+    "fmt_string_call_triple": {
+      "begin": "(fmt)\\((?=\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "end": "\\)",
+      "patterns": [
+        {
+          "begin": "\"\"\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"\"\"(?=\\))",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nim"
+            }
+          },
+          "name": "string.quoted.triple.nim",
+          "patterns": [
+            {
+              "include": "#string_escapes"
+            },
+            {
+              "include": "#fmt_interpolation"
+            }
+          ]
+        }
+      ]
+    },
     "string_quoted_double": {
       "begin": "\"",
       "beginCaptures": {
@@ -1478,6 +1515,18 @@
     },
     "custom_literal": {
       "patterns": [
+        {
+          "match": "-?(\\b0[xX](\\h[_\\h]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
+          "name": "constant.numeric.custom.lit.hexadecimal.nim"
+        },
+        {
+          "match": "-?(\\b0o([0-7][_0-7]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
+          "name": "constant.numeric.custom.lit.octal.nim"
+        },
+        {
+          "match": "-?(\\b0(b|B)([01][_01]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
+          "name": "constant.numeric.custom.lit.binary.nim"
+        },
         {
           "match": "-?(\\b(\\d[_\\d]*)(\\.[_\\d]+)?')(?!((([iIuU](8|16|32|64))|[uU][^a-zA-Z0-9])|([fF](32|64|128)|[fFdD][^a-zA-Z0-9])))([a-zA-Z]\\w*)",
           "name": "constant.numeric.custom.lit.nim"
