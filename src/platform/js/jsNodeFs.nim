@@ -28,53 +28,53 @@ type
 
   NodeFileHandle* {.importc.} = ref object of JsRoot
 
-proc existsSync*(fs: Fs, file: cstring): bool {.importcpp.}
-proc mkdirSync*(fs: Fs, file: cstring): void {.importcpp.}
-proc unlinkSync*(fs: Fs, file: cstring): void {.importcpp.}
-proc stat*(fs: Fs, file: cstring, cb: StatCallback): void {.importcpp.}
-proc statSync*(fs: Fs, file: cstring): FsStats {.importcpp.}
-proc lstatSync*(fs: Fs, file: cstring): FsStats {.importcpp.}
-proc readFileSync*(fs: Fs, file: cstring, encoding: cstring): cstring {.importcpp.}
-proc writeFileSync*(fs: Fs, file: cstring, content: cstring): void {.importcpp.}
-proc readdir*(fs: Fs, path: cstring, cb: ReaddirCallback): void {.importcpp.}
-proc readdirSync*(fs: Fs, dir: cstring): seq[cstring] {.importcpp.}
-proc rmdirSync*(fs: Fs, dir: cstring): void {.importcpp.}
+proc existsSync*(fs: Fs, file: cstring): bool {.importjs.}
+proc mkdirSync*(fs: Fs, file: cstring): void {.importjs.}
+proc unlinkSync*(fs: Fs, file: cstring): void {.importjs.}
+proc stat*(fs: Fs, file: cstring, cb: StatCallback): void {.importjs.}
+proc statSync*(fs: Fs, file: cstring): FsStats {.importjs.}
+proc lstatSync*(fs: Fs, file: cstring): FsStats {.importjs.}
+proc readFileSync*(fs: Fs, file: cstring, encoding: cstring): cstring {.importjs.}
+proc writeFileSync*(fs: Fs, file: cstring, content: cstring): void {.importjs.}
+proc readdir*(fs: Fs, path: cstring, cb: ReaddirCallback): void {.importjs.}
+proc readdirSync*(fs: Fs, dir: cstring): seq[cstring] {.importjs.}
+proc rmdirSync*(fs: Fs, dir: cstring): void {.importjs.}
 
 # FsStats
-proc isDirectory*(s: FsStats): bool {.importcpp.}
+proc isDirectory*(s: FsStats): bool {.importjs.}
 
 # Promises API
 proc writeFile*(
     fp: FsPromises,
     path: cstring,
     data: cstring
-): Future[void] {.importcpp: "#.writeFile(@)".}
+): Future[void] {.importjs: "#.writeFile(@)".}
 proc open*(
     fp: FsPromises,
     path: cstring,
     options: cstring
-): Future[NodeFileHandle] {.importcpp: "#.open(@)".}
+): Future[NodeFileHandle] {.importjs: "#.open(@)".}
 proc unlink*(
     fp: FsPromises,
     path: cstring
-): Future[void] {.importcpp: "#.unlink(@)".}
+): Future[void] {.importjs: "#.unlink(@)".}
 proc copyFile*(
     fp: FsPromises,
     src: cstring,
     dest: cstring
-): Future[void] {.discardable, importcpp: "#.copyFile(@)".}
+): Future[void] {.discardable, importjs: "#.copyFile(@)".}
 proc readFileUtf8*(
     fp: FsPromises,
     path: cstring
-): Future[cstring] {.importcpp: "#.readFile(#, {'encoding': 'utf8'})".}
+): Future[cstring] {.importjs: "#.readFile(#, {'encoding': 'utf8'})".}
 
-proc close*(fh: NodeFileHandle): Future[void] {.discardable, importcpp.}
-proc write*(fh: NodeFileHandle, data: cstring, position: cint): Future[void] {.importcpp.}
-proc writeFile*(fh: NodeFileHandle, data: cstring): Future[void] {.importcpp.}
-proc sync*(fh: NodeFileHandle): Future[void] {.discardable, importcpp.}
-proc truncate*(fh: NodeFileHandle): Future[void] {.discardable, importcpp.}
+proc close*(fh: NodeFileHandle): Future[void] {.discardable, importjs.}
+proc write*(fh: NodeFileHandle, data: cstring, position: cint): Future[void] {.importjs.}
+proc writeFile*(fh: NodeFileHandle, data: cstring): Future[void] {.importjs.}
+proc sync*(fh: NodeFileHandle): Future[void] {.discardable, importjs.}
+proc truncate*(fh: NodeFileHandle): Future[void] {.discardable, importjs.}
 proc readFileUtf8*(fh: NodeFileHandle): Future[cstring] {.
-    importcpp: "#.readFile('utf8')".}
+    importjs: "#.readFile('utf8')".}
 
 var fs*: Fs = require("fs").to(Fs)
 var fsp*: FsPromises = fs.promises

@@ -13,13 +13,13 @@ type
 
 var net*: Net = require("net").to(Net)
 
-proc createConnection*(net: Net, port: cint, host: cstring, cb: proc(): void): NetSocket {.importcpp.}
-proc destroy*(s: NetSocket): void {.importcpp.}
-proc write*(s: NetSocket, data: cstring): bool {.importcpp, discardable.}
-proc `end`*(s: NetSocket): void {.importcpp.}
+proc createConnection*(net: Net, port: cint, host: cstring, cb: proc(): void): NetSocket {.importjs.}
+proc destroy*(s: NetSocket): void {.importjs.}
+proc write*(s: NetSocket, data: cstring): bool {.importjs, discardable.}
+proc `end`*(s: NetSocket): void {.importjs.}
 proc onData*(s: NetSocket, listener: (proc(data: Buffer): void)): NetSocket
-    {.importcpp: "#.on(\"data\",@)", discardable.}
+    {.importjs: "#.on(\"data\",@)", discardable.}
 proc onDrain*(s: NetSocket, listener: (proc(): void)): void
-    {.importcpp: "#.on(\"drain\",@)".}
+    {.importjs: "#.on(\"drain\",@)".}
 proc onClose*(s: NetSocket, listener: (proc(hadError: bool): void)): NetSocket
-    {.importcpp: "#.on(\"close\",@)", discardable.}
+    {.importjs: "#.on(\"close\",@)", discardable.}

@@ -54,33 +54,33 @@ type
 
 # node module interface
 proc spawn*(cpm: ChildProcessModule, cmd: cstring, args: seq[cstring],
-    opt: SpawnOptions): ChildProcess {.importcpp.}
+    opt: SpawnOptions): ChildProcess {.importjs.}
 proc spawnSync*(cpm: ChildProcessModule, cmd: cstring, args: seq[cstring],
-    opt: SpawnSyncOptions): SpawnSyncReturn {.importcpp.}
+    opt: SpawnSyncOptions): SpawnSyncReturn {.importjs.}
 proc exec*(cpm: ChildProcessModule, cmd: cstring, options: ExecOptions,
-    cb: ExecCallback): ChildProcess {.importcpp.}
+    cb: ExecCallback): ChildProcess {.importjs.}
 proc execSync*(cpm: ChildProcessModule, cmd: cstring, options: ExecOptions,
-    cb: ExecCallback): Buffer {.importcpp.}
+    cb: ExecCallback): Buffer {.importjs.}
 proc execSync*(cpm: ChildProcessModule, cmd: cstring,
-    options: ExecOptions): Buffer {.importcpp.}
+    options: ExecOptions): Buffer {.importjs.}
 proc execFileSync*(cpm: ChildProcessModule, cmd: cstring, args: seq[
-    cstring]): Buffer {.importcpp.}
+    cstring]): Buffer {.importjs.}
 
 # ChildProcess
-proc kill*(cp: ChildProcess): void {.importcpp.}
-proc kill*(cp: ChildProcess, signal: cstring): void {.importcpp.}
+proc kill*(cp: ChildProcess): void {.importjs.}
+proc kill*(cp: ChildProcess, signal: cstring): void {.importjs.}
 proc onError*(cp: ChildProcess, listener: proc(
-    err: ChildError): void): ChildProcess {.importcpp: "#.on(\"error\",@)", discardable.}
+    err: ChildError): void): ChildProcess {.importjs: "#.on(\"error\",@)", discardable.}
 proc onExit*(cp: ChildProcess, listener: (proc(code: cint,
-    signal: cstring): void)): ChildProcess {.importcpp: "#.on(\"exit\",@)", discardable.}
+    signal: cstring): void)): ChildProcess {.importjs: "#.on(\"exit\",@)", discardable.}
 proc onClose*(cp: ChildProcess, listener: (proc(code: cint,
-    signal: cstring): void)): ChildProcess {.importcpp: "#.on(\"close\",@)", discardable.}
+    signal: cstring): void)): ChildProcess {.importjs: "#.on(\"close\",@)", discardable.}
 
 # StreamReadable
 proc onData*(ws: StreamReadable, listener: (proc(
-    data: Buffer): void)): ChildProcess {.importcpp: "#.on(\"data\",@)", discardable.}
+    data: Buffer): void)): ChildProcess {.importjs: "#.on(\"data\",@)", discardable.}
 proc onceData*(ws: StreamReadable, listener: (proc(
     data: Buffer): void)): ChildProcess
-    {.importcpp: "#.once(\"data\",@)", discardable.}
+    {.importjs: "#.once(\"data\",@)", discardable.}
 
 var cp*: ChildProcessModule = require("child_process").to(ChildProcessModule)

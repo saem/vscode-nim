@@ -25,30 +25,30 @@ proc `[]`*[T, U](s: cstring; x: HSlice[T, U]): cstring =
   return `s`.slice(`l`, `h`);
   """
 
-proc repeat*(s: cstring; n: Natural): cstring {.importcpp: "#.repeat(@)".}
+proc repeat*(s: cstring; n: Natural): cstring {.importjs: "#.repeat(@)".}
   ## Returns string `s` concatenated `n` times.
 
-proc startsWith*(s, a: cstring): bool {.importcpp: "#.startsWith(@)".}
+proc startsWith*(s, a: cstring): bool {.importjs: "#.startsWith(@)".}
   ## Returns true if ``s`` starts with string ``prefix``.
   ##
   ## If ``prefix == ""`` true is returned.
 
-proc endsWith*(s: cstring; suffix: cstring): bool {.importcpp: "#.endsWith(@)".}
+proc endsWith*(s: cstring; suffix: cstring): bool {.importjs: "#.endsWith(@)".}
   ## Returns true if ``s`` ends with ``suffix``.
   ##
   ## If ``suffix == ""`` true is returned.
 
-proc find*(s: cstring; a: cstring): cint {.importcpp: "#.indexOf(@)".}
+proc find*(s: cstring; a: cstring): cint {.importjs: "#.indexOf(@)".}
   ## Searches for `a` in `s`.
   ##
   ## Searching is case-sensitive. If `a` is not in `s`, -1 is returned.
 
-proc find*(s: cstring; a: RegExp): cint {.importcpp: "#.search(@)".}
+proc find*(s: cstring; a: RegExp): cint {.importjs: "#.search(@)".}
 
-proc match*(s: cstring; a: RegExp): seq[cstring] {.importcpp.}
+proc match*(s: cstring; a: RegExp): seq[cstring] {.importjs.}
   ## Retrieves the result of matching a string against a regular expression.
 
-proc findLast*(s: cstring; a: cstring): cint {.importcpp: "#.lastIndexOf(@)".}
+proc findLast*(s: cstring; a: cstring): cint {.importjs: "#.lastIndexOf(@)".}
   ## Searches for `a` in `s`.
   ##
   ## Searching is case-sensitive. If `a` is not in `s`, -1 is returned.
@@ -60,55 +60,55 @@ proc contains*(s, sub: cstring): bool {.noSideEffect.} =
   ## * `find proc<#find,string,string,Natural,int>`_
   return find(s, sub) >= 0
 
-proc split*(s: cstring; a: cstring): seq[cstring] {.importcpp: "#.split(@)".}
+proc split*(s: cstring; a: cstring): seq[cstring] {.importjs: "#.split(@)".}
   ## Splits the string `s` into substrings using a single separator.
   ##
   ## Substrings are separated by the character `sep`.
 
-proc split*(s: cstring; a: RegExp): seq[cstring] {.importcpp: "#.split(@)".}
+proc split*(s: cstring; a: RegExp): seq[cstring] {.importjs: "#.split(@)".}
   ## Splits the string `s` into substrings using a regex separator.
   ##
   ## Substrings are separated by the character `sep`.
 
-proc toLowerAscii*(s: cstring): cstring {.importcpp: "#.toLowerCase()".}
+proc toLowerAscii*(s: cstring): cstring {.importjs: "#.toLowerCase()".}
   ## Converts string `s` into lower case.
   ##
   ## This works only for the letters ``A-Z``.
 
-proc toUpperAscii*(s: cstring): cstring {.importcpp: "#.toUpperCase()".}
+proc toUpperAscii*(s: cstring): cstring {.importjs: "#.toUpperCase()".}
   ## Converts string `s` into upper case.
   ##
   ## This works only for the letters ``A-Z``.
 
 proc replace*(s, sub: cstring; by = cstring""): cstring {.
-    importcpp: "#.replace(#, #)".}
+    importjs: "#.replace(#, #)".}
   ## Replaces `sub` in `s` by the string `by`.
 
 proc replace*(s: cstring; sub: RegExp; by = cstring""): cstring {.
-    importcpp: "#.replace(#, #)".}
+    importjs: "#.replace(#, #)".}
   ## Replaces `sub` in `s` by the string `by`.
 
-proc strip*(s: cstring): cstring {.importcpp: "#.trim()".}
+proc strip*(s: cstring): cstring {.importjs: "#.trim()".}
   ## Strips leading or trailing spaces
 
-proc parseFloatJS*(s: cstring): float {.importcpp: "parseFloat(@)".}
+proc parseFloatJS*(s: cstring): float {.importjs: "parseFloat(@)".}
   ## Parses a decimal floating point value contained in `s`
   ## Using JS's native float parsing function
 
-proc parseCint*(s: cstring): cint {.importcpp: "parseInt(@)".}
+proc parseCint*(s: cstring): cint {.importjs: "parseInt(@)".}
   ## Parses an int value contained in `s`
   ## Using JS's native float parsing function
-proc parseCint*(s: cstring; radix: cint): cint {.importcpp: "parseInt(@)".}
+proc parseCint*(s: cstring; radix: cint): cint {.importjs: "parseInt(@)".}
   ## Parses an int value contained in `s` with the given radix
   ## Using JS's native float parsing function
 
-proc join*(s: seq[cstring]; sep: cstring): cstring {.importcpp: "#.join(@)".}
+proc join*(s: seq[cstring]; sep: cstring): cstring {.importjs: "#.join(@)".}
   ## Join an array of strings into a single string
 
-proc toString*(i: int): cstring {.importcpp: "(#.toString(@))".}
+proc toString*(i: int): cstring {.importjs: "(#.toString(@))".}
   ## Convert an int to a string
 
-proc toString*(i: int; radix: Natural): cstring {.importcpp: "(#.toString(@))".}
+proc toString*(i: int; radix: Natural): cstring {.importjs: "(#.toString(@))".}
   ## Convert an int to a string given a radix
 
 when isMainModule:

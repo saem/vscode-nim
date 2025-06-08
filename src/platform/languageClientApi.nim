@@ -33,9 +33,9 @@ proc newLanguageClient*(
   name: cstring,
   description: cstring,
   serverOptions: ServerOptions,
-  clientOptions: LanguageClientOptions): VscodeLanguageClient {.importcpp: "(new #.LanguageClient(@))".}
+  clientOptions: LanguageClientOptions): VscodeLanguageClient {.importjs: "(new #.LanguageClient(@))".}
 
-proc start*(s: VscodeLanguageClient): void {.importcpp: "#.start()".}
-proc stop*(s: VscodeLanguageClient): void {.importcpp: "#.stop()".}
+proc start*(s: VscodeLanguageClient): void {.importjs: "#.start()".}
+proc stop*(s: VscodeLanguageClient): void {.importjs: "#.stop()".}
 
 var vscodeLanguageClient*: VscodeLanguageClient = require("vscode-languageclient/node").to(VscodeLanguageClient)
