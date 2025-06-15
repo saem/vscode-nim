@@ -184,6 +184,7 @@ proc parseErrors(lines: seq[cstring]): seq[CheckResult] =
 proc parseNimsuggestErrors(items: seq[NimSuggestResult]): seq[CheckResult] =
   var ret: seq[CheckResult] = @[]
   for item in items.filterIt(not (it.path == "???" and it.`type` == "Hint")):
+    let item = item
     ret.add(CheckResult{
         file: item.path,
         line: item.line,
