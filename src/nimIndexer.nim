@@ -200,6 +200,7 @@ proc indexFile(file: cstring) {.async.} =
 
       for i in infos:
         var folder = vscode.workspace.getWorkspaceFolder(i.location.uri)
+        let i = i
         if folder.isNil():
           console.log("indexFile - dbTypes - not in workspace",
               i.location.uri.fsPath)

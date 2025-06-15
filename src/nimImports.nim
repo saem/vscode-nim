@@ -125,6 +125,7 @@ proc initNimbleModules(rootDir: cstring): Promise[seq[cstring]] =
             getNimbleExecPath() & " --y dump " & moduleName,
             ExecOptions{cwd: rootDir}
           ).toString()
+        let moduleName = moduleName
         var nimbleModule = NimbleModuleInfo{name: moduleName}
         for line in output.split(newRegExp(r"\n", "")):
           var pairs = line.strip().split(": \"")
@@ -219,7 +220,7 @@ proc addFileToImports*(file: cstring): Promise[void] =
 
   return newEmptyPromise()
 
-proc splice[T](x: seq[T], n: cint): void {.importcpp.}
+proc splice[T](x: seq[T], n: cint): void {.importjs.}
 
 proc removeFileFromImports*(file: cstring): Promise[void] =
   for key, items in nimModules:

@@ -184,13 +184,13 @@ type
   VscodeMarkedString* = ref VscodeMarkedStringObj
   VscodeMarkedStringObj {.importc.} = object of JsObject
 
-proc cstringToMarkedString(s: cstring): VscodeMarkedString {.importcpp: "#".}
+proc cstringToMarkedString(s: cstring): VscodeMarkedString {.importjs: "#".}
 converter toVscodeMarkedString*(s: cstring): VscodeMarkedString = s.cstringToMarkedString()
 proc hoverLabelToMarkedString(s: VscodeHoverLabel): VscodeMarkedString {.
-    importcpp: "#".}
+    importjs: "#".}
 converter toVscodeMarkedString*(s: VscodeHoverLabel): VscodeMarkedString = s.hoverLabelToMarkedString()
 proc markdownStringToMarkedString(s: VscodeMarkdownString): VscodeMarkedString {.
-    importcpp: "#".}
+    importjs: "#".}
 converter toVscodeMarkedString*(s: VscodeMarkdownString): VscodeMarkedString = s.markdownStringToMarkedString()
 
 type
@@ -277,7 +277,7 @@ type
     sortText*: cstring
     insertText*: cstring
     documentation*: cstring
-    documentationMD* {.importcpp: "documentation".}: VscodeMarkdownString
+    documentationMD* {.importjs: "documentation".}: VscodeMarkdownString
 
   VscodeTextEdit* = ref VscodeTextEditObj
   VscodeTextEditObj {.importc.} = object of JsObject
@@ -514,41 +514,41 @@ type
 
 # static function
 proc newWorkspaceEdit*(vscode: Vscode): VscodeWorkspaceEdit {.
-    importcpp: "(new #.WorkspaceEdit(@))".}
+    importjs: "(new #.WorkspaceEdit(@))".}
 proc newPosition*(vscode: Vscode, start: cint, `end`: cint): VscodePosition {.
-    importcpp: "(new #.Position(@))".}
+    importjs: "(new #.Position(@))".}
 proc newRange*(vscode: Vscode, start: VscodePosition,
-    `end`: VscodePosition): VscodeRange {.importcpp: "(new #.Range(@))".}
+    `end`: VscodePosition): VscodeRange {.importjs: "(new #.Range(@))".}
 proc newRange*(vscode: Vscode, startA, endA, startB, endB: cint): VscodeRange {.
-    importcpp: "(new #.Range(@))".}
+    importjs: "(new #.Range(@))".}
 proc newDiagnostic*(
   vscode: Vscode,
   r: VscodeRange,
   msg: cstring,
   sev: VscodeDiagnosticSeverity
-): VscodeDiagnostic {.importcpp: "(new #.Diagnostic(@))".}
+): VscodeDiagnostic {.importjs: "(new #.Diagnostic(@))".}
 proc newDiagnosticRelatedInformation*(
     vscode: Vscode,
     location: VscodeLocation,
     message: cstring
 ): VscodeDiagnosticRelatedInformation {.
-    importcpp: "new #.DiagnosticRelatedInformation(@)".}
+    importjs: "new #.DiagnosticRelatedInformation(@)".}
 proc newLocation*(vscode: Vscode, uri: VscodeUri,
   pos: VscodePosition|VscodeRange): VscodeLocation {.
-    importcpp: "(new #.Location(@))".}
+    importjs: "(new #.Location(@))".}
 proc newCompletionItem*(vscode: Vscode, name: cstring,
   kind: VscodeCompletionKind): VscodeCompletionItem {.
-  importcpp: "(new #.CompletionItem(@))".}
+  importjs: "(new #.CompletionItem(@))".}
 proc newMarkdownString*(vscode: Vscode, text: cstring): VscodeMarkdownString {.
-  importcpp: "(new #.MarkdownString(@))".}
+  importjs: "(new #.MarkdownString(@))".}
 proc newSignatureHelp*(vscode: Vscode): VscodeSignatureHelp {.
-  importcpp: "(new #.SignatureHelp(@))".}
+  importjs: "(new #.SignatureHelp(@))".}
 proc newSignatureInformation*(vscode: Vscode, kind: cstring,
   docString: cstring): VscodeSignatureInformation {.
-  importcpp: "(new #.SignatureInformation(@))".}
+  importjs: "(new #.SignatureInformation(@))".}
 proc newParameterInformation*(vscode: Vscode,
   name: cstring): VscodeParameterInformation {.
-  importcpp: "(new #.ParameterInformation(@))".}
+  importjs: "(new #.ParameterInformation(@))".}
 proc newDocumentSymbol*(
   vscode: Vscode,
   name: cstring,
@@ -556,14 +556,14 @@ proc newDocumentSymbol*(
   kind: VscodeSymbolKind,
   rng: VscodeRange,
   selectionRange: VscodeRange
-): VscodeDocumentSymbol {.importcpp: "(new #.DocumentSymbol(@))".}
+): VscodeDocumentSymbol {.importjs: "(new #.DocumentSymbol(@))".}
 proc newSymbolInformation*(
   vscode: Vscode,
   name: cstring,
   kind: VscodeSymbolKind,
   container: cstring,
   loc: VscodeLocation
-): VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))".}
+): VscodeSymbolInformation {.importjs: "(new #.SymbolInformation(@))".}
 proc newSymbolInformation*(
   vscode: Vscode,
   name: cstring,
@@ -571,277 +571,277 @@ proc newSymbolInformation*(
   rng: VscodeRange,
   file: VscodeUri,
   container: cstring
-): VscodeSymbolInformation {.importcpp: "(new #.SymbolInformation(@))", deprecated.}
+): VscodeSymbolInformation {.importjs: "(new #.SymbolInformation(@))", deprecated.}
 proc newVscodeHover*(vscode: Vscode, contents: VscodeMarkedString): VscodeHover {.
-  importcpp: "(new #.Hover(@))".}
+  importjs: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode: Vscode, contents: Array[
-  VscodeMarkedString]): VscodeHover {.importcpp: "(new #.Hover(@))".}
+  VscodeMarkedString]): VscodeHover {.importjs: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode: Vscode, contents: VscodeMarkedString,
-  `range`: VscodeRange): VscodeHover {.importcpp: "(new #.Hover(@))".}
+  `range`: VscodeRange): VscodeHover {.importjs: "(new #.Hover(@))".}
 proc newVscodeHover*(vscode: Vscode, contents: Array[VscodeMarkedString],
-  `range`: VscodeRange): VscodeHover {.importcpp: "(new #.Hover(@))".}
+  `range`: VscodeRange): VscodeHover {.importjs: "(new #.Hover(@))".}
 proc uriFile*(vscode: Vscode, file: cstring): VscodeUri {.
-  importcpp: "(#.Uri.file(@))".}
+  importjs: "(#.Uri.file(@))".}
 proc newWorkspaceFolderLike*(uri: VscodeUri, name: cstring,
   index: cint): VscodeWorkspaceFolder {.
-  importcpp: "({uri:#, name:#, index:#})".}
+  importjs: "({uri:#, name:#, index:#})".}
 
 # Command
 proc registerCommand*(
   cmds: VscodeCommands,
   name: cstring,
   fn: proc(): void
-): void {.importcpp.}
+): void {.importjs.}
 proc registerCommand*(
   cmds: VscodeCommands,
   name: cstring,
   fn: proc(): Future[void]
-): void {.importcpp.}
+): void {.importjs.}
 
 # Uri
-proc with*(uri: VscodeUri, change: VscodeUriChange): VscodeUri {.importcpp.}
+proc with*(uri: VscodeUri, change: VscodeUriChange): VscodeUri {.importjs.}
 
 # Output
-proc showInformationMessage*(win: VscodeWindow, msg: cstring) {.importcpp.}
+proc showInformationMessage*(win: VscodeWindow, msg: cstring) {.importjs.}
     ## shows an informational message
 
 # Workspace
-proc saveAll*(ws: VscodeWorkspace, includeUntitledFile: bool): Future[bool] {.importcpp.}
+proc saveAll*(ws: VscodeWorkspace, includeUntitledFile: bool): Future[bool] {.importjs.}
 proc getConfiguration*(
   ws: VscodeWorkspace,
   name: cstring
-): VscodeWorkspaceConfiguration {.importcpp.}
+): VscodeWorkspaceConfiguration {.importjs.}
 proc getConfiguration*(
   ws: VscodeWorkspace,
   name: cstring,
   scope: VscodeUri
-): VscodeWorkspaceConfiguration {.importcpp.}
+): VscodeWorkspaceConfiguration {.importjs.}
 proc getConfiguration*(
   ws: VscodeWorkspace,
   name: cstring,
   scope: VscodeWorkspaceFolder
-): VscodeWorkspaceConfiguration {.importcpp.}
-proc onDidChangeConfiguration*(ws: VscodeWorkspace, cb: proc(): void): VscodeDisposable {.importcpp.}
+): VscodeWorkspaceConfiguration {.importjs.}
+proc onDidChangeConfiguration*(ws: VscodeWorkspace, cb: proc(): void): VscodeDisposable {.importjs.}
 proc onDidChangeConfiguration*(ws: VscodeWorkspace, cb: proc(
-  e: VscodeConfigurationChangeEvent): void): VscodeDisposable {.importcpp.}
+  e: VscodeConfigurationChangeEvent): void): VscodeDisposable {.importjs.}
 proc onDidSaveTextDocument*[T](
   ws: VscodeWorkspace,
   cb: proc(d: VscodeTextDocument): void,
   thisArg: T,
   disposables: Array[VscodeDisposable]
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc findFiles*(ws: VscodeWorkspace, includeGlob: cstring): Future[Array[
-  VscodeUri]] {.importcpp.}
+  VscodeUri]] {.importjs.}
 proc findFiles*(ws: VscodeWorkspace, includeGlob: cstring,
-  excludeGlob: cstring): Future[Array[VscodeUri]] {.importcpp.}
+  excludeGlob: cstring): Future[Array[VscodeUri]] {.importjs.}
 proc getWorkspaceFolder*(ws: VscodeWorkspace,
-  folder: VscodeUri): VscodeWorkspaceFolder {.importcpp.}
+  folder: VscodeUri): VscodeWorkspaceFolder {.importjs.}
 proc asRelativePath*(ws: VscodeWorkspace, filename: cstring,
-  includeWorkspaceFolder: bool): cstring {.importcpp.}
+  includeWorkspaceFolder: bool): cstring {.importjs.}
 proc createFileSystemWatcher*(
   ws: VscodeWorkspace,
   glob: cstring
-): VscodeFileSystemWatcher {.importcpp.}
+): VscodeFileSystemWatcher {.importjs.}
 proc applyEdit*(
   ws: VscodeWorkspace,
   e: VscodeWorkspaceEdit
-): Future[bool] {.importcpp, discardable.}
+): Future[bool] {.importjs, discardable.}
 
 # FileSystem
 proc readDirectory*(
   fs: VscodeFileSystem,
   uri: VscodeUri
-): Future[Array[VscodeReadDirResult]] {.importcpp.}
-proc name*(r: VscodeReadDirResult): cstring {.importcpp: "#[0]".}
-proc `name=`*(r: VscodeReadDirResult, n: cstring) {.importcpp: "(#[0]=#)".}
-proc fileType*(r: VscodeReadDirResult): VscodeFileType {.importcpp: "#[1]".}
+): Future[Array[VscodeReadDirResult]] {.importjs.}
+proc name*(r: VscodeReadDirResult): cstring {.importjs: "#[0]".}
+proc `name=`*(r: VscodeReadDirResult, n: cstring) {.importjs: "(#[0]=#)".}
+proc fileType*(r: VscodeReadDirResult): VscodeFileType {.importjs: "#[1]".}
 proc `fileType=`*(r: VscodeReadDirResult, f: VscodeFileType) {.
-  importcpp: "(#[1]=#)".}
+  importjs: "(#[1]=#)".}
 
 # WorkspaceConfiguration
-proc has*(c: VscodeWorkspaceConfiguration, section: cstring): bool {.importcpp.}
+proc has*(c: VscodeWorkspaceConfiguration, section: cstring): bool {.importjs.}
 proc get*(
   c: VscodeWorkspaceConfiguration,
   section: cstring
-): JsObject {.importcpp.}
+): JsObject {.importjs.}
 proc getBool*(
   c: VscodeWorkspaceConfiguration,
   section: cstring
-): bool {.importcpp: "#.get(@)".}
+): bool {.importjs: "#.get(@)".}
 proc getBool*(
   c: VscodeWorkspaceConfiguration,
   section: cstring,
   default: bool
-): bool {.importcpp: "#.get(@)".}
+): bool {.importjs: "#.get(@)".}
 proc getInt*(
   c: VscodeWorkspaceConfiguration,
   section: cstring
-): cint {.importcpp: "#.get(@)".}
+): cint {.importjs: "#.get(@)".}
 proc getStr*(
   c: VscodeWorkspaceConfiguration,
   section: cstring
-): cstring {.importcpp: "#.get(@)".}
+): cstring {.importjs: "#.get(@)".}
 proc getStrBoolMap*(
   c: VscodeWorkspaceConfiguration,
   section: cstring,
   default: JsAssoc[cstring, bool] = newJsAssoc[cstring, bool]()
-): JsAssoc[cstring, bool] {.importcpp: "#.get(@)".}
+): JsAssoc[cstring, bool] {.importjs: "#.get(@)".}
 
 # FileSystemWatcher
-proc dispose*(w: VscodeFileSystemWatcher): void {.importcpp.}
+proc dispose*(w: VscodeFileSystemWatcher): void {.importjs.}
 proc onDidCreate*(
   w: VscodeFileSystemWatcher,
   listener: proc(uri: VscodeUri): void
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc onDidDelete*(
   w: VscodeFileSystemWatcher,
   listener: proc(uri: VscodeUri): void
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 
 # Languages
 proc match*(langs: VscodeLanguages, selector: VscodeDocumentFilter,
-  doc: VscodeTextDocument): cint {.importcpp.}
+  doc: VscodeTextDocument): cint {.importjs.}
 proc createDiagnosticCollection*(
   langs: VscodeLanguages,
   selector: cstring
-): VscodeDiagnosticCollection {.importcpp.}
+): VscodeDiagnosticCollection {.importjs.}
 proc setLanguageConfiguration*(
   langs: VscodeLanguages,
   lang: cstring,
   config: VscodeLanguageConfiguration
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc registerCompletionItemProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeCompletionItemProvider,
   triggerCharacters: cstring
-): VscodeDisposable {.importcpp, varargs.}
+): VscodeDisposable {.importjs, varargs.}
 proc registerDefinitionProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeDefinitionProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerReferenceProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeReferenceProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerRenameProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeRenameProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerDocumentSymbolProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeDocumentSymbolProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerSignatureHelpProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeSignatureHelpProvider,
   triggerCharacters: cstring
-): VscodeDisposable {.importcpp, varargs.}
+): VscodeDisposable {.importjs, varargs.}
 proc registerHoverProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeHoverProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerDocumentFormattingEditProvider*(
   langs: VscodeLanguages,
   selector: VscodeDocumentFilter,
   provider: VscodeDocumentFormattingEditProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 proc registerWorkspaceSymbolProvider*(
   langs: VscodeLanguages,
   provider: VscodeWorkspaceSymbolProvider,
-): VscodeDisposable {.importcpp.}
+): VscodeDisposable {.importjs.}
 
 # Window
 proc createTerminal*(
   window: VscodeWindow,
   name: cstring
-): VscodeTerminal {.importcpp.}
+): VscodeTerminal {.importjs.}
 proc withProgress*[R](
   window: VscodeWindow,
   options: VscodeProgressOptions,
   task: proc(): Future[R]
-): Future[R] {.importcpp.}
+): Future[R] {.importjs.}
 proc withProgress*[R, P](
   window: VscodeWindow,
   options: VscodeProgressOptions,
   task: proc(progress: var VscodeProgress[P]): Future[R]
-): Future[R] {.importcpp.}
+): Future[R] {.importjs.}
 proc createStatusBarItem*(
   window: VscodeWindow,
   align: VscodeStatusBarAlignment,
   val: cdouble
-): VscodeStatusBarItem {.importcpp.}
+): VscodeStatusBarItem {.importjs.}
 proc createOutputChannel*(
   window: VscodeWindow,
   s: cstring
-): VscodeOutputChannel {.importcpp.}
+): VscodeOutputChannel {.importjs.}
 proc onDidCloseTerminal*(
   window: VscodeWindow,
   listener: proc(t: VscodeTerminal): void
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc onDidOpenTerminal*(
   window: VscodeWindow,
   listener: proc(t: VscodeTerminal): void
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc onDidChangeActiveTextEditor*[T](
   window: VscodeWindow,
   listener: proc(): void,
   thisArg: T,
   disposables: Array[VscodeDisposable]
-): VscodeDisposable {.importcpp, discardable.}
+): VscodeDisposable {.importjs, discardable.}
 proc showQuickPick*(
   window: VscodeWindow,
   items: Array[VscodeQuickPickItem]
-): Future[VscodeQuickPickItem] {.importcpp.}
+): Future[VscodeQuickPickItem] {.importjs.}
 
 # Terminal
-proc sendText*(term: VscodeTerminal, name: cstring): void {.importcpp.}
+proc sendText*(term: VscodeTerminal, name: cstring): void {.importjs.}
 proc sendText*(
   term: VscodeTerminal,
   name: cstring,
   addNewLine: bool
-): void {.importcpp.}
-proc show*(term: VscodeTerminal, preserveFocus: bool): void {.importcpp.}
+): void {.importjs.}
+proc show*(term: VscodeTerminal, preserveFocus: bool): void {.importjs.}
 
 # OutputChannel
-proc appendLine*(c: VscodeOutputChannel, line: cstring): void {.importcpp.}
+proc appendLine*(c: VscodeOutputChannel, line: cstring): void {.importjs.}
 
 # StatusBarItem
-proc show*(item: VscodeStatusBarItem): void {.importcpp.}
-proc hide*(item: VscodeStatusBarItem): void {.importcpp.}
-proc dispose*(item: VscodeStatusBarItem): void {.importcpp.}
+proc show*(item: VscodeStatusBarItem): void {.importjs.}
+proc hide*(item: VscodeStatusBarItem): void {.importjs.}
+proc dispose*(item: VscodeStatusBarItem): void {.importjs.}
 
 # TextDocument
-proc save*(doc: VscodeTextDocument): Future[bool] {.importcpp.}
-proc lineAt*(doc: VscodeTextDocument, line: cint): VscodeTextLine {.importcpp.}
-proc lineAt*(doc: VscodeTextDocument, position: VscodePosition): VscodeTextLine {.importcpp.}
-proc getText*(doc: VscodeTextDocument): cstring {.importcpp.}
-proc getText*(doc: VscodeTextDocument, `range`: VscodeRange): cstring {.importcpp.}
+proc save*(doc: VscodeTextDocument): Future[bool] {.importjs.}
+proc lineAt*(doc: VscodeTextDocument, line: cint): VscodeTextLine {.importjs.}
+proc lineAt*(doc: VscodeTextDocument, position: VscodePosition): VscodeTextLine {.importjs.}
+proc getText*(doc: VscodeTextDocument): cstring {.importjs.}
+proc getText*(doc: VscodeTextDocument, `range`: VscodeRange): cstring {.importjs.}
 proc getWordRangeAtPosition*(doc: VscodeTextDocument,
-  position: VscodePosition): VscodeRange {.importcpp.}
+  position: VscodePosition): VscodeRange {.importjs.}
 proc getWordRangeAtPosition*(doc: VscodeTextDocument, position: VscodePosition,
-  regex: RegExp): VscodeRange {.importcpp.}
+  regex: RegExp): VscodeRange {.importjs.}
 proc validateRange*(doc: VscodeTextDocument,
-  `range`: VscodeRange): VscodeRange {.importcpp.}
+  `range`: VscodeRange): VscodeRange {.importjs.}
 
 # Range
 proc with*(
   `range`: VscodeRange,
   start: VscodePosition = nil,
   `end`: VscodePosition = nil
-): VscodeRange {.importcpp: "#.with({start:#, end:#})".}
+): VscodeRange {.importjs: "#.with({start:#, end:#})".}
 
 # TextEdit
 
 ## static function, but the import in js is "dynamic" in the variable it's assigned to
 proc textEditReplace*(vscode: Vscode, `range`: VscodeRange,
-  content: cstring): VscodeTextEdit {.importcpp: "#.TextEdit.replace(@)".}
+  content: cstring): VscodeTextEdit {.importjs: "#.TextEdit.replace(@)".}
 
 # DiagnosticCollection
 # proc set*(c:VscodeDiagnosticCollection, entries:seq[])
@@ -849,14 +849,14 @@ proc textEditReplace*(vscode: Vscode, `range`: VscodeRange,
 # Events
 
 proc affectsConfiguration*(event: VscodeConfigurationChangeEvent,
-  section: cstring): bool {.importcpp.}
+  section: cstring): bool {.importjs.}
 
 # Memento
-proc get*[T](m: VscodeMemento, k: cstring): T {.importcpp.}
+proc get*[T](m: VscodeMemento, k: cstring): T {.importjs.}
   ## a value or nil
-proc get*[T](m: VscodeMemento, k: cstring, defaultVal: T): T {.importcpp.}
+proc get*[T](m: VscodeMemento, k: cstring, defaultVal: T): T {.importjs.}
   ## stored value or the default value
-proc update*[T](m: VscodeMemento, k: cstring, v: T): Future[void] {.importcpp.}
+proc update*[T](m: VscodeMemento, k: cstring, v: T): Future[void] {.importjs.}
   ## value must not contain cyclic references
 
 var vscode*: Vscode = require("vscode").to(Vscode)
