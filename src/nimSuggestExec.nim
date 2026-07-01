@@ -8,7 +8,7 @@ from std/dom import isNaN
 from std/strformat import fmt
 
 import tools/elrpc
-import nimsuggest/sexp
+import experimental/sexp
 
 import nimUtils
 from nimProjects import isProjectMode, toLocalFile,
@@ -308,6 +308,7 @@ proc execNimSuggest*(
             doc = doc.replace(newRegExp(
                 r"\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)", r"g"), "```$1\n$2\n```\n")
             doc = doc.replace(newRegExp(r"`([^\<`]+)\<([^\>]+)\>`\_", r"g"), r"\[$1\]\($2\)")
+          let parts = parts
           var item = NimSuggestResult{
               answerType: cstring(parts[0].getStr()),
               suggest: cstring(parts[1].getStr()),

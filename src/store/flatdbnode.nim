@@ -341,8 +341,9 @@ proc load(db: FlatDb): Future[void] =
     db.processCommands()
 
 proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb =
-  # if inmemory is set to true the filesystem gets not touched at all.
-  result = FlatDb()
+  # if `inmemory` is set to true the filesystem does not get touched at all.
+  let r = FlatDb()
+  result = r
   result.path = path
   result.inmemory = inmemory
   if not inmemory:
@@ -355,14 +356,14 @@ proc newFlatDb*(path: cstring, inmemory: bool = false): FlatDb =
     result.cmdBuffer = newArray[DbCmd]()
     result.compactTimeout = global.setInterval(
         proc(): void =
-      if result.loaded:
-        discard result.compact(),
+          if r.loaded:
+            discard r.compact(),
         result.autoCompactInterval
     )
     result.processTimeout = global.setInterval(
         proc(): void =
-      if result.loaded:
-        discard result.processCommands(),
+          if r.loaded:
+            discard r.processCommands(),
         10000 # 10 seconds
     )
     discard result.load()

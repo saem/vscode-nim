@@ -8,9 +8,9 @@ type
 
 # util
 proc newTextEncoder*(u: Util): TextEncoder {.
-    importcpp: "(new #.TextEncoder(@))".}
+    importjs: "(new #.TextEncoder(@))".}
 
 # TextEncoder
-proc encode*(enc: TextEncoder, content: cstring): seq[uint8] {.importcpp.}
+proc encode*(enc: TextEncoder, content: cstring): seq[uint8] {.importjs.}
 
 var util*: Util = require("util").toJs().to(Util)

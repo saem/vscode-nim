@@ -24,7 +24,7 @@ proc provideReferences*(
         doc.getText()
       ).then(proc(results: seq[NimSuggestResult]) =
         var references: seq[VscodeLocation] = @[]
-        if(not result.isNull() and not result.isUndefined()):
+        if(not results.isNull() and not results.isUndefined()):
           for item in results:
             references.add(item.location)
           resolve(references)

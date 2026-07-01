@@ -3,7 +3,7 @@ import platform/js/[jsNode, jsNodeNet, jsNodeUtil, jsString, jsPromise]
 import std/[jsffi, jscore, jsconsole]
 from std/strformat import fmt
 
-import nimsuggest/sexp
+import experimental/sexp
 
 # Reference: https://github.com/kiwanami/node-elrpc/blob/master/lib/elrpc.js
 
