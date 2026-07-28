@@ -35,7 +35,7 @@
         "@types/mocha": "^5.2.7",
         "@types/node": "^10.17.17",
         "@types/vscode": "^1.27.0",
-        "js-yaml": "^4.2.0",
+        "js-yaml": "^4.3.0",
         "npm-check-updates": "^19.3.2",
         "ovsx": "^0.2.1",
         "typescript": "^2.6.1",
